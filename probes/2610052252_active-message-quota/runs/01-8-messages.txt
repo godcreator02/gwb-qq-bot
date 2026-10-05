@@ -1,0 +1,11 @@
+第1条 HTTP 200 {"id":"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvHLRRN6sTNqa3rgQ.ireUdaS.j5A.f8ZhPB9WWnmLZqtL0TP.gR8GxqOrVN93gmbZA!!","timestamp":"2026-10-05T22:52:59+08:00",...}
+第2条 HTTP 200 {"id":"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvMgsG.IROJsz12LAkK8s5cH-wVygAobdZY6QWKNKRwH3xfizwd0I-QvONndRrGzXjQ!!","timestamp":"2026-10-05T22:53:00+08:00",...}
+第3条 HTTP 200 {"id":"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvKiyGMqpXAFaRtjehbPUk2wI.cfbBLKbph8FaB8C2EL0TP.gR8GxqOrVN93gmbZA!!","timestamp":"2026-10-05T22:53:01+08:00",...}
+第4条 HTTP 200 {"id":"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvDb9VfdkrfOZR2HNM1L-HT8AVGWA58DkcwEzT7-soBmNL0TP.gR8GxqOrVN93gmbZA!!","timestamp":"2026-10-05T22:53:02+08:00",...}
+第5条 HTTP 200 {"id":"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvP0DZ6wpLPx2BJ76qSOzV0oDDbr7m8dvkdriAcijVroFDj5Y2R2vX91so4avJ8xuEw!!","timestamp":"2026-10-05T22:53:03+08:00",...}
+第6条 HTTP 200 {"id":"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvL.0oj20K9dmySFtMeVpHUnBJd61MR87XE.dptFKSVSOL0TP.gR8GxqOrVN93gmbZA!!","timestamp":"2026-10-05T22:53:04+08:00",...}
+第7条 HTTP 200 {"id":"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvKEIH39TMzEbtcyBykWZm6530RXfu9ACZIe5pyV3LcTwL0TP.gR8GxqOrVN93gmbZA!!","timestamp":"2026-10-05T22:53:05+08:00",...}
+第8条 HTTP 200 {"id":"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvBHtwMMXm8E-WCDsdM20N2A2GvhCbyf6exhE.sF4ZL0TP.gR8GxqOrVN93gmbZA!!","timestamp":"2026-10-05T22:53:06+08:00",...}
+
+（ext_info 的 ref_idx 字段较长，省略为 ...；id 与 timestamp 为完整原样输出。）
+8/8 成功，无一条被拒。
