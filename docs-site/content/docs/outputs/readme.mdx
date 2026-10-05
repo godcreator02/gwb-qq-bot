@@ -7,8 +7,8 @@ description: 仓根 README.md 的正本
 
 `@godcreator/gwb-qq-bot` —— gwb 插件：QQ 官方机器人当通道。插件常驻连 QQ 开放平台的 WebSocket 网关，
 收私聊与群 @ 消息，把任务文本经命令总线转给运行中的 ZCode 桌面端执行（`zcode.create` / `zcode.send`），
-轮询 `zcode.status`，做完把回答末尾回推 QQ。按 openid 白名单只响应配置过的 QQ 用户。命令 2 条
-（`qq-bot.status` / `qq-bot.reconnect`）；skill 1 份。配置步骤、QQ 那头的指令、官方接口的限制，
+轮询 `zcode.status`，做完把回答末尾回推 QQ。按 openid 白名单只响应配置过的 QQ 用户。命令 3 条
+（`qq-bot.status` / `qq-bot.reconnect` / `qq-bot.probe` 实测官方限制的探针）；skill 1 份。配置步骤、QQ 那头的指令、官方接口的限制，
 都在随包说明书 `plugins/qq-bot/skills/qq-bot/SKILL.md`。
 
 仓是 pnpm workspace：**仓根是一个不发布的 private 包，自己没有代码**（`pnpm build` / `pnpm check`
@@ -23,8 +23,9 @@ description: 仓根 README.md 的正本
 - `src/qq-gateway.ts`：WebSocket 网关（Identify / Resume、心跳、退避重连、事件去重）
 - `src/routing.ts`：入站文本归一与指令识别、出站长文本分段与末尾摘录（纯函数，tests/routing.test.ts）
 - `src/reply-window.ts`：被动窗口与次数的选路（纯函数，tests/reply-window.test.ts）
+- `src/probe.ts`：实测官方接口限制的探针参数与消息生成（纯函数，tests/probe.test.ts）
 - `src/bridge.ts`：openid ↔ ZCode 会话的桥接（白名单、指令、派任务、轮询、回发）
-- `src/index.ts`：设置声明、两条命令、连接生命周期
+- `src/index.ts`：设置声明、三条命令、连接生命周期
 
 各文件的契约与钉码见文档站插件页（`docs-site/`）。
 

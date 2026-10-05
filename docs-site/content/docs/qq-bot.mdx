@@ -16,12 +16,14 @@ description: 功能、接口、依赖、不做的事——插件契约的现状
 
 ## 接口
 
-### 两条命令
+### 三条命令
 
 {/* ref file="../plugins/qq-bot/src/index.ts" lines="101-131" hash="00ff4d72a84a" blob="89036ada3bcd" */}
 
 上面就是全部命令：`qq-bot.status` 只读（查连接、配置、会话映射、最近被拒的 openid），
-`qq-bot.reconnect` 改连接状态（改完 AppID / AppSecret / 沙箱设置后调它）。
+`qq-bot.reconnect` 改连接状态（改完 AppID / AppSecret / 沙箱设置后调它），
+`qq-bot.probe` 是实测官方接口限制的探针（连发被动回复测同一消息能回几次、逐档发主动长消息测单条长度上限），
+会真的往最近一个白名单消息的来源发消息，只做实测用。
 
 ### 五个设置项
 
@@ -63,7 +65,7 @@ description: 功能、接口、依赖、不做的事——插件契约的现状
 
 | 依赖 | 类型 | 用途 |
 | --- | --- | --- |
-| `@godcreator/gwb-commands` | peer，硬依赖 | 登记自己的两条命令；经它调 `zcode.create` / `zcode.send` / `zcode.status`（按名字调，不 import gwb-zcode） |
+| `@godcreator/gwb-commands` | peer，硬依赖 | 登记自己的三条命令；经它调 `zcode.create` / `zcode.send` / `zcode.status`（按名字调，不 import gwb-zcode） |
 | `@godcreator/gwb-settings` | peer，硬依赖 | 声明与读取五个设置项，AppSecret 走凭据保管 |
 | `@godcreator/gwb-skills` | peer，可选 | 登记随包说明书 |
 | `@godcreator/gwb-zcode` | 运行时按名调用 | 派任务的执行端，没装时机器人把错误原文回给用户 |

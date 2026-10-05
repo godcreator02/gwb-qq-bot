@@ -8,7 +8,8 @@ description: 要配置或使用 QQ 官方机器人通道（在 QQ 上给 ZCode �
 
 gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网关收私聊与群 @ 消息，
 把任务文本经命令总线转给运行中的 ZCode 桌面端（`zcode.create` / `zcode.send`），轮询 `zcode.status`，
-做完把回答末尾回推 QQ。无界面，两条命令：`qq-bot.status` 查状态，`qq-bot.reconnect` 改完凭据后重连。
+做完把回答末尾回推 QQ。无界面，三条命令：`qq-bot.status` 查状态，`qq-bot.reconnect` 改完凭据后重连，
+`qq-bot.probe` 实测官方接口限制的探针（真发消息，只做实测用）。
 
 ## 配置（设置的 qq-bot 分区）
 
@@ -35,6 +36,10 @@ gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网
 - 用户可在 QQ 客户端关闭「接收机器人主动消息」，关了就只剩被动窗口
 - 回复里的链接：域名没在开放平台报备（要 ICP 备案）会被腾讯过滤，ZCode 回答里的链接可能显示不出
 - 新机器人默认启用 IP 白名单，沙箱是否拦截以实测为准；家宽 IP 变动后可能要在开放平台更新
+
+上面的次数与长度限制要用 `qq-bot.probe` 实测核对，别只信文档：先在 QQ 上发一条消息当触发源，
+`qq-bot.probe {"experiment":"count"}` 连发被动回复看第几条被拒（回执逐条带官方 code），
+`qq-bot.probe {"experiment":"length"}` 逐档发 600~2500 字的消息找单条长度边界（仅单聊；它走主动消息）。
 
 ## 前提与排障
 

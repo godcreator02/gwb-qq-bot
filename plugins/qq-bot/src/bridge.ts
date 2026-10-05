@@ -2,6 +2,7 @@
 
 import { isRecord, type IncomingMessage, type MessageScene, type QqLog } from './qq-protocol.js'
 import type { SendOutcome } from './qq-rest.js'
+import { countProbeContent, lengthProbeContent, type ProbeArgs } from './probe.js'
 import { matchCommand, normalizeIncoming, splitForSend, tailExcerpt } from './routing.js'
 import { chooseReplyRoute, type ReplyTrigger } from './reply-window.js'
 
@@ -38,6 +39,10 @@ const HELP_TEXT = [
   'ZCode 桌面端要开着；任务会真的在这台电脑上执行。',
 ].join('\n')
 
+const PROBE_SEND_GAP_MS = 500
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+
 interface UserSession {
   openid: string
   workspace: string
@@ -57,6 +62,8 @@ interface UserSession {
 export class ZcodeBridge {
   private readonly sessions = new Map<string, UserSession>()
   private readonly recentRejected: { openid: string; scene: string; at: string; excerpt: string }[] = []
+  /** 最近一条过了白名单的消息开的被动回复账本：指令回执、任务回执、结果推送、探针都记在它上面，探针按它续接序号 */
+  private lastIncoming: { trigger: ReplyTrigger; scene: MessageScene; target: string } | null = null
 
   constructor(private readonly deps: BridgeDeps) {}
 
@@ -71,6 +78,11 @@ export class ZcodeBridge {
       if (this.recentRejected.length > 10) this.recentRejected.shift()
       this.deps.log.info(`拒绝白名单外的 ${message.scene} 消息，openid=${message.senderOpenid}`)
       return
+    }
+    this.lastIncoming = {
+      trigger: { msgId: message.msgId, receivedAt: Date.now(), repliesSent: 0 },
+      scene: message.scene,
+      target: message.replyTarget,
     }
     const text = normalizeIncoming(message.content)
     if (text === '') return
@@ -139,9 +151,8 @@ export class ZcodeBridge {
       return
     }
     if (session.lastResult !== null && !session.resultDelivered) {
-      // 上一轮结果没送达（被动窗口过期被留了下来）：借这条消息的窗口补发
-      const trigger: ReplyTrigger = { msgId: message.msgId, receivedAt: Date.now(), repliesSent: 0 }
-      const delivered = await this.deliverSegments(session.lastResult, message.scene, message.replyTarget, trigger)
+      // 上一轮结果没送达（被动窗口过期被留了下来）：借这条消息的账本补发
+      const delivered = await this.deliverSegments(session.lastResult, message.scene, message.replyTarget, this.lastIncoming?.trigger ?? null)
       if (delivered) session.resultDelivered = true
       return
     }
@@ -195,7 +206,7 @@ export class ZcodeBridge {
     session.roundRunning = true
     session.lastResult = null
     session.resultDelivered = false
-    session.trigger = { msgId: message.msgId, receivedAt: Date.now(), repliesSent: 0 }
+    session.trigger = this.lastIncoming?.trigger ?? null
     session.dispatchScene = message.scene
     session.dispatchTarget = message.replyTarget
     this.deps.log.info(`openid=${session.openid} 的任务派给 ZCode 会话 ${taskId} 第 ${session.roundIndex} 轮`)
@@ -281,9 +292,37 @@ export class ZcodeBridge {
     return scene === 'c2c' ? this.deps.sendC2c(target, content, msgId, msgSeq) : this.deps.sendGroup(target, content, msgId, msgSeq)
   }
 
-  /** 指令与派任务回执的回复：永远以当前这条消息开一个新的被动窗口 */
+  /**
+   * 实测官方接口限制的探针。count 从最近触发消息的账本续着序号连发被动回复，被动失败也不降级、
+   * 不提前停，把整条失败曲线带回来；length 逐档发主动长消息找单条长度边界（主动消息耗群聊月度配额，群聊直接拒）
+   */
+  async probe(args: ProbeArgs): Promise<{ experiment: 'count' | 'length'; scene: MessageScene; results: unknown[] }> {
+    if (this.lastIncoming === null) throw new Error('还没有触发消息：先在 QQ 上给机器人发一条消息，再跑探针')
+    const { scene, target, trigger } = this.lastIncoming
+    if (args.experiment === 'length' && scene === 'group') throw new Error('length 实验发主动消息，群聊会耗每月主动配额，只在单聊测')
+    const results: unknown[] = []
+    if (args.experiment === 'count') {
+      for (let index = 1; index <= args.sends; index++) {
+        const msgSeq = trigger.repliesSent
+        const outcome = await this.send(scene, target, countProbeContent(index, args.sends, msgSeq), trigger.msgId, msgSeq)
+        trigger.repliesSent += 1
+        results.push({ index, msgSeq, ...outcome })
+        await sleep(PROBE_SEND_GAP_MS)
+      }
+      return { experiment: 'count', scene, results }
+    }
+    for (const chars of args.chars) {
+      const content = lengthProbeContent(chars)
+      const outcome = await this.send(scene, target, content, undefined, undefined)
+      results.push({ chars, contentChars: content.length, ...outcome })
+      await sleep(PROBE_SEND_GAP_MS)
+    }
+    return { experiment: 'length', scene, results }
+  }
+
+  /** 指令与派任务回执的回复：走这条消息在 handleIncoming 里开的账本 */
   private async replyToNewMessage(session: UserSession, message: IncomingMessage, text: string): Promise<void> {
-    await this.deliverSegments(text, message.scene, message.replyTarget, { msgId: message.msgId, receivedAt: Date.now(), repliesSent: 0 })
+    await this.deliverSegments(text, message.scene, message.replyTarget, this.lastIncoming?.trigger ?? null)
   }
 
   /** 派任务成功的回执走这一轮的 trigger，与结果推送共用被动次数 */

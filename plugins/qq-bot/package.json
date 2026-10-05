@@ -1,6 +1,6 @@
 {
   "name": "@godcreator/gwb-qq-bot",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "QQ 官方机器人当通道：机器人收私聊与群 @ 消息，把任务文本转给运行中的 ZCode 桌面端执行，轮询结果后回推 QQ；按 openid 白名单只响应配置过的 QQ 用户。命令 2 条；skill 1 份。",
   "type": "module",
   "exports": {

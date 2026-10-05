@@ -17,7 +17,7 @@ export interface SendMessageBody {
   msgSeq?: number
 }
 
-export type SendOutcome = { ok: true; id: string } | { ok: false; status: number; message: string }
+export type SendOutcome = { ok: true; id: string } | { ok: false; status: number; code?: number; message: string }
 
 export class QqRestClient {
   private token: string | null = null
@@ -91,8 +91,8 @@ export class QqRestClient {
   private async postSend(path: string, body: SendMessageBody): Promise<SendOutcome> {
     const response = await this.request('POST', path, { msg_type: 0, ...body })
     if (!response.ok) {
-      this.log.warn(`POST ${path} 失败：HTTP ${response.status} ${response.message}`)
-      return { ok: false, status: response.status, message: response.message }
+      this.log.warn(`POST ${path} 失败：HTTP ${response.status} ${response.code ?? ''} ${response.message}`)
+      return { ok: false, status: response.status, code: response.code, message: response.message }
     }
     const id = isRecord(response.body) ? response.body['id'] : undefined
     if (typeof id !== 'string') throw new Error(`${path} 回执缺 id：${JSON.stringify(response.body)}`)
@@ -109,7 +109,7 @@ export class QqRestClient {
     method: string,
     path: string,
     body: Record<string, unknown> | undefined,
-  ): Promise<{ ok: boolean; status: number; message: string; body: unknown }> {
+  ): Promise<{ ok: boolean; status: number; code?: number; message: string; body: unknown }> {
     const token = await this.getAccessToken()
     const raw = await fetch(this.apiBase() + path, {
       method,
@@ -118,6 +118,7 @@ export class QqRestClient {
     })
     const parsed: unknown = await raw.json().catch(() => null)
     const message = isRecord(parsed) && typeof parsed['message'] === 'string' ? parsed['message'] : JSON.stringify(parsed)
-    return { ok: raw.ok, status: raw.status, message, body: parsed }
+    const code = isRecord(parsed) && typeof parsed['code'] === 'number' ? parsed['code'] : undefined
+    return { ok: raw.ok, status: raw.status, code, message, body: parsed }
   }
 }

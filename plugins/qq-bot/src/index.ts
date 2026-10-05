@@ -6,6 +6,7 @@ import type {} from '@godcreator/gwb-skills'
 import { ZcodeBridge } from './bridge.js'
 import { QqGateway } from './qq-gateway.js'
 import { QqRestClient } from './qq-rest.js'
+import { parseProbeArgs } from './probe.js'
 
 /**
  * node 侧：QQ 官方机器人当通道，把私聊 / 群 @ 的任务文本转给 ZCode 桌面端执行，轮询结果回推。
@@ -132,6 +133,23 @@ export function apply(ctx: GwbContext): void {
       gateway.stop()
       if (!startIfConfigured()) throw new Error('AppID / AppSecret 没配置：先到设置的 qq-bot 分区填好再重连')
       return { ok: true, data: { gateway: gateway.currentState } }
+    },
+  )
+
+  commands.register(
+    {
+      name: 'qq-bot.probe',
+      description:
+        '实测 QQ 官方接口限制的探针，会真的往最近一个白名单消息的来源发消息：count 连发被动回复测同一消息能回几次；length 逐档发主动长消息测单条长度上限',
+      usage:
+        '参数 { experiment: "count"|"length", sends?: number, chars?: number[] }。要求先在 QQ 上给机器人发过一条消息（探针以它为触发源）。' +
+        'count：sends 缺省 6，从该消息已用次数接着连发被动回复，失败也发完，回执逐条带 ok / HTTP 状态 / 官方 code / message；' +
+        'length：chars 缺省 [600,680,700,1000,1500,2000,2500]（680 与 700 一档之差分辨限制按字节还是按字符），逐档发主动消息，仅单聊（群聊会耗每月主动配额，直接报错）。' +
+        '回 { experiment, scene, results: [...] }。只做实测用，别在日常任务里调',
+      effect: 'external',
+    },
+    async (raw) => {
+      return { ok: true, data: await bridge.probe(parseProbeArgs(raw)) }
     },
   )
 
