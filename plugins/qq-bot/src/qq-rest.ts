@@ -56,9 +56,17 @@ export class QqRestClient {
     })
     const body: unknown = await response.json().catch(() => null)
     const token = isRecord(body) && typeof body['access_token'] === 'string' ? body['access_token'] : null
-    const expiresIn = isRecord(body) && typeof body['expires_in'] === 'number' ? body['expires_in'] : null
+    // 官方回的 expires_in 是数字字符串（如 "5787"），两种都收
+    const rawExpiresIn = isRecord(body) ? body['expires_in'] : null
+    const expiresIn =
+      typeof rawExpiresIn === 'number'
+        ? rawExpiresIn
+        : typeof rawExpiresIn === 'string' && rawExpiresIn !== '' && Number.isFinite(Number(rawExpiresIn))
+          ? Number(rawExpiresIn)
+          : null
+    // 回执里带 access_token，不能整个进日志
     if (!response.ok || token === null || expiresIn === null) {
-      throw new Error(`拿 access token 失败：HTTP ${response.status} ${JSON.stringify(body)}`)
+      throw new Error(`拿 access token 失败：HTTP ${response.status}，回执缺 access_token 或 expires_in（code=${String(isRecord(body) ? body['code'] : null)}）`)
     }
     this.token = token
     this.tokenExpiresAt = Date.now() + expiresIn * 1000
