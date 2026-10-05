@@ -29,7 +29,7 @@
 仓根：`pnpm build`、`pnpm check`（typecheck + oxlint + vitest）。
 
 - 插件在隔离 home 里验证：`devkit.dev {"home":"<home 名>","dir":"<仓根>","packages":["plugins/qq-bot"]}`；
-  全链路（QQ → ZCode → QQ）要在沙箱机器人上实测，步骤见 skill「qq-bot」
+  全链路（QQ → ZCode → QQ）用专用测试机器人实测，新版后台设置 sandbox=false，步骤见 skill「qq-bot」
 - 发版 `devkit.release {"dir":"<仓根>","packages":["plugins/qq-bot"]}`，升版本号前读说明书「gwb-release」
 
 写插件读 skill「gwb-devkit」。

@@ -23,13 +23,13 @@ export interface ReplyTrigger {
 
 export function chooseReplyRoute(scene: MessageScene, trigger: ReplyTrigger | null, now: number): ReplyRoute {
   if (trigger === null) {
-    // 没有触发消息（主动通知）：群主动消息每月每群只有约 4 条，不用，等用户来 /状态 查
+    // 群聊只做被动回复，没有触发消息就等用户来 /状态 查。
     return scene === 'c2c' ? { kind: 'active', reason: 'no-trigger' } : { kind: 'none', reason: 'no-trigger' }
   }
   const windowMs = scene === 'c2c' ? C2C_PASSIVE_WINDOW_MS : GROUP_PASSIVE_WINDOW_MS
   const maxReplies = scene === 'c2c' ? C2C_MAX_PASSIVE_REPLIES : GROUP_MAX_PASSIVE_REPLIES
   const exhausted: ReplyExhaustReason | null = now - trigger.receivedAt > windowMs ? 'window-elapsed' : trigger.repliesSent >= maxReplies ? 'replies-used-up' : null
-  if (exhausted === null) return { kind: 'passive', msgId: trigger.msgId, msgSeq: trigger.repliesSent }
-  // 群聊被动窗口极短、主动配额按月计，过期一律不再推，把结果留着等 /状态
+  if (exhausted === null) return { kind: 'passive', msgId: trigger.msgId, msgSeq: trigger.repliesSent + 1 }
+  // 群聊被动窗口过期不再推，把结果留着等 /状态。
   return scene === 'c2c' ? { kind: 'active', reason: exhausted } : { kind: 'none', reason: exhausted }
 }

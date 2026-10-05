@@ -85,7 +85,10 @@ export class ZcodeBridge {
       target: message.replyTarget,
     }
     const text = normalizeIncoming(message.content)
-    if (text === '') return
+    if (text === '') {
+      this.deps.log.info(`QQ ${message.scene} 消息正文为空，忽略；请在 @ 后附上 /帮助 或任务文本`)
+      return
+    }
     const session = this.sessionFor(message.senderOpenid)
     const command = matchCommand(text)
     if (command === null) {
@@ -281,7 +284,7 @@ export class ZcodeBridge {
         allSent = false
         break
       }
-      // 群聊的 none：主动配额每月每群只有约 4 条，不拿来发结果，留着等 /状态
+      // 群聊的 none：本插件不发群主动消息，留着等 /状态。
       allSent = false
       break
     }
@@ -294,16 +297,16 @@ export class ZcodeBridge {
 
   /**
    * 实测官方接口限制的探针。count 从最近触发消息的账本续着序号连发被动回复，被动失败也不降级、
-   * 不提前停，把整条失败曲线带回来；length 逐档发主动长消息找单条长度边界（主动消息耗群聊月度配额，群聊直接拒）
+   * 不提前停，把整条失败曲线带回来；length 逐档发主动长消息找单条长度边界（仅单聊，群聊直接拒）
    */
   async probe(args: ProbeArgs): Promise<{ experiment: 'count' | 'length'; scene: MessageScene; results: unknown[] }> {
     if (this.lastIncoming === null) throw new Error('还没有触发消息：先在 QQ 上给机器人发一条消息，再跑探针')
     const { scene, target, trigger } = this.lastIncoming
-    if (args.experiment === 'length' && scene === 'group') throw new Error('length 实验发主动消息，群聊会耗每月主动配额，只在单聊测')
+    if (args.experiment === 'length' && scene === 'group') throw new Error('length 实验发主动消息，只在单聊测')
     const results: unknown[] = []
     if (args.experiment === 'count') {
       for (let index = 1; index <= args.sends; index++) {
-        const msgSeq = trigger.repliesSent
+        const msgSeq = trigger.repliesSent + 1
         const outcome = await this.send(scene, target, countProbeContent(index, args.sends, msgSeq), trigger.msgId, msgSeq)
         trigger.repliesSent += 1
         results.push({ index, msgSeq, ...outcome })

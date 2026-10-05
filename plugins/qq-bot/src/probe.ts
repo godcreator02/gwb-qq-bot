@@ -41,7 +41,7 @@ export function parseProbeArgs(raw: unknown): ProbeArgs {
 }
 
 export function countProbeContent(index: number, total: number, msgSeq: number): string {
-  return `probe-count 第 ${index}/${total} 条（msg_seq=${msgSeq}）：实测被动回复次数上限，收到本条说明第 ${msgSeq + 1} 次被动仍可用`
+  return `probe-count 第 ${index}/${total} 条（msg_seq=${msgSeq}）：实测被动回复次数上限，收到本条说明第 ${msgSeq} 次被动仍可用`
 }
 
 export function lengthProbeContent(chars: number): string {

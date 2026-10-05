@@ -8,7 +8,7 @@ description: 功能、接口、依赖、不做的事——插件契约的现状
 ## 功能
 
 一条消息的完整旅程：QQ 手机端发出文本 → 腾讯投递到 WebSocket 网关（插件常驻这条出站长连接，
-心跳、断线退避重连、按 msg_id 去重）→ 白名单校验 → 指令（`/帮助` 之类）就地回答，其余文本
+心跳、断线退避重连、按 msg_id + msg_seq 去重）→ 白名单校验 → 指令（`/帮助` 之类）就地回答，其余文本
 作为任务派给 ZCode → 每 60 秒轮询一次 → 做完把回答末尾（截约 600 字，总结在末尾，中间过程顺带截掉）
 按被动回复窗口的规则回推 QQ，加上派单回执固定占 2 次被动额度（单聊每条消息上限 4 次）。
 
@@ -18,7 +18,7 @@ description: 功能、接口、依赖、不做的事——插件契约的现状
 
 ### 三条命令
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="101-131" hash="00ff4d72a84a" blob="89036ada3bcd" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="104-134" hash="00ff4d72a84a" blob="62722132f018" */}
 
 上面就是全部命令：`qq-bot.status` 只读（查连接、配置、会话映射、最近被拒的 openid），
 `qq-bot.reconnect` 改连接状态（改完 AppID / AppSecret / 沙箱设置后调它），
@@ -27,39 +27,46 @@ description: 功能、接口、依赖、不做的事——插件契约的现状
 
 ### 五个设置项
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="18-22" hash="5702edc9e334" blob="89036ada3bcd" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="19-23" hash="5702edc9e334" blob="62722132f018" */}
 
 键名就这五个。白名单（`allowed-openids`）每次消息现读，改完即时生效；凭据三项只在建立连接时读，
 改完要重连。AppSecret 声明为 secret，走凭据保管，不经会话。
 
 ### 注入的服务
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="16-16" hash="64c548c04fe0" blob="89036ada3bcd" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="17-17" hash="64c548c04fe0" blob="62722132f018" */}
 
 命令总线与设置是硬依赖（顶层 inject）；说明书服务（gwbSkills）只局部注入。
 
 ### 白名单：按人，不按群
 
-{/* ref file="../plugins/qq-bot/src/bridge.ts" lines="62-69" hash="6fae9d21dd65" blob="0b8bd7a07d3a" */}
+{/* ref file="../plugins/qq-bot/src/bridge.ts" lines="70-77" hash="6fae9d21dd65" blob="729aab2e9093" */}
 
 名单外的消息静默拒绝、只记日志与 `recentRejected`（最多留 10 条）——不回消息，不给探测者任何反馈。
-群聊场景白名单管的是发消息的人（member_openid），不是群：同一个人在哪个群、私聊还是群里，
-映射到同一个 ZCode 会话。官方 API 给的 openid 每个机器人各不相同、不是 QQ 号，
+群聊场景白名单管的是发消息的人（member_openid），不是群；同一个 openid 映射到同一个 ZCode 会话。
+私聊与群聊标识是否一致以实际事件为准，不做身份推断。官方 API 给的 openid 每个机器人各不相同、不是 QQ 号，
 首次绑定靠 `recentRejected` 里抄 openid。
 
 ### 回复路怎么选
 
-{/* ref file="../plugins/qq-bot/src/reply-window.ts" lines="1-35" hash="9855fc8ef3a2" blob="9fbe0c949f76" */}
+{/* ref file="../plugins/qq-bot/src/reply-window.ts" lines="1-35" hash="e5052c799b00" blob="b0a055f47ece" */}
 
-窗口与次数是腾讯侧的硬限制，插件只做选择：群聊过 5 分钟窗口或次数用完就不再推（主动消息每月每群
-约 4 条，不拿来发结果，留着等用户 `/状态` 来取）；单聊有 60 分钟窗口、任务基本都在里面，
+窗口与次数是腾讯侧的硬限制，插件只做选择：群聊过 5 分钟窗口或次数用完就不再推，等用户 `/状态` 来取；单聊有 60 分钟窗口、任务基本都在里面，
 窗口外的结果降级为主动消息再试一次。选路逻辑是纯函数，测试在 `tests/reply-window.test.ts`。
 
 ### 订阅哪些事件
 
-{/* ref file="../plugins/qq-bot/src/qq-protocol.ts" lines="20-24" hash="e58c45c285ec" blob="e44f101f3ea3" */}
+{/* ref file="../plugins/qq-bot/src/qq-protocol.ts" lines="19-23" hash="ca492ee9904d" blob="0d39f6edc1db" */}
 
-只订群 @ 与 C2C 单聊两个事件位，频道那套一概不订。
+群 @ 与 C2C 单聊共用 `GROUP_AND_C2C_EVENT (1 << 25)`，频道事件不订阅。
+网关在解析和白名单之前记录事件类型；停止与重连会关闭旧连接和心跳，恢复会话收到 `RESUMED` 后重新报告在线。
+
+### REST 与环境
+
+当前官方鉴权与业务接口使用 `api.bot.qq.com`。新版后台配置的机器人应设 `sandbox=false`；
+旧 `sandbox=true` 设置仅兼容历史沙箱，不自动改变已有 home 的连接环境。
+回复请求在 `src/qq-rest.ts` 显式转换成 `msg_id` / `msg_seq`，业务错误兼容 `err_code` 与 `code`。
+协议和连接回归分别在 `tests/qq-rest.test.ts` 与 `tests/qq-gateway.test.ts`。
 
 ## 依赖
 

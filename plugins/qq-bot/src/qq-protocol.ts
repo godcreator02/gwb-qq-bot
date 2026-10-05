@@ -16,15 +16,15 @@ export const OP_INVALID_SESSION = 9
 export const OP_HELLO = 10
 export const OP_HEARTBEAT_ACK = 11
 
-/** 订阅的事件位：群 @ 消息（GROUP_AT_MESSAGES）与 C2C 单聊消息（C2C_DEFAULT_RELATIONSHIP） */
-export const INTENT_GROUP_AT_MESSAGES = 1 << 0
-export const INTENT_C2C_MESSAGES = 1 << 25
+/** 官方 GROUP_AND_C2C_EVENT：群 @、单聊及群/好友关系事件共用这一位 */
+export const INTENT_GROUP_AND_C2C_EVENT = 1 << 25
 
 export function intentsNumber(): number {
-  return INTENT_GROUP_AT_MESSAGES | INTENT_C2C_MESSAGES
+  return INTENT_GROUP_AND_C2C_EVENT
 }
 
 export const EVENT_READY = 'READY'
+export const EVENT_RESUMED = 'RESUMED'
 export const EVENT_C2C_MESSAGE_CREATE = 'C2C_MESSAGE_CREATE'
 export const EVENT_GROUP_AT_MESSAGE_CREATE = 'GROUP_AT_MESSAGE_CREATE'
 
@@ -34,6 +34,8 @@ export type MessageScene = 'c2c' | 'group'
 export interface IncomingMessage {
   scene: MessageScene
   msgId: string
+  /** 入站投递序号，与 msgId 一起去重；和出站回复的 msg_seq 分别计数 */
+  msgSeq?: number
   senderOpenid: string
   replyTarget: string
   content: string
@@ -50,15 +52,18 @@ function readEventInto(raw: unknown, scene: MessageScene): IncomingMessage | nul
   const content = raw['content']
   const author = raw['author']
   if (typeof msgId !== 'string' || typeof content !== 'string' || !isRecord(author)) return null
+  const rawSeq = raw['msg_seq']
+  if (rawSeq !== undefined && (typeof rawSeq !== 'number' || !Number.isInteger(rawSeq))) return null
+  const msgSeq = rawSeq as number | undefined
   if (scene === 'c2c') {
     const openid = author['id']
     if (typeof openid !== 'string') return null
-    return { scene, msgId, senderOpenid: openid, replyTarget: openid, content }
+    return { scene, msgId, msgSeq, senderOpenid: openid, replyTarget: openid, content }
   }
   const groupOpenid = raw['group_openid']
   const memberOpenid = author['member_openid']
   if (typeof groupOpenid !== 'string' || typeof memberOpenid !== 'string') return null
-  return { scene, msgId, senderOpenid: memberOpenid, replyTarget: groupOpenid, content }
+  return { scene, msgId, msgSeq, senderOpenid: memberOpenid, replyTarget: groupOpenid, content }
 }
 
 export function readC2cMessageEvent(raw: unknown): IncomingMessage | null {

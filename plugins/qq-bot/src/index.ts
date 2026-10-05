@@ -45,7 +45,7 @@ export function apply(ctx: GwbContext): void {
     key: KEY_SANDBOX,
     title: '沙箱环境',
     type: 'boolean',
-    description: 'true 连沙箱环境（sandbox.api.sgroup.qq.com，只收发沙箱配置里的测试用户与测试群的消息）；false 连正式环境。改了要调 qq-bot.reconnect 才生效',
+    description: 'false 使用当前官方 api.bot.qq.com；true 仅兼容旧 sandbox.api.sgroup.qq.com 沙箱。新版后台的开发体验号码也用 false。改了要调 qq-bot.reconnect 才生效',
     default: true,
   })
   settings.define({
@@ -83,7 +83,9 @@ export function apply(ctx: GwbContext): void {
   })
   const gateway = new QqGateway(rest, log, {
     onMessage: (message) => {
-      void bridge.handleIncoming(message)
+      void bridge.handleIncoming(message).catch((error: unknown) => {
+        log.error(`QQ ${message.scene} 消息处理失败：${String(error)}`)
+      })
     },
     onState: (state, detail) => {
       log.info(`QQ 网关状态：${state}${detail === undefined ? '' : `（${detail}）`}`)
@@ -131,6 +133,7 @@ export function apply(ctx: GwbContext): void {
     },
     async () => {
       gateway.stop()
+      rest.resetAuth()
       if (!startIfConfigured()) throw new Error('AppID / AppSecret 没配置：先到设置的 qq-bot 分区填好再重连')
       return { ok: true, data: { gateway: gateway.currentState } }
     },
@@ -144,7 +147,7 @@ export function apply(ctx: GwbContext): void {
       usage:
         '参数 { experiment: "count"|"length", sends?: number, chars?: number[] }。要求先在 QQ 上给机器人发过一条消息（探针以它为触发源）。' +
         'count：sends 缺省 6，从该消息已用次数接着连发被动回复，失败也发完，回执逐条带 ok / HTTP 状态 / 官方 code / message；' +
-        'length：chars 缺省 [600,680,700,1000,1500,2000,2500]（680 与 700 一档之差分辨限制按字节还是按字符），逐档发主动消息，仅单聊（群聊会耗每月主动配额，直接报错）。' +
+        'length：chars 缺省 [600,680,700,1000,1500,2000,2500]（680 与 700 一档之差分辨限制按字节还是按字符），逐档发主动消息，仅单聊（群聊直接报错）。' +
         '回 { experiment, scene, results: [...] }。只做实测用，别在日常任务里调',
       effect: 'external',
     },

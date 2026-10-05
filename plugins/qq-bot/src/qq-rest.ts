@@ -3,9 +3,9 @@
 import { isRecord, type QqLog } from './qq-protocol.js'
 
 /** 换 access token 的端点不分沙箱与正式环境 */
-const TOKEN_URL = 'https://bots.qq.com/app/getAppAccessToken'
+const TOKEN_URL = 'https://api.bot.qq.com/app/getAppAccessToken'
 const SANDBOX_API_BASE = 'https://sandbox.api.sgroup.qq.com'
-const PRODUCTION_API_BASE = 'https://api.sgroup.qq.com'
+const PRODUCTION_API_BASE = 'https://api.bot.qq.com'
 
 /** 提前这么多毫秒刷新，避免拿着临期 token 发请求 */
 const TOKEN_REFRESH_LEAD_MS = 120_000
@@ -23,6 +23,7 @@ export class QqRestClient {
   private token: string | null = null
   private tokenExpiresAt = 0
   private tokenFetch: Promise<string> | null = null
+  private tokenEpoch = 0
 
   constructor(
     private readonly appId: () => string,
@@ -35,17 +36,26 @@ export class QqRestClient {
     return this.sandbox() ? SANDBOX_API_BASE : PRODUCTION_API_BASE
   }
 
+  /** 显式重连时重新读取凭据；旧请求即使晚返回也不能覆盖新缓存。 */
+  resetAuth(): void {
+    this.tokenEpoch++
+    this.token = null
+    this.tokenExpiresAt = 0
+    this.tokenFetch = null
+  }
+
   async getAccessToken(): Promise<string> {
     if (this.token !== null && this.tokenExpiresAt > Date.now() + TOKEN_REFRESH_LEAD_MS) return this.token
     if (this.tokenFetch === null) {
-      this.tokenFetch = this.fetchAccessToken().finally(() => {
-        this.tokenFetch = null
+      const pending = this.fetchAccessToken(this.tokenEpoch).finally(() => {
+        if (this.tokenFetch === pending) this.tokenFetch = null
       })
+      this.tokenFetch = pending
     }
     return this.tokenFetch
   }
 
-  private async fetchAccessToken(): Promise<string> {
+  private async fetchAccessToken(epoch: number): Promise<string> {
     const appId = this.appId()
     const appSecret = this.appSecret()
     if (appId === '' || appSecret === '') throw new Error('QQ 机器人的 app-id 或 app-secret 没配置，拿不到 access token')
@@ -68,8 +78,10 @@ export class QqRestClient {
     if (!response.ok || token === null || expiresIn === null) {
       throw new Error(`拿 access token 失败：HTTP ${response.status}，回执缺 access_token 或 expires_in（code=${String(isRecord(body) ? body['code'] : null)}）`)
     }
-    this.token = token
-    this.tokenExpiresAt = Date.now() + expiresIn * 1000
+    if (epoch === this.tokenEpoch) {
+      this.token = token
+      this.tokenExpiresAt = Date.now() + expiresIn * 1000
+    }
     return token
   }
 
@@ -89,13 +101,18 @@ export class QqRestClient {
   }
 
   private async postSend(path: string, body: SendMessageBody): Promise<SendOutcome> {
-    const response = await this.request('POST', path, { msg_type: 0, ...body })
+    const response = await this.request('POST', path, {
+      msg_type: 0,
+      content: body.content,
+      msg_id: body.msgId,
+      msg_seq: body.msgSeq,
+    })
     if (!response.ok) {
       this.log.warn(`POST ${path} 失败：HTTP ${response.status} ${response.code ?? ''} ${response.message}`)
       return { ok: false, status: response.status, code: response.code, message: response.message }
     }
     const id = isRecord(response.body) ? response.body['id'] : undefined
-    if (typeof id !== 'string') throw new Error(`${path} 回执缺 id：${JSON.stringify(response.body)}`)
+    if (typeof id !== 'string') throw new Error(`${path} 回执缺 id`)
     return { ok: true, id }
   }
 
@@ -118,7 +135,10 @@ export class QqRestClient {
     })
     const parsed: unknown = await raw.json().catch(() => null)
     const message = isRecord(parsed) && typeof parsed['message'] === 'string' ? parsed['message'] : JSON.stringify(parsed)
-    const code = isRecord(parsed) && typeof parsed['code'] === 'number' ? parsed['code'] : undefined
-    return { ok: raw.ok, status: raw.status, code, message, body: parsed }
+    // 通用 API 使用 err_code；部分现网接口和鉴权接口仍返回 code。
+    const code = isRecord(parsed)
+      ? typeof parsed['err_code'] === 'number' ? parsed['err_code'] : typeof parsed['code'] === 'number' ? parsed['code'] : undefined
+      : undefined
+    return { ok: raw.ok && (code === undefined || code === 0), status: raw.status, code, message, body: parsed }
   }
 }

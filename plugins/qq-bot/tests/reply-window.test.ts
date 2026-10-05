@@ -4,15 +4,15 @@ import { C2C_PASSIVE_WINDOW_MS, GROUP_PASSIVE_WINDOW_MS, chooseReplyRoute } from
 const NOW = 1_700_000_000_000
 
 describe('chooseReplyRoute', () => {
-  it('窗口内且次数没用完：走被动，msgSeq 从 0 起', () => {
+  it('窗口内且次数没用完：走被动，msgSeq 从 1 起', () => {
     const trigger = { msgId: 'msg-1', receivedAt: NOW, repliesSent: 0 }
-    expect(chooseReplyRoute('c2c', trigger, NOW + 1_000)).toEqual({ kind: 'passive', msgId: 'msg-1', msgSeq: 0 })
-    expect(chooseReplyRoute('group', trigger, NOW + 1_000)).toEqual({ kind: 'passive', msgId: 'msg-1', msgSeq: 0 })
+    expect(chooseReplyRoute('c2c', trigger, NOW + 1_000)).toEqual({ kind: 'passive', msgId: 'msg-1', msgSeq: 1 })
+    expect(chooseReplyRoute('group', trigger, NOW + 1_000)).toEqual({ kind: 'passive', msgId: 'msg-1', msgSeq: 1 })
   })
 
   it('次数随 repliesSent 递增', () => {
     const trigger = { msgId: 'msg-1', receivedAt: NOW, repliesSent: 2 }
-    expect(chooseReplyRoute('c2c', trigger, NOW + 1_000)).toEqual({ kind: 'passive', msgId: 'msg-1', msgSeq: 2 })
+    expect(chooseReplyRoute('c2c', trigger, NOW + 1_000)).toEqual({ kind: 'passive', msgId: 'msg-1', msgSeq: 3 })
   })
 
   it('群聊过 5 分钟窗口：不再推（结果留着等 /状态）', () => {
