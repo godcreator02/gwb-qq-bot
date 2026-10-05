@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  // include 要列出每一个源文件：oxlint --type-aware 只对 include 里的文件套用这份 compilerOptions，
+  // 只靠 import 带进来的文件里 node 全局与 `node:*` 都成了 error 类型
+  "include": ["src/**/*.ts", "build.ts", "tests/**/*.ts"]
+}

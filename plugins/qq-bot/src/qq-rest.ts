@@ -1,0 +1,115 @@
+/** REST 侧：access token 的取用与刷新、发送消息、查网关地址。凭据与沙箱开关经函数每次现读，改设置后重连即生效 */
+
+import { isRecord, type QqLog } from './qq-protocol.js'
+
+/** 换 access token 的端点不分沙箱与正式环境 */
+const TOKEN_URL = 'https://bots.qq.com/app/getAppAccessToken'
+const SANDBOX_API_BASE = 'https://sandbox.api.sgroup.qq.com'
+const PRODUCTION_API_BASE = 'https://api.sgroup.qq.com'
+
+/** 提前这么多毫秒刷新，避免拿着临期 token 发请求 */
+const TOKEN_REFRESH_LEAD_MS = 120_000
+
+export interface SendMessageBody {
+  content: string
+  /** 被动回复带 msgId 与递增的 msgSeq；主动消息不带 */
+  msgId?: string
+  msgSeq?: number
+}
+
+export type SendOutcome = { ok: true; id: string } | { ok: false; status: number; message: string }
+
+export class QqRestClient {
+  private token: string | null = null
+  private tokenExpiresAt = 0
+  private tokenFetch: Promise<string> | null = null
+
+  constructor(
+    private readonly appId: () => string,
+    private readonly appSecret: () => string,
+    private readonly sandbox: () => boolean,
+    private readonly log: QqLog,
+  ) {}
+
+  private apiBase(): string {
+    return this.sandbox() ? SANDBOX_API_BASE : PRODUCTION_API_BASE
+  }
+
+  async getAccessToken(): Promise<string> {
+    if (this.token !== null && this.tokenExpiresAt > Date.now() + TOKEN_REFRESH_LEAD_MS) return this.token
+    if (this.tokenFetch === null) {
+      this.tokenFetch = this.fetchAccessToken().finally(() => {
+        this.tokenFetch = null
+      })
+    }
+    return this.tokenFetch
+  }
+
+  private async fetchAccessToken(): Promise<string> {
+    const appId = this.appId()
+    const appSecret = this.appSecret()
+    if (appId === '' || appSecret === '') throw new Error('QQ 机器人的 app-id 或 app-secret 没配置，拿不到 access token')
+    const response = await fetch(TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appId, clientSecret: appSecret }),
+    })
+    const body: unknown = await response.json().catch(() => null)
+    const token = isRecord(body) && typeof body['access_token'] === 'string' ? body['access_token'] : null
+    const expiresIn = isRecord(body) && typeof body['expires_in'] === 'number' ? body['expires_in'] : null
+    if (!response.ok || token === null || expiresIn === null) {
+      throw new Error(`拿 access token 失败：HTTP ${response.status} ${JSON.stringify(body)}`)
+    }
+    this.token = token
+    this.tokenExpiresAt = Date.now() + expiresIn * 1000
+    return token
+  }
+
+  async fetchGatewayUrl(): Promise<string> {
+    const body = await this.getJson('/gateway')
+    const url = isRecord(body) && typeof body['url'] === 'string' ? body['url'] : null
+    if (url === null) throw new Error(`/gateway 回执形状不对：${JSON.stringify(body)}`)
+    return url
+  }
+
+  async sendC2c(openid: string, body: SendMessageBody): Promise<SendOutcome> {
+    return this.postSend(`/v2/users/${openid}/messages`, body)
+  }
+
+  async sendGroup(groupOpenid: string, body: SendMessageBody): Promise<SendOutcome> {
+    return this.postSend(`/v2/groups/${groupOpenid}/messages`, body)
+  }
+
+  private async postSend(path: string, body: SendMessageBody): Promise<SendOutcome> {
+    const response = await this.request('POST', path, { msg_type: 0, ...body })
+    if (!response.ok) {
+      this.log.warn(`POST ${path} 失败：HTTP ${response.status} ${response.message}`)
+      return { ok: false, status: response.status, message: response.message }
+    }
+    const id = isRecord(response.body) ? response.body['id'] : undefined
+    if (typeof id !== 'string') throw new Error(`${path} 回执缺 id：${JSON.stringify(response.body)}`)
+    return { ok: true, id }
+  }
+
+  private async getJson(path: string): Promise<unknown> {
+    const response = await this.request('GET', path, undefined)
+    if (!response.ok) throw new Error(`GET ${path} 失败：HTTP ${response.status} ${response.message}`)
+    return response.body
+  }
+
+  private async request(
+    method: string,
+    path: string,
+    body: Record<string, unknown> | undefined,
+  ): Promise<{ ok: boolean; status: number; message: string; body: unknown }> {
+    const token = await this.getAccessToken()
+    const raw = await fetch(this.apiBase() + path, {
+      method,
+      headers: { Authorization: `QQBot ${token}`, 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+    const parsed: unknown = await raw.json().catch(() => null)
+    const message = isRecord(parsed) && typeof parsed['message'] === 'string' ? parsed['message'] : JSON.stringify(parsed)
+    return { ok: raw.ok, status: raw.status, message, body: parsed }
+  }
+}
