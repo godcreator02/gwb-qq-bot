@@ -1,0 +1,27 @@
+---
+title: gwb-qq-bot
+description: QQ 官方机器人当通道，在手机 QQ 上给本机的 ZCode 派任务
+---
+
+**本页回答**：这个仓是什么、由哪几块组成、从哪一页接着读。
+
+这个仓做一个 gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网关，
+收私聊与群 @ 消息，把任务文本经命令总线派给运行中的 ZCode 桌面端执行，轮询结果后回推 QQ。
+你在外面用手机发一句话，家里的电脑就让 ZCode 开始干活，干完把总结发回手机——这是它存在的全部目的。
+
+为什么走官方机器人 API 而不是功能更强的非官方协议端（NapCat 那类）：合规、零封号风险，
+而且个人自用不需要上线审核——机器人留在开放平台的沙箱环境就是终态，只有沙箱配置里登记的
+测试用户能碰到它，加上插件自己的 openid 白名单，等于两道锁。取舍的完整记录见轨迹区的根卡。
+
+仓的组成：
+
+- `plugins/qq-bot/`：插件包（唯一成员），源码七个文件——协议层（`qq-protocol` / `qq-rest` / `qq-gateway`）、
+  纯函数层（`routing` / `reply-window`）、桥接层（`bridge`）、入口（`index`）。逐块的契约与钉码见[插件页](/docs/qq-bot)
+- `docs-site/`：这个文档站。仓根 README / AGENTS / CLAUDE 与包里 SKILL.md 是生成物，正本在 `content/docs/outputs/`
+- `probes/`：实验材料（暂无）
+
+接下来读哪页：
+
+- 想知道插件提供了什么命令、设置项、QQ 那头怎么用 → [插件页](/docs/qq-bot)
+- 词看不懂 → [术语表](/docs/glossary)
+- 给这个仓干活（改代码、发版）→ 读仓根 `AGENTS.md`（正本在本站 outputs 区）

@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+@theme {
+  --font-sans: 'Sarasa Mono SC', 'Sarasa Gothic SC', ui-sans-serif, system-ui, 'Segoe UI', 'PingFang SC',
+    'Microsoft YaHei UI', 'Noto Sans SC', sans-serif;
+  --font-mono: 'Sarasa Mono SC', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}

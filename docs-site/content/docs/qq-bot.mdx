@@ -1,0 +1,79 @@
+---
+title: 插件 qq-bot
+description: 功能、接口、依赖、不做的事——插件契约的现状
+---
+
+**本页回答**：qq-bot 这个插件对外提供什么（命令、设置、QQ 指令），依赖谁，刻意不做什么。
+
+## 功能
+
+一条消息的完整旅程：QQ 手机端发出文本 → 腾讯投递到 WebSocket 网关（插件常驻这条出站长连接，
+心跳、断线退避重连、按 msg_id 去重）→ 白名单校验 → 指令（`/帮助` 之类）就地回答，其余文本
+作为任务派给 ZCode → 每 60 秒轮询一次 → 做完把回答末尾（截约 1200 字）按被动回复窗口的规则回推 QQ。
+
+同一用户（按 openid）固定映射到一个 ZCode 会话，接着聊上下文保留；`/新会话` 归档旧的、下一条消息重开。
+
+## 接口
+
+### 两条命令
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="101-131" hash="00ff4d72a84a" blob="89036ada3bcd" */}
+
+上面就是全部命令：`qq-bot.status` 只读（查连接、配置、会话映射、最近被拒的 openid），
+`qq-bot.reconnect` 改连接状态（改完 AppID / AppSecret / 沙箱设置后调它）。
+
+### 五个设置项
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="18-22" hash="5702edc9e334" blob="89036ada3bcd" */}
+
+键名就这五个。白名单（`allowed-openids`）每次消息现读，改完即时生效；凭据三项只在建立连接时读，
+改完要重连。AppSecret 声明为 secret，走凭据保管，不经会话。
+
+### 注入的服务
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="16-16" hash="64c548c04fe0" blob="89036ada3bcd" */}
+
+命令总线与设置是硬依赖（顶层 inject）；说明书服务（gwbSkills）只局部注入。
+
+### 白名单：按人，不按群
+
+{/* ref file="../plugins/qq-bot/src/bridge.ts" lines="62-69" hash="6fae9d21dd65" blob="0b8bd7a07d3a" */}
+
+名单外的消息静默拒绝、只记日志与 `recentRejected`（最多留 10 条）——不回消息，不给探测者任何反馈。
+群聊场景白名单管的是发消息的人（member_openid），不是群：同一个人在哪个群、私聊还是群里，
+映射到同一个 ZCode 会话。官方 API 给的 openid 每个机器人各不相同、不是 QQ 号，
+首次绑定靠 `recentRejected` 里抄 openid。
+
+### 回复路怎么选
+
+{/* ref file="../plugins/qq-bot/src/reply-window.ts" lines="1-35" hash="9855fc8ef3a2" blob="9fbe0c949f76" */}
+
+窗口与次数是腾讯侧的硬限制，插件只做选择：群聊过 5 分钟窗口或次数用完就不再推（主动消息每月每群
+约 4 条，不拿来发结果，留着等用户 `/状态` 来取）；单聊有 60 分钟窗口、任务基本都在里面，
+窗口外的结果降级为主动消息再试一次。选路逻辑是纯函数，测试在 `tests/reply-window.test.ts`。
+
+### 订阅哪些事件
+
+{/* ref file="../plugins/qq-bot/src/qq-protocol.ts" lines="20-24" hash="e58c45c285ec" blob="e44f101f3ea3" */}
+
+只订群 @ 与 C2C 单聊两个事件位，频道那套一概不订。
+
+## 依赖
+
+| 依赖 | 类型 | 用途 |
+| --- | --- | --- |
+| `@godcreator/gwb-commands` | peer，硬依赖 | 登记自己的两条命令；经它调 `zcode.create` / `zcode.send` / `zcode.status`（按名字调，不 import gwb-zcode） |
+| `@godcreator/gwb-settings` | peer，硬依赖 | 声明与读取五个设置项，AppSecret 走凭据保管 |
+| `@godcreator/gwb-skills` | peer，可选 | 登记随包说明书 |
+| `@godcreator/gwb-zcode` | 运行时按名调用 | 派任务的执行端，没装时机器人把错误原文回给用户 |
+| QQ 开放平台 | 外部服务 | WebSocket 网关收事件，REST 发消息；沙箱与正式环境只是 API 基址不同 |
+
+依赖方向：协议层与纯函数层不依赖任何 gwb 服务；只有 `bridge` 与 `index` 碰命令总线和设置。
+
+## 不做的事
+
+- 不做界面：状态经 `qq-bot.status` 查，够用；要界面等真需要再说
+- 不用 ZCode 的无界面 CLI、不绕过 gwb-zcode 直连 ZCode——通道插件只做转发，执行端只有 gwb-zcode 一个
+- 群聊不硬推结果（主动配额太贵）；单聊只在被动失败时用一次主动兜底
+- 不解析 ZCode 回答里的内容：取末尾截断回推，链接被腾讯过滤是接受的成本
+- 不做多机器人、多实例：一个插件实例连一个机器人

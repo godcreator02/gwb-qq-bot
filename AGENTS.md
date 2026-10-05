@@ -1,0 +1,27 @@
+# gwb-qq-bot
+
+这份 AGENTS.md 由 `docs-site/content/docs/outputs/agents.mdx` 生成：改那份正本，再运行 `pnpm doc:render`。
+
+gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`）：QQ 官方机器人通道——收私聊与群 @ 消息，
+经命令总线派给运行中的 ZCode 桌面端（`zcode.create` / `zcode.send`），轮询 `zcode.status` 回推结果。
+
+## 硬约束
+
+- 白名单外的消息一律静默拒绝（记日志与 recentRejected），绝不回消息
+- 官方接口的回执在入口校验形状，不对就报错或丢弃，不猜字段：`expires_in` 官方回数字字符串、两种都收，是核对过的契约不是兜底
+- access token 与 AppSecret 不进日志、不进命令回执
+- 群聊过被动窗口不硬推（主动消息月配额不拿来发结果）；单聊只在被动失败时用主动兜底一次
+- 协议字段名、事件位值集中在 `src/qq-protocol.ts`；接口报错先对官方文档核对再改，改了同步插件页钉码
+- 命令名、参数与回执形状是契约：改了同一个提交里改正本 `content/docs/outputs/skills/qq-bot.mdx` 并 render
+- 不绕过 gwb-zcode 直连 ZCode，不给插件加界面
+
+## 怎么跑
+
+仓根：`pnpm build`、`pnpm check`（typecheck + oxlint + vitest）。
+
+- 隔离 home 验证：`devkit.dev {"home":"<home 名>","dir":"<仓根>","packages":["plugins/qq-bot"]}`
+- 全链路实测要沙箱机器人 + ZCode 桌面端开着，步骤读 skill「qq-bot」；派测试任务只做无害的事
+- 发版 `devkit.release`，升版本号前读 skill「gwb-release」
+- 文档站在 `docs-site/`：改 mdx 正本后 `pnpm doc:render`；看页面先 `pnpm build` 再 `pnpm start`（http://127.0.0.1:4337），不用 dev
+
+写插件读 skill「gwb-devkit」，写文档读「docs-writing」，钉码核对与确认读「docs-site」，记轨迹读「trajectory」。

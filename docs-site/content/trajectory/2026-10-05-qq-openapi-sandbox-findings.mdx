@@ -1,0 +1,30 @@
+---
+born-at: 2026-10-05T22:20
+type: evidence
+parent: [2026-10-05-gwb-qq-bot-root]
+label: 字段实测
+domain: QQ开放平台
+---
+
+## 背景
+
+实现 `src/qq-rest.ts` 的 token 刷新时，按官方文档的示例把 `getAppAccessToken` 回执里的
+`expires_in` 当数字校验。沙箱实测：HTTP 200、回执里有 access_token，插件却判失败、按退避节奏无限重连——
+回执原文是 `{"access_token":"…","expires_in":"5787"}`，`expires_in` 是数字**字符串**。
+
+## 结论与边界
+
+沙箱环境下实测确认的接口行为：
+
+- `POST https://bots.qq.com/app/getAppAccessToken`：回 `expires_in` 为数字字符串，取 token 的代码两种都要收
+- 被动回复的 `msg_seq` 从 0 起、逐次递增，实测单聊一条消息内连发「回执 + 结果」两段（seq 0、1）都被接收
+- 发消息接口 2xx 回执带 `id` 字段，可以当发送成功的判据
+- 沙箱环境未因 IP 白名单拦截请求（家宽 IP、控制台未配置 IP 白名单条目的状态下）
+
+边界：以上全部在沙箱环境（sandbox.api.sgroup.qq.com）测得；正式环境是否一致未测。
+token 与 AppSecret 不该进日志，这也是同一次修复的一部分。
+
+## 依据
+
+修复提交 `ba4cdff`（含回执原文与修复写法）；当时观察到的无限重连日志在隔离 home
+qqbot-2610052204 的 `gwb.log`（home 目录删掉后以提交记录为准）。

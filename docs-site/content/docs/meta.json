@@ -1,0 +1,3 @@
+{
+  "pages": ["index", "...", "glossary", "outputs"]
+}
