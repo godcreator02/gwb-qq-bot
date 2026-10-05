@@ -26,7 +26,8 @@ export interface BridgeDeps {
 /** 轮询间隔与回复尺寸：一轮 ZCode 任务几分钟起步，60 秒一查足够；QQ 消息按 700 字一段发 */
 const POLL_INTERVAL_MS = 60_000
 const SEND_SEGMENT_CHARS = 700
-const RESULT_TAIL_CHARS = 1200
+/** 结果截到 600 字：加上状态行与文件行稳定在一段以内，回执加结果固定占 2 次被动额度（单聊上限 4 次）；总结在回答末尾，截尾顺带丢掉中间过程 */
+const RESULT_TAIL_CHARS = 600
 
 const HELP_TEXT = [
   'QQ → ZCode 通道：',
