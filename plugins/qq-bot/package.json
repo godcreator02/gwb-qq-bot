@@ -52,8 +52,8 @@
     }
   },
   "devDependencies": {
-    "@godcreator/gwb-claudecode": "link:../../../gwb-agents/plugins/claudecode",
-    "@godcreator/gwb-zcode": "link:../../../gwb-agents/plugins/zcode",
+    "@godcreator/gwb-claudecode": "^0.4.0",
+    "@godcreator/gwb-zcode": "^0.4.0",
     "@types/node": "^24.0.0",
     "cordis": "4.0.0-rc.10",
     "esbuild": "^0.28.2",
