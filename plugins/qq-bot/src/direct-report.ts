@@ -15,6 +15,12 @@ export function parseReport(raw: unknown): DirectReport {
   return { ticket: raw.ticket, state: raw.state as ReportState, text: raw.text }
 }
 
+/**
+ * 跨插件字符串约定：gwb-zcode / gwb-claudecode（0.3.0 起，措辞已实测）在同 workspace 上一轮未结束时，
+ * 以「workspace 已被会话 …」开头的错误回绝派单。措辞改动须与 gwb-agents 仓同步，两边一起改。
+ */
+export const isWorkspaceOccupied = (message: string): boolean => message.startsWith('workspace 已被会话')
+
 export function reportInstruction(ticket: string, server: string): string {
-  return `\n\n[QQ 本轮回报约定]\n${JSON.stringify({ server, command: 'qq-bot.report', ticket })}\n最终答复前，经上面指定的 MCP 服务调用 run，command 为 qq-bot.report，args 为 {ticket,state,text}。state 只能是 completed、failed 或 needs_input；text 为真实结果摘要，最多16000字符。需要人补充信息时回 needs_input，不假称完成。回执 recorded:true 才表示 QQ 已保存，delivery 是独立送达状态。调用超时或未确认时，用同一 ticket、state、text 重试回报，不重做任务、不换票、不修改结果。凭证仅用于本轮回报，不写入结果正文、QQ、笔记或仓库。禁止调用 zcode.report 或让其他机器人转交结果。`
+  return `\n\n[QQ 本轮回报约定]\n${JSON.stringify({ server, command: 'qq-bot.report', ticket })}\n最终答复前，经上面指定的 MCP 服务调用 run，command 为 qq-bot.report，args 为 {ticket,state,text}。state 只能是 completed、failed 或 needs_input；text 为真实结果摘要，最多16000字符。需要人补充信息时回 needs_input，不假称完成。回执 recorded:true 才表示 QQ 已保存，delivery 是独立送达状态。调用超时或未确认时，用同一 ticket、state、text 重试回报，不重做任务、不换票、不修改结果。凭证仅用于本轮回报，不写入结果正文、QQ、笔记或仓库。回报只认 qq-bot.report，不让其他机器人转交结果。`
 }

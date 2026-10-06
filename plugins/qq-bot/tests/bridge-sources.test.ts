@@ -13,6 +13,7 @@ function setup(initial?: unknown) {
   let app = 'app-a'
   let dispatchUnknown = false
   let projectResult: unknown = { projects }
+  let libResult: unknown = [{ id: 'project-notes', plugins: ['@godcreator/gwb-bn-journal'] }]
   const calls: CommandCall[] = []
   let taskIndex = 0
   const deps: BridgeDeps = {
@@ -22,6 +23,7 @@ function setup(initial?: unknown) {
     read: async () => structuredClone(doc), write: async (value) => { doc = structuredClone(value) },
     runCommand: vi.fn(async (name: string, args: Record<string, unknown>) => {
       if (name === 'collab.projects') return { ok: true, data: projectResult }
+      if (name === 'block-note.lib.list') return libResult === null ? { ok: false, error: 'block-note 未安装' } : { ok: true, data: libResult }
       const taskId = typeof args.task === 'string' ? args.task : `task-${++taskIndex}`
       calls.push({ name, args, taskId })
       if (dispatchUnknown && (name === 'zcode.create' || name === 'zcode.send')) return { ok: false, error: 'Runtime.evaluate 30 秒无响应' }
@@ -44,7 +46,7 @@ function setup(initial?: unknown) {
     vi.mocked(deps.sendGroup).mockClear()
     return source.id
   }
-  return { bridge, deps, calls, dispatched, report, jobId: (index: number) => (doc as Book).jobs[index]!.id, bindGroup, setApp: (value: string) => { app = value }, setUnknown: (value = true) => { dispatchUnknown = value }, setProjects: (value: unknown) => { projectResult = value } }
+  return { bridge, deps, calls, dispatched, report, jobId: (index: number) => (doc as Book).jobs[index]!.id, bindGroup, setApp: (value: string) => { app = value }, setUnknown: (value = true) => { dispatchUnknown = value }, setProjects: (value: unknown) => { projectResult = value }, setLibs: (value: unknown) => { libResult = value } }
 }
 function group(msgId: string, target: string, content = '处理项目任务', senderOpenid = 'owner'): IncomingMessage {
   return { scene: 'group', msgId, replyTarget: target, senderOpenid, content }
@@ -139,6 +141,23 @@ describe('聊天来源与绑定', () => {
     await bridge.handleIncoming(group('outsider', 'group-x', '/帮助', 'outsider'))
     expect(await bridge.sources()).toEqual([])
     expect(deps.sendGroup).not.toHaveBeenCalled()
+    expect(dispatched()).toEqual([])
+    await bridge.dispose()
+  })
+
+  it('绑定时校验随手记库：库不存在、未开放日志插件、读不到列表都拒绝并说明缺哪项；留空不查', async () => {
+    const { bridge, deps, setLibs, dispatched } = setup()
+    await bridge.handleIncoming(group('help', 'group-a', '/帮助'))
+    const sourceId = (await bridge.sources())[0]!.id
+    setLibs([{ id: 'other-lib', plugins: ['@godcreator/gwb-bn-journal'] }])
+    await expect(bridge.bind({ sourceId, projectRepo: 'D:/project-a', journalLibrary: 'project-notes' })).rejects.toThrow('库不存在：project-notes')
+    setLibs([{ id: 'project-notes', plugins: [] }])
+    await expect(bridge.bind({ sourceId, projectRepo: 'D:/project-a', journalLibrary: 'project-notes' })).rejects.toThrow('库 project-notes 未开放日志插件')
+    setLibs(null)
+    await expect(bridge.bind({ sourceId, projectRepo: 'D:/project-a', journalLibrary: 'project-notes' })).rejects.toThrow('读不到笔记库列表（block-note.lib.list 失败）')
+    await bridge.bind({ sourceId, projectRepo: 'D:/project-a' })
+    expect(vi.mocked(deps.runCommand).mock.calls.filter(([name]) => name === 'block-note.lib.list')).toHaveLength(3)
+    expect((await bridge.sources())[0]!.binding).toMatchObject({ journalLibrary: '' })
     expect(dispatched()).toEqual([])
     await bridge.dispose()
   })
@@ -420,6 +439,34 @@ describe('任务队列与来源隔离', () => {
     expect(current.binding).toBeNull()
     expect(deps.sendGroup).toHaveBeenCalledWith('group-a', expect.stringContaining('绑定'), 'same-id', 1)
     await bridge.dispose()
+  })
+
+  it('派单收到 workspace 占用时任务留队列并告知用户，不进派单未确认；下次推进自动重派', async () => {
+    const { bridge, deps, bindGroup, dispatched, report } = setup()
+    await bindGroup('group-a', 'D:/project-a')
+    await bridge.handleIncoming(group('first', 'group-a'))
+    await bridge.receiveReport(report(0))
+    await flush()
+    let occupied = true
+    const run = vi.mocked(deps.runCommand).getMockImplementation()!
+    vi.mocked(deps.runCommand).mockImplementation(async (name, args) => {
+      if (occupied && (name === 'zcode.create' || name === 'zcode.send')) return { ok: false, error: 'workspace 已被会话 lingering-session 占用：同工作区同一时间只跑一轮；先查那一轮做完没有，做完（或人工核对已停止）后再派' }
+      return run(name, args)
+    })
+    await bridge.handleIncoming(group('second', 'group-a'))
+    await flush()
+    expect(await deps.read()).toMatchObject({ jobs: [{ state: 'completed' }, { state: 'queued', dispatch: 'queued', ticketHash: null }] })
+    expect(deps.sendGroup).toHaveBeenCalledWith('group-a', expect.stringContaining('上一轮还在执行，这单已排队'), 'second', 2)
+    expect(bridge.report().unresolvedTasks).toHaveLength(0)
+    occupied = false
+    await bridge.dispose()
+    const restored = new ChatBridge(deps)
+    await restored.restore()
+    await vi.waitFor(() => expect(dispatched()).toHaveLength(2))
+    expect(dispatched()[1]).toMatchObject({ name: 'zcode.send', args: { workspace: 'D:/project-a' } })
+    await restored.receiveReport(report(1))
+    await flush()
+    await restored.dispose()
   })
 
   it('旧账本不迁移到直接回报链路', async () => {

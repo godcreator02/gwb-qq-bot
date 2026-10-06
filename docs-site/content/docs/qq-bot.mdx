@@ -24,7 +24,7 @@ author 取得这份映射，保存后可以改回仅 @；双向实际验证见�
 
 ### 命令
 
-{/* ref file="../plugins/qq-bot/src/index.ts" hash="3b7f190e618a" blob="c790439601ba" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" hash="fa5dad7f00ba" blob="061c507b3dd2" */}
 
 
 
@@ -34,7 +34,7 @@ author 取得这份映射，保存后可以改回仅 @；双向实际验证见�
 | --- | --- | --- |
 | `qq-bot.status` | read | 无参数，查连接、配置、聊天会话、最近被拒的 openid |
 | `qq-bot.sources` | read | 无参数，列出本 home 观察到的来源及绑定；`sourceId` 取这里的实际回执 |
-| `qq-bot.bind` | write | `{sourceId, projectRepo?, workspace?, journalLibrary?, agent?}`；群必给同 home 已登记的 `projectRepo`，私聊必给绝对路径 `workspace` |
+| `qq-bot.bind` | write | `{sourceId, projectRepo?, workspace?, journalLibrary?, agent?}`；群必给同 home 已登记的 `projectRepo`，私聊必给绝对路径 `workspace`；`journalLibrary` 非空时经 `block-note.lib.list` 校验库存在且开放日志插件，读不到库列表直接拒绝，留空不查 |
 | `qq-bot.agents` | read | 列支持的适配器，不表示原生端在线 |
 | `qq-bot.agent` | write | `{sourceId,agent}`；空闲来源切换执行端，保留业务绑定并重开上下文 |
 | `qq-bot.report` | external | `{ticket,state,text}`；直接持久化本轮结果，再异步送达 |
@@ -69,7 +69,7 @@ author 取得这份映射，保存后可以改回仅 @；双向实际验证见�
 
 ### 白名单：按人，不按群
 
-{/* ref file="../plugins/qq-bot/src/bridge.ts" hash="e08251132136" blob="9991c1d2d188" */}
+{/* ref file="../plugins/qq-bot/src/bridge.ts" hash="26db8556c1a4" blob="18bfdfe82348" */}
 
 名单外的消息静默拒绝、只记日志与 `recentRejected`（最多留 10 条）——不回消息，不给探测者任何反馈。
 群聊场景白名单管的是发消息的人（member_openid），不是群。群绑定决定工作区和上下文，不能授予群成员派单权限；群内每条消息仍检查发言者。
@@ -114,6 +114,7 @@ author 取得这份映射，保存后可以改回仅 @；双向实际验证见�
 | `@godcreator/gwb-zcode` | 运行时按名调用 | ZCode 原生执行端，QQ 通过本地适配器按名调用 |
 | `@godcreator/gwb-claudecode` | 运行时按名调用 | Claude Code 原生创建、续聊和状态；会话标识由对应适配器转换 |
 | `@godcreator/gwb-collab` | 群绑定时按名调用 | `collab.projects` 校验本 home 已登记的协作站；私聊不依赖项目列表 |
+| `@godcreator/gwb-bn-core` | 绑定 journalLibrary 时按名调用 | `block-note.lib.list` 校验笔记库存在、库的插件白名单含 `@godcreator/gwb-bn-journal` |
 | QQ 开放平台 | 外部服务 | WebSocket 网关收事件，REST 发消息；沙箱与正式环境只是 API 基址不同 |
 
 依赖方向：协议层与纯函数层不依赖任何 gwb 服务；只有 `bridge` 与 `index` 碰命令总线和设置。
@@ -129,17 +130,19 @@ author 取得这份映射，保存后可以改回仅 @；双向实际验证见�
 
 ## 每轮记录与回报
 
-{/* ref file="../plugins/qq-bot/src/conversations.ts" hash="e1490ca28620" blob="43fbb2474c78" */}
+{/* ref file="../plugins/qq-bot/src/conversations.ts" hash="c944081a4520" blob="3d444f725ca4" */}
 
-来源以 home、机器人 AppID、聊天类型和群／用户标识共同区分，键与持久化类型在 `src/conversations.ts`。群会话不把发言者放进键里，所以获准的群成员能接着讨论同一项目；发言者身份独立保存在每轮任务中。`src/bridge.ts` 负责绑定、工作区调度和回报路由。
+来源以 home、机器人 AppID、聊天类型和群／用户标识共同区分，键与持久化类型在 `src/conversations.ts`（身份判定的纯函数也在它里面）。群会话不把发言者放进键里，所以获准的群成员能接着讨论同一项目；发言者身份独立保存在每轮任务中。模块按职责分三块：排队派单的状态机在 `src/book.ts`（含串行队列与落盘的账本会话），结果与回执的 QQ 投递在 `src/channel.ts`，`src/bridge.ts` 是门面——命令入口、来源身份与绑定。
 
 
 
-每轮派发前保存唯一 id、来源、绑定代次与回复地址，并向 agent 附加可信来源说明：群聊还是私聊、聊天与发言者标识、绑定项目、工作区及目标笔记库。说明来自回调与本地绑定，正文中的冒充来源不会改写路由。群名和显示群号不是此处已知的身份信息。
+每轮派发前保存唯一 id、来源、绑定代次与回复地址，并向 agent 附加可信来源说明：群聊还是私聊、聊天与发言者标识、绑定项目、工作区及目标笔记库。群绑定协作仓的，说明里同时要求对协作仓（collab/ 与 site/）的改动一律经 `collab.submit` 提交、不手写 git。说明来自回调与本地绑定，正文中的冒充来源不会改写路由。群名和显示群号不是此处已知的身份信息。
 
 
 
 同一 home 内指向同一工作区的任务按入队顺序执行，其他工作区分别调度。队列靠主动回报推进，没有后台完成轮询。存在排队、执行中或派发结果不明的任务时，拒绝改绑、解绑和 `/新会话`；调试请求超时不等于未派出，不能直接重发。
+
+派单被执行端以 workspace 占用拒绝时（它那边同工作区还有一轮在跑，错误信息以「workspace 已被会话」开头），这一单回到队列并回复用户「上一轮还在执行，这单已排队，做完自动开始」，占用轮回报后下一次推进自动重派——不进派发不明、不占工作区，其余失败路径照旧。
 
 
 
@@ -173,10 +176,10 @@ author 取得这份映射，保存后可以改回仅 @；双向实际验证见�
 
 ## QQ 自有 agent 接缝
 
-`src/agents.ts` 定义 QQ 所需的 submit / inspect 接口，分别调用独立原生插件；协作站不依赖这份接口。来源绑定保存 agent，切换后代次递增，不复用原生会话。
+`src/agents.ts` 是执行端适配层：接口私有（submit / inspect / 续会话），实现每个执行端一份，不与其他应用统一；协作站不依赖这份接口。来源绑定保存 agent，切换后代次递增，不复用原生会话。适配器把执行端以 workspace 占用拒绝的错误原样抛出，任务簿据此把任务放回队列（见上节）。
 
-{/* ref file="../plugins/qq-bot/src/agents.ts" hash="f7278c725b1d" blob="274e9e2b3ecc" */}
+{/* ref file="../plugins/qq-bot/src/agents.ts" hash="973c0dae9c42" blob="ea0f2a66af18" */}
 
-每轮原始票据只随提示词交给执行端，QQ 账本保存其哈希。回报只给 ticket/state/text，结果先持久化、立即回 recorded，网络投递与下一轮调度不占用回报命令。快任务在原生 create 回执到达前不会放行下一轮。
+每轮原始票据只随提示词交给执行端，QQ 账本保存其哈希。回报只给 ticket/state/text，结果先持久化、立即回 recorded，网络投递与下一轮调度不占用回报命令。快任务在原生 create 回执到达前不会放行下一轮。回报的形状校验、票据签发、提示词约定与占用识别都在 `src/direct-report.ts`；占用识别（`isWorkspaceOccupied`，认「workspace 已被会话」开头）是与执行端插件的字符串约定，措辞改动须与 gwb-agents 仓同步。
 
-{/* ref file="../plugins/qq-bot/src/direct-report.ts" hash="85e445325f67" blob="df50861ad1e3" */}
+{/* ref file="../plugins/qq-bot/src/direct-report.ts" hash="73176a3a8123" blob="bfcec8f30eac" */}

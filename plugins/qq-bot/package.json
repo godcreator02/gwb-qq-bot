@@ -1,6 +1,6 @@
 {
   "name": "@godcreator/gwb-qq-bot",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "QQ 多来源对话：独立 agent 适配、直接回报、项目与日志绑定、结果持久化与送达。",
   "type": "module",
   "exports": {

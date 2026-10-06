@@ -1,4 +1,4 @@
-/** 来源、会话与任务的持久化边界；只读取直接回报格式，不接入旧任务或旧凭证。 */
+/** 来源、会话与任务的持久化边界和身份判定；只读取直接回报格式，不接入旧任务或旧凭证。 */
 import { createHash } from 'node:crypto'
 import { win32 } from 'node:path'
 import { isRecord, type MessageScene } from './qq-protocol.js'
@@ -23,6 +23,28 @@ export interface Book { version: 3; sources: Source[]; conversations: Conversati
 
 export function sourceId(identity: SourceIdentity): string {
   return createHash('sha256').update(JSON.stringify([identity.home, identity.appId, identity.scene, identity.target])).digest('hex')
+}
+
+/** 同一来源当前代次的会话；找不到说明这一代次还没有任务，由入口新建。 */
+export function activeConversation(book: Book, source: Source): Conversation | undefined {
+  return book.conversations.findLast((each) => each.sourceId === source.id && each.generation === source.generation)
+}
+
+/** 任务是否属于这个来源的当前代次：不是的按历史任务处理，只投递结果、不进入它的会话。 */
+export function jobBelongsToSource(job: Job, source: Source, conversations: Conversation[]): boolean {
+  if (job.sourceId !== source.id) return false
+  if (job.conversationId === null) return source.generation === 0
+  return conversations.some((c) => c.id === job.conversationId && c.generation === source.generation)
+}
+
+/** 任务还没落定（排队、执行中或派单未确认）：占住工作区，也阻止改绑与重开。 */
+export const jobAwaitingOutcome = (job: Job): boolean => ['sending', 'unknown'].includes(job.dispatch) || (job.text === null && ['queued', 'pending', 'dispatch_unknown'].includes(job.state))
+
+/** 命令参数里的非空字符串字段；不是非空字符串直接抛错，说明缺什么。 */
+export function stringField(raw: Record<string, unknown>, key: string): string {
+  const value = raw[key]
+  if (typeof value !== 'string' || value.trim() === '') throw new Error(`缺少非空 ${key}`)
+  return value.trim()
 }
 
 /** 工作区按 Windows 路径判同；根路径仍保留根分隔符，避免混淆 C: 与 C:\\。 */

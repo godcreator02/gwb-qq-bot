@@ -1,5 +1,6 @@
-/** QQ 对话自己的接口；原生软件操作由对应插件完成。 */
+/** 执行端适配层：接口私有（submit / inspect / 续会话），实现每个执行端一份，不与其他应用统一。 */
 import { isRecord } from './qq-protocol.js'
+import { isWorkspaceOccupied } from './direct-report.js'
 
 export type CommandResult = { ok: boolean; data?: unknown; error?: string }
 export type RunCommand = (name: string, args: Record<string, unknown>) => Promise<CommandResult>
@@ -18,6 +19,8 @@ export function zcodeAdapter(run: RunCommand): AgentAdapter {
         workspace, prompt, ...(sessionRef === null ? {} : { task: sessionRef }),
       })
       if (!result.ok || !isRecord(result.data) || typeof result.data.taskId !== 'string' || result.data.taskId.trim() === '' || (sessionRef !== null && result.data.taskId !== sessionRef)) {
+        // workspace 占用是执行端明确的拒绝（任务没有发出），原样抛出措辞，让上层把任务放回队列
+        if (!result.ok && typeof result.error === 'string' && isWorkspaceOccupied(result.error)) throw new Error(result.error)
         throw new Error('ZCode 未确认本次派单；请核对原生会话，不要重发任务')
       }
       return { sessionRef: result.data.taskId }
@@ -38,7 +41,11 @@ export function claudecodeAdapter(run: RunCommand): AgentAdapter {
       const result = await run(sessionRef === null ? 'claudecode.create' : 'claudecode.send', {
         workspace, prompt, ...(sessionRef === null ? {} : { sessionId: sessionRef }),
       })
-      if (!result.ok || !isRecord(result.data) || typeof result.data.sessionId !== 'string' || result.data.sessionId.trim() === '' || (sessionRef !== null && result.data.sessionId !== sessionRef)) throw new Error('Claude Code 未确认本次派单')
+      if (!result.ok || !isRecord(result.data) || typeof result.data.sessionId !== 'string' || result.data.sessionId.trim() === '' || (sessionRef !== null && result.data.sessionId !== sessionRef)) {
+        // workspace 占用是执行端明确的拒绝（任务没有发出），原样抛出措辞，让上层把任务放回队列
+        if (!result.ok && typeof result.error === 'string' && isWorkspaceOccupied(result.error)) throw new Error(result.error)
+        throw new Error('Claude Code 未确认本次派单')
+      }
       return { sessionRef: result.data.sessionId }
     },
     async inspect({ workspace, sessionRef }) {

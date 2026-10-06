@@ -168,7 +168,7 @@ export function apply(ctx: GwbContext): void {
     usage: '无参数，返回来源数组：id、home、appId、scene、target、lastSeen、lastSender、generation、binding。群与私聊标识独立；先在目标聊天发 /帮助 取得真实来源，再用 id 绑定。', effect: 'read' },
     async () => ({ ok: true, data: await bridge.sources() }))
   commands.register({ name: 'qq-bot.bind', description: '将已观察到的群绑定到协作项目，或将私聊绑定到个人工作区',
-    usage: '{sourceId:string, projectRepo?:string, workspace?:string, journalLibrary?:string, agent?:zcode|claudecode}。群必须 projectRepo（已登记的 collab.projects 项目根），不收 workspace；私聊必须绝对路径 workspace，不收 projectRepo。journalLibrary 留空不使用笔记库。agent 缺省保持原选择，新来源默认 zcode；改变 agent 开始新会话。忙碌或派单未确认时拒绝；改绑新建上下文，不复用旧会话。返回来源及绑定。', effect: 'write' },
+    usage: '{sourceId:string, projectRepo?:string, workspace?:string, journalLibrary?:string, agent?:zcode|claudecode}。群必须 projectRepo（已登记的 collab.projects 项目根），不收 workspace；私聊必须绝对路径 workspace，不收 projectRepo。journalLibrary 留空不使用笔记库；非空时经 block-note.lib.list 校验库存在、且库的插件白名单含 @godcreator/gwb-bn-journal，读不到库列表或校验不过都拒绝绑定。agent 缺省保持原选择，新来源默认 zcode；改变 agent 开始新会话。忙碌或派单未确认时拒绝；改绑新建上下文，不复用旧会话。返回来源及绑定。', effect: 'write' },
     async (raw) => ({ ok: true, data: await bridge.bind(raw) }))
   commands.register({ name: 'qq-bot.unbind', description: '解除聊天绑定，保留历史任务，不再从此来源派新任务',
     usage: '{sourceId:string}。有执行中、排队、派单未确认任务时拒绝。解绑后主人私聊也不再自动继承默认工作区，需要重新显式绑定。返回来源及空绑定。', effect: 'write' },
