@@ -1,0 +1,57 @@
+{
+  "at": "2026-10-06T05:06:37.783Z",
+  "passed": true,
+  "binding": {
+    "home": "default",
+    "appId": "<APP_ID_A>",
+    "scene": "group",
+    "target": "<GROUP_OPENID_A>",
+    "id": "79c36d88deb4ba38343c442ea92fe823a8aaa7876374facbdd1575d9531d33cd",
+    "lastSeen": "2026-10-06T05:06:40.045Z",
+    "lastSender": "<OPENID_MEMBER_2>",
+    "generation": 1,
+    "binding": {
+      "agent": "zcode",
+      "kind": "project",
+      "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+      "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+      "title": "混合型 MMC 样机",
+      "journalLibrary": ""
+    }
+  },
+  "requests": [
+    {
+      "at": "2026-10-06T05:06:37.998Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "2157"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-06T05:06:38.881Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_1>\" /> /帮助"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NLzj0eKBtPk9V-6shfseqn08xOoVkgQYgK-KNKQS4nTzb65uXBKnKIABVjQkEcRXfA!!",
+        "timestamp": "2026-10-06T13:06:38+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_wm/Ldxnxwq8olhf3uk/zqVMP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

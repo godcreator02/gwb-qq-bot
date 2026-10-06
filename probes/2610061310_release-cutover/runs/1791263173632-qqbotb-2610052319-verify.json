@@ -1,0 +1,208 @@
+{
+  "at": "2026-10-06T05:06:13.576Z",
+  "home": "qqbotb-2610052319",
+  "action": "verify",
+  "passed": true,
+  "plugins": [
+    {
+      "pkg": "@godcreator/gwb-claudecode",
+      "spec": "0.2.1",
+      "installed": true,
+      "entries": [
+        {
+          "id": "claudecode",
+          "entryId": "home:claudecode",
+          "pkg": "@godcreator/gwb-claudecode",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-collab",
+      "spec": "0.21.7",
+      "installed": true,
+      "entries": [
+        {
+          "id": "collab",
+          "entryId": "home:collab",
+          "pkg": "@godcreator/gwb-collab",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-qq-bot",
+      "spec": "0.3.1",
+      "installed": true,
+      "entries": [
+        {
+          "id": "qq-bot",
+          "entryId": "home:qq-bot",
+          "pkg": "@godcreator/gwb-qq-bot",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-zcode",
+      "spec": "0.2.6",
+      "installed": true,
+      "entries": [
+        {
+          "id": "zcode",
+          "entryId": "home:zcode",
+          "pkg": "@godcreator/gwb-zcode",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    }
+  ],
+  "versions": {
+    "@godcreator/gwb-qq-bot": "0.3.1",
+    "@godcreator/gwb-zcode": "0.2.6",
+    "@godcreator/gwb-claudecode": "0.2.1",
+    "@godcreator/gwb-collab": "0.21.7"
+  },
+  "sources": [
+    {
+      "home": "qqbotb-2610052319",
+      "appId": "<APP_ID_B>",
+      "scene": "group",
+      "target": "<GROUP_OPENID_B>",
+      "id": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+      "lastSeen": "2026-10-06T04:56:04.685Z",
+      "lastSender": "<OPENID_MEMBER_1>",
+      "generation": 6,
+      "binding": {
+        "agent": "claudecode",
+        "kind": "project",
+        "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+        "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+        "title": "混合型 MMC 样机",
+        "journalLibrary": ""
+      }
+    }
+  ],
+  "agents": {
+    "agents": [
+      {
+        "id": "zcode",
+        "title": "ZCode"
+      },
+      {
+        "id": "claudecode",
+        "title": "Claude Code"
+      }
+    ]
+  },
+  "status": {
+    "gateway": "open",
+    "sandbox": false,
+    "appIdConfigured": true,
+    "appSecretSet": true,
+    "defaultWorkspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+    "allowedOpenidCount": 2,
+    "conversations": [
+      {
+        "agent": "zcode",
+        "id": "584bd1bf-a211-4d54-a464-99fb651bb764",
+        "sourceId": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+        "generation": 1,
+        "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+        "taskId": "sess_1c8d5814-e61d-461f-965f-5ef07c99d5ee",
+        "roundIndex": 1,
+        "latest": "b03952e3-b7a8-4c66-a7e9-b4d84f1456f0",
+        "scene": "group",
+        "target": "<GROUP_OPENID_B>",
+        "appId": "<APP_ID_B>",
+        "title": "混合型 MMC 样机",
+        "roundRunning": false,
+        "resultDelivered": true
+      },
+      {
+        "agent": "claudecode",
+        "id": "89df197e-650f-4e53-899a-0ad2c81d21d1",
+        "sourceId": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+        "generation": 2,
+        "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+        "taskId": "1930ba7d-977b-40c3-ba8f-44ba033474f4",
+        "roundIndex": 2,
+        "latest": "3c9a88c6-6ab5-46ec-8ac9-16f864a111f4",
+        "scene": "group",
+        "target": "<GROUP_OPENID_B>",
+        "appId": "<APP_ID_B>",
+        "title": "混合型 MMC 样机",
+        "roundRunning": false,
+        "resultDelivered": true
+      },
+      {
+        "agent": "claudecode",
+        "id": "7edb968c-fd36-402d-86e2-0f9fe8e4ec3e",
+        "sourceId": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+        "generation": 3,
+        "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+        "taskId": "7345712d-3832-4eaf-b1c6-f5a6372f642f",
+        "roundIndex": 1,
+        "latest": "be374767-b10f-440b-9ca5-9e18f1374c3e",
+        "scene": "group",
+        "target": "<GROUP_OPENID_B>",
+        "appId": "<APP_ID_B>",
+        "title": "混合型 MMC 样机",
+        "roundRunning": false,
+        "resultDelivered": true
+      },
+      {
+        "agent": "zcode",
+        "id": "507acce1-5889-469d-a8ce-b7d5709d2c59",
+        "sourceId": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+        "generation": 5,
+        "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+        "taskId": "sess_359b8913-26a3-4664-b15c-9ffb192ecf5c",
+        "roundIndex": 1,
+        "latest": "eb7853da-d1fb-4b16-8ff9-006f536dbb1f",
+        "scene": "group",
+        "target": "<GROUP_OPENID_B>",
+        "appId": "<APP_ID_B>",
+        "title": "混合型 MMC 样机",
+        "roundRunning": false,
+        "resultDelivered": true
+      }
+    ],
+    "sources": [
+      {
+        "home": "qqbotb-2610052319",
+        "appId": "<APP_ID_B>",
+        "scene": "group",
+        "target": "<GROUP_OPENID_B>",
+        "id": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+        "lastSeen": "2026-10-06T04:56:04.685Z",
+        "lastSender": "<OPENID_MEMBER_1>",
+        "generation": 6,
+        "binding": {
+          "agent": "claudecode",
+          "kind": "project",
+          "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+          "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+          "title": "混合型 MMC 样机",
+          "journalLibrary": ""
+        }
+      }
+    ],
+    "queuedTasks": 0,
+    "unresolvedTasks": [],
+    "pendingResults": 1,
+    "recentRejected": []
+  }
+}

@@ -1,0 +1,23 @@
+---
+born-at: 2026-10-06T13:08
+type: evidence
+parent: [2026-10-05-gwb-qq-bot-root]
+label: B 正式版双端切换
+domain: 任务通道
+---
+
+## 背景
+
+业务接缝实测通过后，需要把源代码、远端仓库、正式包和两个正在运行的 home 对齐。
+
+## 结论与边界
+
+已发布 QQ 0.3.1、ZCode 0.2.6、Claude Code 0.2.1、collab 0.21.7；default 与 qqbotb-2610052319 实际安装版本一致，四个插件均 ACTIVE、unmetPeers 为空，QQ gateway open。重载后重新读取 index 核对命令可用。
+
+新 QQ 状态不加载旧任务票据。A 通过 B 的真实群 @ /帮助重新观察来源，绑定混合型 MMC 样机、ZCode；B 保持同项目、Claude Code。两边群日志库都为空，业务日志实测只发生在隔离 home，不借用个人库。
+
+gwb-agents 远端从原 gwb-zcode 改名，保留 Git 历史和原可见性；QQ 新建私有远端。三个仓的实现已提交推送。VS Code 工作区包含 QQ、agents、collab-site、block-note；未收取 block-note 其他会话的改动。
+
+## 依据
+
+`probes/2610061310_release-cutover/` 保存冻结的接口辅助代码、版本断言、双端切换与读取记录，以及 A 来源重新绑定记录。切换前各 home 已备份相关配置与数据。它证明部署状态，不替代上一张业务实测卡，也不声称新增真实 Gitea webhook 测试。

@@ -1,0 +1,105 @@
+{
+  "at": "2026-10-06T05:06:25.134Z",
+  "home": "default",
+  "action": "verify",
+  "passed": true,
+  "plugins": [
+    {
+      "pkg": "@godcreator/gwb-claudecode",
+      "spec": "0.2.1",
+      "installed": true,
+      "entries": [
+        {
+          "id": "claudecode",
+          "entryId": "home:claudecode",
+          "pkg": "@godcreator/gwb-claudecode",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-collab",
+      "spec": "0.21.7",
+      "installed": true,
+      "entries": [
+        {
+          "id": "collab",
+          "entryId": "home:collab",
+          "pkg": "@godcreator/gwb-collab",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-qq-bot",
+      "spec": "0.3.1",
+      "installed": true,
+      "entries": [
+        {
+          "id": "qq-bot",
+          "entryId": "home:qq-bot",
+          "pkg": "@godcreator/gwb-qq-bot",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-zcode",
+      "spec": "0.2.6",
+      "installed": true,
+      "entries": [
+        {
+          "id": "zcode",
+          "entryId": "home:zcode",
+          "pkg": "@godcreator/gwb-zcode",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    }
+  ],
+  "versions": {
+    "@godcreator/gwb-qq-bot": "0.3.1",
+    "@godcreator/gwb-zcode": "0.2.6",
+    "@godcreator/gwb-claudecode": "0.2.1",
+    "@godcreator/gwb-collab": "0.21.7"
+  },
+  "sources": [],
+  "agents": {
+    "agents": [
+      {
+        "id": "zcode",
+        "title": "ZCode"
+      },
+      {
+        "id": "claudecode",
+        "title": "Claude Code"
+      }
+    ]
+  },
+  "status": {
+    "gateway": "open",
+    "sandbox": false,
+    "appIdConfigured": true,
+    "appSecretSet": true,
+    "defaultWorkspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+    "allowedOpenidCount": 2,
+    "conversations": [],
+    "sources": [],
+    "queuedTasks": 0,
+    "unresolvedTasks": [],
+    "pendingResults": 0,
+    "recentRejected": []
+  }
+}
