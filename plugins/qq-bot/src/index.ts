@@ -107,8 +107,8 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
       allowedOpenids: () => readStringList(this.setting('allowed-openids')),
       ownerOpenid: () => readString(this.setting('owner-openid')),
       defaultWorkspace: () => readString(this.setting('default-workspace')),
-      sendC2c: (openid, content, msgId, msgSeq) => this.rest.sendC2c(openid, { content, msgId, msgSeq }),
-      sendGroup: (group, content, msgId, msgSeq) => this.rest.sendGroup(group, { content, msgId, msgSeq }),
+      sendC2c: (openid, content, msgId, msgSeq, quote) => this.rest.sendC2c(openid, { content, msgId, msgSeq, quote }),
+      sendGroup: (group, content, msgId, msgSeq, quote) => this.rest.sendGroup(group, { content, msgId, msgSeq, quote }),
       log: ctx.logger(PLUGIN_NAME),
     })
     this.gateway.start()

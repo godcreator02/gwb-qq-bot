@@ -15,6 +15,8 @@ export interface SendMessageBody {
   /** 被动回复带 msgId 与递增的 msgSeq；主动消息不带 */
   msgId?: string
   msgSeq?: number
+  /** 引用的消息 id：QQ 里显示成引用那条消息 */
+  quote?: string
 }
 
 export type SendOutcome = { ok: true; id: string } | { ok: false; status: number; code?: number; message: string }
@@ -112,6 +114,8 @@ export class QqRestClient {
       ...(markdown ? { msg_type: 2, markdown: { content: body.content } } : { msg_type: 0, content: body.content }),
       msg_id: body.msgId,
       msg_seq: body.msgSeq,
+      // 引用的消息取不到时照常发正文、只是不带引用：结果本身比引用要紧
+      ...(body.quote === undefined ? {} : { message_reference: { message_id: body.quote, ignore_get_message_error: true } }),
     })
     if (!response.ok) {
       this.log.warn(`POST ${path} 失败：HTTP ${response.status} ${response.code ?? ''} ${response.message}`)

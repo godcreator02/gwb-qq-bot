@@ -20,8 +20,8 @@ export interface RoundsDeps {
   allowedOpenids(): string[]
   ownerOpenid(): string
   defaultWorkspace(): string
-  sendC2c(openid: string, content: string, msgId: string | undefined, msgSeq: number | undefined): Promise<SendOutcome>
-  sendGroup(groupOpenid: string, content: string, msgId: string | undefined, msgSeq: number | undefined): Promise<SendOutcome>
+  sendC2c(openid: string, content: string, msgId: string | undefined, msgSeq: number | undefined, quote: string | undefined): Promise<SendOutcome>
+  sendGroup(groupOpenid: string, content: string, msgId: string | undefined, msgSeq: number | undefined, quote: string | undefined): Promise<SendOutcome>
   log: QqLog
 }
 
@@ -241,12 +241,13 @@ export class Rounds {
   private async status(chatId: string, target: Target, trigger: Trigger): Promise<void> {
     const pending = await this.table.serial(async () => {
       const chat = this.table.require(chatId)
-      const texts = chat.undelivered.splice(0)
-      if (texts.length > 0) await this.table.save()
-      return { texts, round: chat.round === null ? null : structuredClone(chat.round), queued: chat.queue.length, binding: this.bindingOf(chat) }
+      const results = chat.undelivered.splice(0)
+      if (results.length > 0) await this.table.save()
+      return { results, round:chat.round === null ? null : structuredClone(chat.round), queued: chat.queue.length, binding: this.bindingOf(chat) }
     })
-    if (pending.texts.length > 0) {
-      for (const text of pending.texts) await this.deliver(chatId, target, trigger, `补发结果：\n${text}`)
+    if (pending.results.length > 0) {
+      // 被动回复挂在这条 /状态 上，引用的仍是当初派出这一轮的那条消息
+      for (const result of pending.results) await this.deliver(chatId, target, trigger, `补发结果：\n${result.text}`, result.quote)
       return
     }
     if (pending.round === null) {
@@ -328,7 +329,7 @@ export class Rounds {
     })
     if (fresh !== null) return fresh
     let delivered = false
-    try { delivered = (await this.deps.sendC2c(owner, text, undefined, undefined)).ok }
+    try { delivered = (await this.deps.sendC2c(owner, text, undefined, undefined, undefined)).ok }
     catch (error) { this.deps.log.warn(`通知 ${id} 发送失败：${String(error)}`) }
     if (delivered) {
       await this.table.serial(async () => {
@@ -341,8 +342,11 @@ export class Rounds {
 
   // ───── 发消息 ─────
 
-  /** 按回复窗口发一段话（长的分段）；都发出去回 true。被动回复用掉的次数先记进聊天表再发，msg_seq 不会重复 */
-  private async reply(target: Target, trigger: Trigger, text: string): Promise<boolean> {
+  /**
+   * 按回复窗口发一段话（长的分段），每段都引用 quote 那条消息（缺省是触发消息）；都发出去回 true。
+   * 被动回复用掉的次数先记进聊天表再发，msg_seq 不会重复
+   */
+  private async reply(target: Target, trigger: Trigger, text: string, quote = trigger.msgId): Promise<boolean> {
     for (const segment of splitForSend(text, SEGMENT_CHARS)) {
       const route = await this.table.serial(async () => {
         const chosen = chooseReplyRoute(target.scene, { ...trigger, repliesSent: this.table.repliesUsed(trigger.msgId) }, Date.now())
@@ -351,17 +355,17 @@ export class Rounds {
       })
       if (route.kind === 'none') return false
       if (route.kind === 'passive') {
-        if (await this.send(target, segment, route.msgId, route.msgSeq)) continue
+        if (await this.send(target, segment, route.msgId, route.msgSeq, quote)) continue
         if (target.scene === 'group') return false
       }
-      if (!(await this.send(target, segment, undefined, undefined))) return false
+      if (!(await this.send(target, segment, undefined, undefined, quote))) return false
     }
     return true
   }
 
-  private async send(target: Target, content: string, msgId: string | undefined, msgSeq: number | undefined): Promise<boolean> {
+  private async send(target: Target, content: string, msgId: string | undefined, msgSeq: number | undefined, quote: string | undefined): Promise<boolean> {
     try {
-      const outcome = target.scene === 'c2c' ? await this.deps.sendC2c(target.target, content, msgId, msgSeq) : await this.deps.sendGroup(target.target, content, msgId, msgSeq)
+      const outcome = target.scene === 'c2c' ? await this.deps.sendC2c(target.target, content, msgId, msgSeq, quote) : await this.deps.sendGroup(target.target, content, msgId, msgSeq, quote)
       return outcome.ok
     } catch (error) {
       this.deps.log.warn(`发 QQ 消息失败：${String(error)}`)
@@ -369,11 +373,11 @@ export class Rounds {
     }
   }
 
-  /** 投递一段结果；没发出去就记进这个聊天的未送达，等人发 /状态 */
-  private async deliver(chatId: string, target: Target, trigger: Trigger, text: string): Promise<void> {
-    if (await this.reply(target, trigger, text)) return
+  /** 投递一段结果，引用 quote 那条消息；没发出去就连同 quote 记进这个聊天的未送达，等人发 /状态 */
+  private async deliver(chatId: string, target: Target, trigger: Trigger, text: string, quote = trigger.msgId): Promise<void> {
+    if (await this.reply(target, trigger, text, quote)) return
     await this.table.serial(async () => {
-      this.table.require(chatId).undelivered.push(text)
+      this.table.require(chatId).undelivered.push({ text, quote })
       await this.table.save()
     })
   }

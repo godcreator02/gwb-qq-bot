@@ -69,7 +69,7 @@ agent 做完自己调 `qq-bot.report` → 结果按被动回复窗口发回原�
 
 一个聊天一行。显式绑定写在 `binding`；主人私聊的默认绑定按设置现算、不写进来。会话号随执行端走，换执行端、改绑、`/新会话` 时清空：
 
-{/* ref file="../plugins/qq-bot/src/chats.ts" lines="38-56" hash="8262001bf928" blob="f0737ed65f47" */}
+{/* ref file="../plugins/qq-bot/src/chats.ts" lines="38-56" hash="4e0219991f56" blob="4a83106250b8" */}
 
 整份表按 AppID 存成一份 gwb-data 文档 `chats-<AppID>`，换机器人就是另一份，记录里不写 home 与 AppID。另外记着主人通知的去重、近期处理过的消息 id（网关重推不重复派单）、
 每条触发消息已用掉的被动回复次数——`msg_seq` 不能重复，次数先记进表里再发：
@@ -108,6 +108,15 @@ ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来
 窗口与次数是腾讯侧的硬限制，插件只做选择：群聊过 5 分钟窗口或次数用完就不推，记进没送达、等人发 `/状态` 取；单聊 60 分钟窗口，窗口外改主动消息再试一次。
 测试在 `tests/reply-window.test.ts`。
 
+### 引用原消息
+
+每条回复都带 `message_reference`，在 QQ 里显示成引用它所回答的那条消息：回执引用刚收到的那条，一轮的结果引用派出这一轮的那条，排队、结果交叉出现时也看得出哪条结果对应哪条任务。
+「挂在哪条消息上」（`msg_id`，决定被动回复的窗口与次数）和「引用哪条」是两件事：群里过了窗口的结果连同要引用的消息 id 记进没送达，`/状态` 补发时被动回复挂在这条 `/状态` 上，引用的仍是当初那条任务：
+
+{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="248-251" hash="e4df7400cfe1" blob="5d2812723e8c" */}
+
+引用取不到原消息时照常发正文、只是不带引用（`ignore_get_message_error: true`），结果本身比引用要紧。2026-10-07 在机器人 B 上实测：单聊与群的被动回复、被动回复引用另一条更早的消息、单聊主动消息带引用，都正常显示成引用。
+
 ### 订阅哪些事件
 
 {/* ref file="../plugins/qq-bot/src/qq-protocol.ts" lines="19-24" hash="9b09f1a044ca" blob="86335ed602d6" */}
@@ -117,7 +126,7 @@ ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来
 
 ### REST 与环境
 
-{/* ref file="../plugins/qq-bot/src/qq-rest.ts" hash="2f10fd99ba8d" blob="cee29efd9926" */}
+{/* ref file="../plugins/qq-bot/src/qq-rest.ts" hash="dc83d8cbc123" blob="5fe47defa752" */}
 
 鉴权与业务接口用 `api.bot.qq.com`；`sandbox=true` 只兼容旧 `sandbox.api.sgroup.qq.com`。回复请求显式转成 `msg_id` / `msg_seq`，业务错误兼容 `err_code` 与 `code`。
 群回执用 `msg_type:2` 和 `markdown.content`，避免 QQ 给纯文本被动回复自动加白色 `@发送者` 前缀。测试在 `tests/qq-rest.test.ts` 与 `tests/qq-gateway.test.ts`。

@@ -51,8 +51,8 @@ export interface Chat {
   queue: QueuedMessage[]
   /** 上一轮收尾时的编号与结果：同一轮重交回报用它判重 */
   lastClosed: { id: string; text: string } | null
-  /** 没送达的结果，/状态 时补发 */
-  undelivered: string[]
+  /** 没送达的结果与它要引用的消息，/状态 时补发 */
+  undelivered: { text: string; quote: string }[]
 }
 
 export interface Notice {
@@ -83,7 +83,8 @@ export function loadBook(raw: unknown): Book {
     throw new Error('QQ 聊天表格式不对（version 1 的 chats / notices / seen / replies），停止处理')
   }
   for (const chat of raw['chats']) {
-    if (!isRecord(chat) || typeof chat['id'] !== 'string' || (chat['scene'] !== 'c2c' && chat['scene'] !== 'group') || typeof chat['target'] !== 'string' || !Array.isArray(chat['queue']) || !Array.isArray(chat['undelivered'])) {
+    if (!isRecord(chat) || typeof chat['id'] !== 'string' || (chat['scene'] !== 'c2c' && chat['scene'] !== 'group') || typeof chat['target'] !== 'string' || !Array.isArray(chat['queue']) || !Array.isArray(chat['undelivered'])
+      || !chat['undelivered'].every((result) => isRecord(result) && typeof result['text'] === 'string' && typeof result['quote'] === 'string')) {
       throw new Error('QQ 聊天表里有一行形状不对，停止处理')
     }
   }

@@ -1,6 +1,6 @@
 {
   "name": "@godcreator/gwb-qq-bot",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "QQ 官方机器人通道：私聊与群 @ 的任务交给绑定的执行端（ZCode / Claude Code），agent 做完调 qq-bot.report 发回原聊天；服务 gwbQqBot 给别的插件主动私聊主人。",
   "type": "module",
   "exports": {
