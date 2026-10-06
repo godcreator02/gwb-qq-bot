@@ -26,6 +26,12 @@ importers:
         specifier: ^0.4.13
         version: 0.4.13(@godcreator/gwb-commands@0.6.0(@godcreator/gwb-kernel-desktop@0.10.1(cordis@4.0.0-rc.10))(cordis@4.0.0-rc.10))(@godcreator/gwb-kernel-desktop@0.10.1(cordis@4.0.0-rc.10))(cordis@4.0.0-rc.10)
     devDependencies:
+      '@godcreator/gwb-claudecode':
+        specifier: link:../../../gwb-agents/plugins/claudecode
+        version: link:../../../gwb-agents/plugins/claudecode
+      '@godcreator/gwb-zcode':
+        specifier: link:../../../gwb-agents/plugins/zcode
+        version: link:../../../gwb-agents/plugins/zcode
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.1

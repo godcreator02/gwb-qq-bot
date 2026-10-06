@@ -1,10 +1,13 @@
 {
   "name": "@godcreator/gwb-qq-bot",
   "version": "0.3.2",
-  "description": "QQ 多来源对话：独立 agent 适配、直接回报、项目与日志绑定、结果持久化与送达。",
+  "description": "QQ 官方机器人通道：私聊与群 @ 的任务交给绑定的执行端（ZCode / Claude Code），agent 做完调 qq-bot.report 发回原聊天；服务 gwbQqBot 给别的插件主动私聊主人。",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
     "dist",
@@ -21,25 +24,36 @@
     "registry": "https://git.tianshen02.online:28377/api/packages/godcreator/npm/"
   },
   "scripts": {
-    "build": "node build.ts",
+    "build": "node build.ts && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint . --deny-warnings",
     "test": "vitest run --passWithNoTests",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run test"
   },
   "peerDependencies": {
-    "@godcreator/gwb-data": "^0.1.12",
+    "@godcreator/gwb-claudecode": "^0.4.0",
     "@godcreator/gwb-commands": "^0.6.0",
+    "@godcreator/gwb-data": "^0.1.12",
     "@godcreator/gwb-kernel-desktop": "^0.10.1",
     "@godcreator/gwb-settings": "^0.4.0",
-    "@godcreator/gwb-skills": "^0.4.13"
+    "@godcreator/gwb-skills": "^0.4.13",
+    "@godcreator/gwb-zcode": "^0.4.0",
+    "cordis": "^4.0.0-rc.10"
   },
   "peerDependenciesMeta": {
+    "@godcreator/gwb-claudecode": {
+      "optional": true
+    },
     "@godcreator/gwb-skills": {
+      "optional": true
+    },
+    "@godcreator/gwb-zcode": {
       "optional": true
     }
   },
   "devDependencies": {
+    "@godcreator/gwb-claudecode": "link:../../../gwb-agents/plugins/claudecode",
+    "@godcreator/gwb-zcode": "link:../../../gwb-agents/plugins/zcode",
     "@types/node": "^24.0.0",
     "cordis": "4.0.0-rc.10",
     "esbuild": "^0.28.2",

@@ -1,218 +1,190 @@
+import path from 'node:path'
+import { Service } from 'cordis'
 import type { GwbContext } from '@godcreator/gwb-kernel-desktop'
-// 空的类型 import 只为让这几个包的 `declare module 'cordis'` 生效，ctx 上才有 gwbCommands / gwbSettings 的类型
+// 空的类型 import 只为让这几个包的 `declare module 'cordis'` 生效，ctx 上才有对应服务的类型
 import type {} from '@godcreator/gwb-commands'
 import type {} from '@godcreator/gwb-settings'
 import type {} from '@godcreator/gwb-skills'
 import type {} from '@godcreator/gwb-data'
-import path from 'node:path'
-import { ChatBridge } from './bridge.js'
+import type {} from '@godcreator/gwb-zcode'
+import type {} from '@godcreator/gwb-claudecode'
+import type { GwbQqBotApi } from './api.js'
+import { ChatTable } from './chats.js'
+import { claudecodeExecutor } from './executors/claudecode.js'
+import { ExecutorTable } from './executors/executor.js'
+import { zcodeExecutor } from './executors/zcode.js'
 import { QqGateway } from './qq-gateway.js'
 import { QqRestClient } from './qq-rest.js'
-import { parseProbeArgs } from './probe.js'
+import { Rounds } from './rounds.js'
 
-/**
- * node 侧：QQ 官方机器人当通道，把私聊 / 群 @ 的任务文本转给所选原生 agent 执行，接收主动回报。
- * 无界面；连接状态与会话映射经 qq-bot.status 查
- */
-export const name = 'gwb-qq-bot'
+export * from './api.js'
 
-export const inject = ['gwbCommands', 'gwbSettings', 'gwbData']
+const PLUGIN_NAME = 'gwb-qq-bot'
 
-const KEY_APP_ID = 'app-id'
-const KEY_APP_SECRET = 'app-secret'
-const KEY_SANDBOX = 'sandbox'
-const KEY_ALLOWED_OPENIDS = 'allowed-openids'
-const KEY_DEFAULT_WORKSPACE = 'default-workspace'
+const SETTINGS = [
+  { key: 'app-id', title: 'AppID', type: 'string', default: '', description: 'QQ 开放平台（q.qq.com）机器人的 AppID。改了要调 qq-bot.reconnect 才生效' },
+  { key: 'app-secret', title: 'AppSecret', type: 'secret', description: 'QQ 开放平台机器人的 AppSecret，与 AppID 一起用于换 access token。改了要调 qq-bot.reconnect 才生效' },
+  { key: 'sandbox', title: '旧沙箱接口', type: 'boolean', default: false, description: 'false 用官方 api.bot.qq.com（新版后台的开发体验号码也用它）；true 只兼容旧的 sandbox.api.sgroup.qq.com。改了要调 qq-bot.reconnect 才生效' },
+  { key: 'allowed-openids', title: '允许的 openid 白名单', type: 'string-list', default: [], description: '允许使用机器人的 QQ 用户 openid（每个机器人各不相同，不是 QQ 号）。空名单谁都用不了；谁发消息被拒了，去 qq-bot.status 的 recentRejected 里看 openid 再加进来' },
+  { key: 'owner-openid', title: '主人私聊 openid', type: 'string', default: '', description: '主人：主动通知的唯一收件人，没绑定时私聊用默认工作区。填本机器人私聊消息里取得的 openid，并加进白名单' },
+  { key: 'default-workspace', title: '主人私聊的默认工作区', type: 'string', default: '', description: '主人私聊没有显式绑定时在这个目录里干活（绝对路径），交给 ZCode；为空时要先 qq-bot.bind' },
+] as const
 
-export function apply(ctx: GwbContext): void {
-  let disposed = false
-  const log = ctx.logger(name)
-  const settings = ctx.gwbSettings
-  const commands = ctx.gwbCommands
-  if (settings === undefined || commands === undefined) throw new Error('ctx.gwbSettings / ctx.gwbCommands 不在：inject 里写了它们，cordis 本不该调用 apply')
-
-  settings.define({
-    key: KEY_APP_ID,
-    title: 'AppID',
-    type: 'string',
-    description: 'QQ 开放平台（q.qq.com）机器人的 AppID。改了它要调 qq-bot.reconnect（或重载本插件）才生效',
-    default: '',
-  })
-  settings.define({
-    key: KEY_APP_SECRET,
-    title: 'AppSecret',
-    type: 'secret',
-    description: 'QQ 开放平台机器人的 AppSecret，与 AppID 一起用于换 access token。改了它要调 qq-bot.reconnect 才生效',
-  })
-  settings.define({
-    key: KEY_SANDBOX,
-    title: '沙箱环境',
-    type: 'boolean',
-    description: 'false 使用当前官方 api.bot.qq.com；true 仅兼容旧 sandbox.api.sgroup.qq.com 沙箱。新版后台的开发体验号码也用 false。改了要调 qq-bot.reconnect 才生效',
-    default: true,
-  })
-  settings.define({
-    key: KEY_ALLOWED_OPENIDS,
-    title: '允许的 openid 白名单',
-    type: 'string-list',
-    description:
-      '允许使用机器人的 QQ 用户 openid（官方 API 给的标识，每个机器人各不相同，不是 QQ 号）。空名单谁都用不了；谁发过消息被拒了，去 qq-bot.status 的 recentRejected 里看 openid 再加进来',
-    default: [],
-  })
-  settings.define({
-    key: KEY_DEFAULT_WORKSPACE,
-    title: '默认工作区',
-    type: 'string',
-    description: '主人私聊默认工作区（绝对路径）；群来源由项目绑定指定目录。为空时需要显式绑定',
-    default: '',
-  })
-
-  const appId = (): string => readString(settings.get(KEY_APP_ID))
-  const appSecret = (): string => readString(settings.get(KEY_APP_SECRET))
-  const sandbox = (): boolean => settings.get(KEY_SANDBOX) === true
-  // 入站来源与出站凭据使用同一连接快照，设置修改在 reconnect 时一起生效。
-  let activeAppId = appId(), activeSecret = appSecret(), activeSandbox = sandbox()
-  const rest = new QqRestClient(() => activeAppId, () => activeSecret, () => activeSandbox, log)
-  for (const definition of [
-    { key: 'report-mcp-server', title: '回报 MCP 服务名', type: 'string' as const, default: 'gwb', description: '执行端配置中连接到本 home 的 MCP 服务名；两个 home 必须分别配置，不能共用一个入口' },
-    { key: 'owner-openid', title: '主人私聊 openid', type: 'string' as const, default: '', description: '主动通知唯一收件人；填写从本机器人私聊消息取得的 openid，并加入白名单。不能填写另一个机器人的标识' },
-    { key: 'journal-library', title: '随手记笔记库', type: 'string' as const, default: '', description: '本 home 中随手记的目标库 id；留空时由 agent 先确认目标库，不猜测' },
-  ]) settings.define(definition)
-  const bridge = new ChatBridge({
-    home: path.basename(ctx.gwbKernel.dataDir),
-    appId: () => activeAppId,
-    runCommand: (commandName, args) => commands.run(commandName, args),
-    defaultWorkspace: () => readString(settings.get(KEY_DEFAULT_WORKSPACE)),
-    allowedOpenids: () => readStringList(settings.get(KEY_ALLOWED_OPENIDS)),
-    sendC2c: (openid, content, msgId, msgSeq) => rest.sendC2c(openid, { content, msgId, msgSeq }),
-    sendGroup: (groupOpenid, content, msgId, msgSeq) => rest.sendGroup(groupOpenid, { content, msgId, msgSeq }),
-    reportServer: () => readString(settings.get('report-mcp-server')),
-    journalLibrary: () => readString(settings.get('journal-library')),
-    ownerOpenid: () => readString(settings.get('owner-openid')),
-    read: () => ctx.gwbData.readDoc('direct-report-tasks'),
-    write: (value) => ctx.gwbData.writeDoc('direct-report-tasks', value),
-    log,
-  })
-  const gateway = new QqGateway(rest, log, {
-    onMessage: (message) => {
-      void bridge.handleIncoming(message).catch((error: unknown) => {
-        log.error(`QQ ${message.scene} 消息处理失败：${String(error)}`)
-      })
-    },
-    onState: (state, detail) => {
-      log.info(`QQ 网关状态：${state}${detail === undefined ? '' : `（${detail}）`}`)
-    },
-  })
-
-  const startIfConfigured = async (): Promise<boolean> => {
-    if (disposed) return false
-    if (appId() === '' || appSecret() === '') {
-      log.info('QQ 机器人的 AppID / AppSecret 没配置，不连接；配置后调 qq-bot.reconnect')
-      return false
-    }
-    activeAppId = appId(); activeSecret = appSecret(); activeSandbox = sandbox()
-    await bridge.restore()
-    if (disposed) return false
-    gateway.start()
-    return true
-  }
-
-  commands.register(
-    {
-      name: 'qq-bot.status',
-      description: '读 QQ 通道状态：连接、聊天来源与绑定、独立会话、排队和历史任务',
-      usage: '无参数。回 { gateway, sandbox, appIdConfigured, appSecretSet, defaultWorkspace, allowedOpenidCount, sources, conversations, queuedTasks, unresolvedTasks, pendingResults, recentRejected }；每项按来源而不是按发言人区分。来源的 id 用于 qq-bot.bind；unresolvedTasks 含 jobId/sourceId/taskId/workspace，人工核对后可用 qq-bot.resolve 解除未确认派单。',
-      effect: 'read',
-    },
-    async () => {
-      return {
-        ok: true,
-        data: {
-          gateway: gateway.currentState,
-          sandbox: sandbox(),
-          appIdConfigured: appId() !== '',
-          appSecretSet: appSecret() !== '',
-          defaultWorkspace: readString(settings.get(KEY_DEFAULT_WORKSPACE)),
-          allowedOpenidCount: readStringList(settings.get(KEY_ALLOWED_OPENIDS)).length,
-          ...bridge.report(),
-        },
-      }
-    },
-  )
-
-  commands.register(
-    {
-      name: 'qq-bot.reconnect',
-      description: '改完 QQ 机器人的 AppID / AppSecret / 沙箱设置后调它：断开当前网关连接并按新配置重连',
-      usage: '无参数。AppID / AppSecret 没配置时报错，不连接',
-      effect: 'write',
-    },
-    async () => {
-      gateway.stop()
-      rest.resetAuth()
-      if (!(await startIfConfigured())) throw new Error('AppID / AppSecret 没配置：先到设置的 qq-bot 分区填好再重连')
-      return { ok: true, data: { gateway: gateway.currentState } }
-    },
-  )
-
-  commands.register({ name: 'qq-bot.report', description: '执行中的 agent 直接提交本轮 QQ 任务结果',
-    usage: '{ticket:string,state:completed|failed|needs_input,text:string}。ticket 由本轮任务提供，正文1~16000字符，不接受收件人或会话ID。返回 {recorded:true,duplicate,delivery}，recorded只表示已落盘，不保证QQ已送达。超时仅用同票同结果重交，不重做任务。', effect: 'external' },
-    async (raw) => ({ ok: true, data: await bridge.receiveReport(raw) }))
-  commands.register({ name: 'qq-bot.agents', description: '列出 QQ 支持的 agent 适配接口（不表示原生插件已安装或在线）', usage: '无参数。回 {agents:[{id,title}]}。绑定前确认对应插件已安装，执行环境已配置本 home 的 MCP。', effect: 'read' }, async () => ({ ok: true, data: { agents: bridge.agentOptions() } }))
-  commands.register({ name: 'qq-bot.agent', description: '切换一个聊天的 agent，保留项目和日志库并开始新会话', usage: '{sourceId:string,agent:zcode|claudecode}。仅限已绑定且无排队、执行中或派发不明任务的来源；相同选择幂等，旧会话不转移到新执行端。', effect: 'write' }, async (raw) => ({ ok: true, data: await bridge.switchAgent(raw) }))
-  commands.register({ name: 'qq-bot.notify', description: '主动私聊通知已配置的主人，相同 id 不重复发送',
-    usage: '{id: string, text: string}。正文 1–600 字符；主人由 owner-openid 配置并须在白名单中；失败不自动重试。回 {delivered, duplicate}。', effect: 'external' },
-    async (raw) => ({ ok: true, data: await bridge.notify(raw) }))
-
-  commands.register({ name: 'qq-bot.sources', description: '查看本 home 当前机器人的聊天来源与项目、个人空间绑定',
-    usage: '无参数，返回来源数组：id、home、appId、scene、target、lastSeen、lastSender、generation、binding。群与私聊标识独立；先在目标聊天发 /帮助 取得真实来源，再用 id 绑定。', effect: 'read' },
-    async () => ({ ok: true, data: await bridge.sources() }))
-  commands.register({ name: 'qq-bot.bind', description: '将已观察到的群绑定到协作项目，或将私聊绑定到个人工作区',
-    usage: '{sourceId:string, projectRepo?:string, workspace?:string, journalLibrary?:string, agent?:zcode|claudecode}。群必须 projectRepo（已登记的 collab.projects 项目根），不收 workspace；私聊必须绝对路径 workspace，不收 projectRepo。journalLibrary 留空不使用笔记库；非空时经 block-note.lib.list 校验库存在、且库的插件白名单含 @godcreator/gwb-bn-journal，读不到库列表或校验不过都拒绝绑定。agent 缺省保持原选择，新来源默认 zcode；改变 agent 开始新会话。忙碌或派单未确认时拒绝；改绑新建上下文，不复用旧会话。返回来源及绑定。', effect: 'write' },
-    async (raw) => ({ ok: true, data: await bridge.bind(raw) }))
-  commands.register({ name: 'qq-bot.unbind', description: '解除聊天绑定，保留历史任务，不再从此来源派新任务',
-    usage: '{sourceId:string}。有执行中、排队、派单未确认任务时拒绝。解绑后主人私聊也不再自动继承默认工作区，需要重新显式绑定。返回来源及空绑定。', effect: 'write' },
-    async (raw) => ({ ok: true, data: await bridge.unbind(raw) }))
-  commands.register({ name: 'qq-bot.resolve', description: '人工确认执行端已停止后结束未确认派单，恢复工作区队列',
-    usage: '{jobId:string, confirmedStopped:true, note:string}。先查 qq-bot.status 的 unresolvedTasks，并核对 执行端会话确实没在执行；只接受当前机器人的 dispatch_unknown 任务。note 1–600 字符，保存核对理由；不取消、不重派原任务，标为 failed 并通知原来源，推进后续队列。回 {resolved:true, duplicate}，相同理由可重复确认。', effect: 'external' },
-    async (raw) => ({ ok: true, data: await bridge.resolve(raw) }))
-
-  commands.register(
-    {
-      name: 'qq-bot.probe',
-      description:
-        '实测 QQ 官方接口限制的探针，会真的往最近一个白名单消息的来源发消息：count 连发被动回复测同一消息能回几次；length 逐档发主动长消息测单条长度上限',
-      usage:
-        '参数 { experiment: "count"|"length", sends?: number, chars?: number[] }。要求先在 QQ 上给机器人发过一条消息（探针以它为触发源）。' +
-        'count：sends 缺省 6，从该消息已用次数接着连发被动回复，失败也发完，回执逐条带 ok / HTTP 状态 / 官方 code / message；' +
-        'length：chars 缺省 [600,680,700,1000,1500,2000,2500]（680 与 700 一档之差分辨限制按字节还是按字符），逐档发主动消息，仅单聊（群聊直接报错）。' +
-        '回 { experiment, scene, results: [...] }。只做实测用，别在日常任务里调',
-      effect: 'external',
-    },
-    async (raw) => {
-      return { ok: true, data: await bridge.probe(parseProbeArgs(raw)) }
-    },
-  )
-
-  // 说明书在包根的 skills/，相对产物 dist/index.js 写作 '../skills/'；那个目录要在 package.json 的 files 里
-  ctx.inject(['gwbSkills'], (scoped) => {
-    scoped.effect(() => scoped.gwbSkills.register(new URL('../skills/', import.meta.url)))
-  })
-
-  void startIfConfigured().catch((error: unknown) => log.error(`QQ 启动失败：${String(error)}`))
-  ctx.effect(() => () => {
-    disposed = true
-    gateway.stop()
-    return bridge.dispose()
-  })
-  log.info('已加载')
-}
-
-/** settings.get 的返回按声明类型兜不住收窄，这里显式收；收到不认识的类型当默认值，不猜 */
 function readString(value: unknown): string {
   return typeof value === 'string' ? value : ''
 }
 
 function readStringList(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+}
+
+/** 服务 gwbQqBot 的提供方：QQ 官方机器人通道，私聊与群 @ 的任务交给绑定的执行端，agent 做完调 qq-bot.report */
+export default class GwbQqBot extends Service implements GwbQqBotApi {
+  static inject = ['gwbCommands', 'gwbSettings', 'gwbData']
+
+  /** 方法里的 `this.ctx` 是调用方的；设置、命令、连接与执行端登记都在提供方自己的上下文上 */
+  private readonly providerContext: GwbContext
+  private readonly executors = new ExecutorTable()
+  private readonly rest: QqRestClient
+  private readonly gateway: QqGateway
+  /** 连上的那个机器人；入站与出站用同一份，改设置在 reconnect 时一起生效 */
+  private active: { appId: string; secret: string; sandbox: boolean } = { appId: '', secret: '', sandbox: false }
+  private rounds: Rounds | null = null
+  private disposed = false
+
+  constructor(ctx: GwbContext) {
+    super(ctx, 'gwbQqBot')
+    this.providerContext = ctx
+    const log = ctx.logger(PLUGIN_NAME)
+    this.rest = new QqRestClient(() => this.active.appId, () => this.active.secret, () => this.active.sandbox, log)
+    this.gateway = new QqGateway(this.rest, log, {
+      onMessage: (message) => {
+        if (this.rounds === null) return
+        void this.rounds.handleIncoming(message).catch((error: unknown) => log.error(`QQ ${message.scene} 消息处理失败：${String(error)}`))
+      },
+      onState: (state, detail) => log.info(`QQ 网关状态：${state}${detail === undefined ? '' : `（${detail}）`}`),
+    })
+  }
+
+  private setting(key: string): unknown {
+    return this.providerContext.gwbSettings.get(key)
+  }
+
+  [Service.init](): void {
+    const ctx = this.providerContext
+    const log = ctx.logger(PLUGIN_NAME)
+    ctx.effect(() => {
+      const undefineAll = SETTINGS.map((definition) => ctx.gwbSettings.define({ ...definition }))
+      return () => { for (const undefine of undefineAll) undefine() }
+    })
+    // 执行端适配层：哪个执行端插件装着，哪份实现才登记；卸了自动撤掉
+    ctx.inject(['gwbZcode'], (scoped) => { scoped.effect(() => this.executors.register(zcodeExecutor(scoped.gwbZcode))) })
+    ctx.inject(['gwbClaudecode'], (scoped) => { scoped.effect(() => this.executors.register(claudecodeExecutor(scoped.gwbClaudecode))) })
+    this.registerCommands()
+    // 说明书在包根的 skills/，相对产物 dist/index.js 写作 '../skills/'；那个目录要在 package.json 的 files 里
+    ctx.inject(['gwbSkills'], (scoped) => { scoped.effect(() => scoped.gwbSkills.register(new URL('../skills/', import.meta.url))) })
+    ctx.effect(() => () => this.dispose())
+    void this.connect().catch((error: unknown) => log.error(`QQ 启动失败：${String(error)}`))
+    log.info('已加载（服务 ctx.gwbQqBot 与 qq-bot.* 命令）')
+  }
+
+  /** 按当前设置连上机器人；聊天表按 AppID 一份，换了机器人就是另一份 */
+  private async connect(): Promise<boolean> {
+    const ctx = this.providerContext
+    const appId = readString(this.setting('app-id')), secret = readString(this.setting('app-secret'))
+    if (this.disposed || appId === '' || secret === '') {
+      if (!this.disposed) ctx.logger(PLUGIN_NAME).info('QQ 机器人的 AppID / AppSecret 没配置，不连接；配好后调 qq-bot.reconnect')
+      return false
+    }
+    this.active = { appId, secret, sandbox: this.setting('sandbox') === true }
+    const table = new ChatTable({ read: () => ctx.gwbData.readDoc(`chats-${appId}`), write: (value) => ctx.gwbData.writeDoc(`chats-${appId}`, value) })
+    await table.settle()
+    if (this.disposed) return false
+    this.rounds = new Rounds({
+      home: path.basename(ctx.gwbKernel.dataDir),
+      table,
+      executors: this.executors,
+      allowedOpenids: () => readStringList(this.setting('allowed-openids')),
+      ownerOpenid: () => readString(this.setting('owner-openid')),
+      defaultWorkspace: () => readString(this.setting('default-workspace')),
+      sendC2c: (openid, content, msgId, msgSeq) => this.rest.sendC2c(openid, { content, msgId, msgSeq }),
+      sendGroup: (group, content, msgId, msgSeq) => this.rest.sendGroup(group, { content, msgId, msgSeq }),
+      log: ctx.logger(PLUGIN_NAME),
+    })
+    this.gateway.start()
+    return true
+  }
+
+  private requireRounds(): Rounds {
+    if (this.rounds === null) throw new Error('QQ 机器人还没连上：先在设置的 qq-bot 分区填 AppID / AppSecret，再调 qq-bot.reconnect')
+    return this.rounds
+  }
+
+  notify(id: string, text: string): Promise<{ delivered: boolean; duplicate: boolean }> {
+    return this.requireRounds().notify(id, text)
+  }
+
+  private registerCommands(): void {
+    const commands = this.providerContext.gwbCommands
+    if (commands === undefined) throw new Error('ctx.gwbCommands 不在：inject 里写了它，cordis 本不该调用到这里')
+
+    commands.register(
+      { name: 'qq-bot.status', description: '读 QQ 通道状态：连接、各个聊天的绑定、在做的任务、排队与没送达的结果', effect: 'read',
+        usage: '无参数。回 { gateway, appIdConfigured, appSecretSet, sandbox, executors, chats: [{ id, scene, target, lastSeen, lastSender, binding, bindingFromDefault, round, queued, undelivered }], recentRejected }。chats 的 id 给 qq-bot.bind；聊天在机器人收到它的第一条消息后才出现；binding 为空且 bindingFromDefault 为 false 的聊天派不了任务' },
+      async () => {
+        const rounds = this.rounds
+        const chats = rounds === null ? [] : await rounds.summary()
+        return { ok: true, data: { gateway: this.gateway.currentState, appIdConfigured: readString(this.setting('app-id')) !== '', appSecretSet: readString(this.setting('app-secret')) !== '', sandbox: this.setting('sandbox') === true, executors: this.executors.ids(), chats, recentRejected: rounds?.recentRejected ?? [] } }
+      },
+    )
+    commands.register(
+      { name: 'qq-bot.reconnect', description: '改完 AppID / AppSecret / 旧沙箱接口设置后调它：断开当前网关连接并按新设置重连', usage: '无参数。AppID / AppSecret 没配置时报错，不连接', effect: 'write' },
+      async () => {
+        this.gateway.stop()
+        this.rest.resetAuth()
+        await this.rounds?.dispose()
+        this.rounds = null
+        if (!(await this.connect())) throw new Error('AppID / AppSecret 没配置：先到设置的 qq-bot 分区填好再重连')
+        return { ok: true, data: { gateway: this.gateway.currentState } }
+      },
+    )
+    commands.register(
+      { name: 'qq-bot.bind', description: '把一个聊天（私聊或群）绑定到工作区与执行端', effect: 'write',
+        usage: '{ chat: string, workspace: string, title: string, agent?: "zcode" | "claudecode", collab?: boolean }。chat 是 qq-bot.status 里聊天的 id；workspace 是已存在目录的绝对路径；title 是回执里叫它的名字；agent 缺省 zcode，必须是装着的执行端；collab 为 true 表示这是协作站的协作仓，提示词里会写明改动经 collab.submit 提交（绑群前先用 collab.projects 查项目的协作仓路径与名字）。这个聊天还有在做或排队的任务时拒绝。改绑后下一轮用新会话。回这个聊天的记录' },
+      async (raw) => ({ ok: true, data: await this.requireRounds().bind(raw) }),
+    )
+    commands.register(
+      { name: 'qq-bot.unbind', description: '解除一个聊天的绑定，之后它的消息不再派出', usage: '{ chat: string }。还有在做或排队的任务时拒绝。主人私聊解绑后仍按设置 default-workspace 派单，要停就把那项设置清空。回这个聊天的记录', effect: 'write' },
+      async (raw) => ({ ok: true, data: await this.requireRounds().unbind(raw) }),
+    )
+    commands.register(
+      { name: 'qq-bot.report', description: '执行任务的 agent 做完后提交这一轮的结果，qq-bot 发回原聊天', effect: 'external',
+        usage: '{ round: string, text: string }。round 是任务说明里给的本轮编号；text 是给手机看的结果，1–2000 字，超了报错、缩短后用同一个编号再交。回 { recorded: true, duplicate }：recorded 表示已经记下，发回 QQ 在后台做（群聊过了 5 分钟的被动回复窗口就等人发 /状态 取）。调用超时就用同样的参数再调一次；同一轮交不同的内容会被拒绝' },
+      async (raw) => ({ ok: true, data: await this.requireRounds().report(raw) }),
+    )
+    commands.register(
+      { name: 'qq-bot.notify', description: '主动私聊这台机器的主人一条通知，同一个 id 不重复发', effect: 'external',
+        usage: '{ id: string, text: string }。text 1–600 字；主人是设置 owner-openid，须在白名单里；发不出去不重发。回 { delivered, duplicate }' },
+      async (raw) => {
+        if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) throw new Error('qq-bot.notify 要 { id, text }')
+        const args = raw as Record<string, unknown>
+        const unknown = Object.keys(args).filter((key) => key !== 'id' && key !== 'text')
+        if (unknown.length > 0) throw new Error(`qq-bot.notify 不认识参数 ${unknown.join('、')}，只收 id、text`)
+        if (typeof args['id'] !== 'string' || typeof args['text'] !== 'string') throw new Error('qq-bot.notify 要 { id: string, text: string }')
+        return { ok: true, data: await this.notify(args['id'], args['text']) }
+      },
+    )
+  }
+
+  private async dispose(): Promise<void> {
+    this.disposed = true
+    this.gateway.stop()
+    await this.rounds?.dispose()
+  }
+}
+
+declare module 'cordis' {
+  interface Context {
+    gwbQqBot: GwbQqBotApi
+  }
 }

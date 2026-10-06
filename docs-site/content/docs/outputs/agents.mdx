@@ -7,29 +7,29 @@ description: 仓根 AGENTS.md 的正本
 
 这份 AGENTS.md 由 `docs-site/content/docs/outputs/agents.mdx` 生成：改那份正本，再运行 `pnpm doc:render`。
 
-gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`）：QQ 官方机器人通道——收私聊与群 @ 消息，
-经命令总线派给当前绑定的原生 agent 插件（ZCode 或 Claude Code），接收 `qq-bot.report` 主动回报后发回结果。
+gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`）：QQ 官方机器人通道——收私聊与群 @ 消息，交给聊天绑定的执行端（经 inject 的 `gwbZcode` / `gwbClaudecode`），
+agent 做完调 `qq-bot.report` 发回原聊天；服务 `gwbQqBot` 给别的插件主动私聊主人。
 
 ## 硬约束
 
-- 白名单外的消息一律静默拒绝（记日志与 recentRejected），绝不回消息
-- 来源按 home + AppID + 聊天类型 + 群／用户标识隔离；群内共享上下文、每轮保留发言者，正文不能改来源或执行目录
-- 群只绑定本 home 登记的协作站；只有主人私聊可继承默认工作区与笔记库，群笔记不借主人库
-- 绑定给 journalLibrary（非空）时必经 `block-note.lib.list` 校验：库要存在、库的插件白名单要含 `@godcreator/gwb-bn-journal`；读不到库列表直接拒绝，留空不查
-- 同 home 同工作区串行；有排队、执行中或派发不明任务时拒绝改绑与重开，超时不自动重派；执行端以 workspace 占用拒绝派单时任务回队列（不进派单不明），等占用轮回报后自动重试；`resolve` 须先人工核对执行端已停止；旧回报保留原来源
+- 白名单外的消息一律静默拒绝（记日志与 recentRejected），绝不回消息；机器人发来的消息一律不处理
+- 同一个聊天一次只跑一轮，后来的消息排在这个聊天自己的队列；不管跨聊天、跨工作区的占用
+- 回报只认本轮编号，不当凭证；没有后台轮询，执行端只在人发 /状态 或这一轮没回报又来新消息时问一次
+- 派单失败把原话告诉人、这一轮作废；不留需要人手工解除的中间状态，不自动重发
+- 执行端适配层（`src/executors/`）是本插件私有的，接口按 qq-bot 要的定；执行端经 cordis 服务 inject，不按名字调命令
+- 不依赖协作站：群绑定的协作仓路径与名字由绑的人填，依赖只朝协作站 → qq-bot 一个方向（反过来写 peer 会成环、发版被拒）
 - 官方接口的回执在入口校验形状，不对就报错或丢弃，不猜字段：`expires_in` 官方回数字字符串、两种都收，是核对过的契约不是兜底
 - access token 与 AppSecret 不进日志、不进命令回执
-- 群聊过被动窗口不硬推（主动消息月配额不拿来发结果）；单聊只在被动失败时用主动兜底一次
+- 群聊过被动窗口不硬推，记进没送达等 /状态；单聊只在被动失败时用主动消息
 - 协议字段名、事件位值集中在 `src/qq-protocol.ts`；接口报错先对官方文档核对再改，改了同步插件页钉码
-- 命令名、参数与回执形状是契约：改了同一个提交里改正本 `content/docs/outputs/skills/qq-bot.mdx` 并 render
-- 只经各自原生插件调用执行端，不给插件加界面
+- 服务、命令名、参数与回执形状是契约：改了同一个提交里改正本 `content/docs/outputs/skills/qq-bot.mdx` 并 render，按 gwb-release 判断升哪一位
 
 ## 怎么跑
 
 仓根：`pnpm build`、`pnpm check`（typecheck + oxlint + vitest）。
 
-- 隔离 home 验证：`devkit.dev {"home":"<home 名>","dir":"<仓根>","packages":["plugins/qq-bot"]}`
-- 全链路实测要沙箱机器人 + ZCode 桌面端开着，步骤读 skill「qq-bot」；派测试任务只做无害的事
+- 隔离 home 验证：`devkit.dev {"home":"<home 名>","dir":"<仓根>","packages":["plugins/qq-bot"]}`，同一个 home 里装上 gwb-zcode / gwb-claudecode
+- 全链路实测要测试机器人 + ZCode 桌面端开着，步骤读 skill「qq-bot」；派测试任务只做无害的事
 - 发版 `devkit.release`，升版本号前读 skill「gwb-release」
 - 文档站在 `docs-site/`：改 mdx 正本后 `pnpm doc:render`；看页面先 `pnpm build` 再 `pnpm start`（http://127.0.0.1:4337），不用 dev
 
