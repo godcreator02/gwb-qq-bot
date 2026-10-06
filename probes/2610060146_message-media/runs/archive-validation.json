@@ -1,0 +1,41 @@
+{
+  "at": "2026-10-05T17:56:35.131Z",
+  "method": "复制到仓外独立目录，检查语法、依赖边界和明文 AppSecret；离线实验在外部 cwd 执行；不重发在线请求",
+  "experiment": "2610060146_message-media",
+  "files": 7,
+  "noSecretFound": true,
+  "nodeSyntax": true,
+  "importsContained": true,
+  "offlineRuns": [],
+  "liveRequestsRepeated": false,
+  "manifest": [
+    {
+      "path": "api.mjs",
+      "sha256": "7282edaf134d0527aa76bbf8b61106cc0cd1d7bafd5c521f030b50a6bbf5a157"
+    },
+    {
+      "path": "input/docs.json",
+      "sha256": "fd15832959e35fa5f62623094535bf171ba691bfa09a2946aa68e012ca87aa4a"
+    },
+    {
+      "path": "input/fixture.txt",
+      "sha256": "741a5a0d792fafb72827949bbfb0219871333dcfc70a6360eb7bdbb4eed5f97d"
+    },
+    {
+      "path": "input/targets.json",
+      "sha256": "1f4bb1df737a971bef5e4644997b5ab012e43c3d49e2017ed86100aa5642316f"
+    },
+    {
+      "path": "probe.mjs",
+      "sha256": "aacd085ed1526eaca85144bd2119793261325f9d7410ab3e8827a33bce70a244"
+    },
+    {
+      "path": "README.md",
+      "sha256": "468a919d1d1900bc13e3b6854577cfc75f5e8a15891db2241d762ccc67c73ce4"
+    },
+    {
+      "path": "runs/2026-10-05T174639-070Z.json",
+      "sha256": "54f8377636eebc7659ab438a45be733be08e0fa1e8bd490abe1fbf2e2b135fa8"
+    }
+  ]
+}

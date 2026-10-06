@@ -1,0 +1,88 @@
+{
+  "at": "2026-10-05T18:49:22.057Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "subjectCommit": "98c25f5d44b31e8802d3ba035fe4e3354e1288f7",
+  "probeSha256": "412100a7f719ab1619c5df7b82e6cf53d375f57bfaf434ffc511fa71ac273520",
+  "question": "真实 QQ 入站任务是否经正确 home 的 MCP 主动回报并立即送回 QQ？",
+  "marker": "主动回报验证-A-1791226128108",
+  "receiverHome": "qqbotb-2610052319",
+  "job": {
+    "id": "2d52b0c6-b407-42d4-8727-a4567bc22aa4",
+    "openid": "<OPENID_MEMBER_1>",
+    "taskId": "sess_68b9e69f-2a9c-4d5d-955b-59848961f951",
+    "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+    "round": 1,
+    "route": {
+      "scene": "group",
+      "target": "<GROUP_OPENID_B>",
+      "trigger": {
+        "msgId": "ROBOT1.0_calQ8LI45UkpyBBD2rJKKxLoSFpCLem9F1V.y7zO7fhq6o-XQgdAO-JoqwKuucKB2o4D3gPz.ZV1N6AQy3dZpck3C8T.AhrxZ13DfoDF0.wNIqrVm3QhC6-bhktADRFg",
+        "receivedAt": 1791226129336,
+        "repliesSent": 2
+      }
+    },
+    "state": "completed",
+    "text": "主动回报验证-A-1791226128108成功",
+    "delivery": "delivered"
+  },
+  "status": {
+    "ok": true,
+    "data": {
+      "gateway": "open",
+      "sandbox": false,
+      "appIdConfigured": true,
+      "appSecretSet": "<REDACTED>",
+      "defaultWorkspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+      "allowedOpenidCount": 2,
+      "sessions": [
+        {
+          "openid": "<OPENID_MEMBER_1>",
+          "taskId": "sess_68b9e69f-2a9c-4d5d-955b-59848961f951",
+          "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+          "roundIndex": 1,
+          "roundRunning": false,
+          "resultDelivered": true
+        }
+      ],
+      "pendingResults": 0,
+      "recentRejected": []
+    }
+  },
+  "proof": "fs.watch observed persisted callback and delivered state; no zcode.status was called by this probe",
+  "records": [
+    {
+      "at": "2026-10-05T18:48:48.301Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "4748"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:48:49.026Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_2>\" /> 这是主动回报联调。结果文本只写“主动回报验证-A-1791226128108成功”。不读写文件，不运行其他任务。请按本轮附加的回报约定调用指定 MCP 服务的 zcode.report，然后结束。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYWGlg0PHMg15gnOceDARJc4s3.-FCabJUtgqW5AwPDtFCmzX3er3.Z.BANywSyWKew!!",
+        "timestamp": "2026-10-06T02:48:50+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_dBAnuaMiXw4foFsmR+YbQbv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

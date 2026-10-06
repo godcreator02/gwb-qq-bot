@@ -1,0 +1,37 @@
+{
+  "at": "2026-10-05T19:02:11.635Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "home": "qqbotb-2610052319",
+  "repo": "D:/simulated-collab-1791226931231",
+  "sourceHash": "010f99996ef0841f7240788065e091659ae5fcb0f1340d7ee0e5f70bc3f641cd",
+  "replies": [
+    {
+      "command": "qq-bot.notify",
+      "args": {
+        "id": "collab-0bd4b881a8ea3663d955e134-1",
+        "text": "协作站 simulated-collab-1791226931231\n联调模拟仓 MR #1：模拟 MR：验证协作站到 QQ 的通知，无需处理（本机联调）"
+      },
+      "reply": {
+        "ok": true,
+        "data": {
+          "delivered": true,
+          "duplicate": false
+        }
+      }
+    }
+  ],
+  "duplicate": {
+    "ok": true,
+    "data": {
+      "delivered": true,
+      "duplicate": true
+    }
+  },
+  "checks": [
+    "attention change calls real QQ notify",
+    "reloaded unchanged attention does not call again",
+    "QQ duplicate notice id is not sent twice"
+  ],
+  "boundary": "Synthetic attention fixture; no real MR or Gitea event was created."
+}

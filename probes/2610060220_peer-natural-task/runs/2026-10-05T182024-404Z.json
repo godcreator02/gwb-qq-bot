@@ -1,0 +1,124 @@
+{
+  "at": "2026-10-05T18:20:24.405Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "subjectCommit": "98c25f5d44b31e8802d3ba035fe4e3354e1288f7",
+  "probeSha256": "2e7d3a58d05e76b63a7f1e19b70572af48179207c6ee3144568ca96d324b9f53",
+  "question": "仅 @ 模式下不加命令前缀，双向自然语言任务能否经已安装 QQ 插件进入 ZCode 并回传？",
+  "sent": [
+    {
+      "from": "A",
+      "to": "B",
+      "marker": "自然语言互派验证-A到B",
+      "http": 200,
+      "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYcKiQrBx8Sv3LeOrFKxuuP5LSK2hhcefoeJxXExIDv1qUsyAQbKbL5VS2.hpda.61A!!"
+    },
+    {
+      "from": "B",
+      "to": "A",
+      "marker": "自然语言互派验证-B到A",
+      "http": 200,
+      "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NOM20ujmzwRn7GVAdIRwfBs5-XFeD2HNnl.fYMD5fEOE-bxB3mnZ159R9nYZORfoQg!!"
+    }
+  ],
+  "installedVersion": "0.1.4-dev.20261006021903",
+  "limit": "HTTP 发送不是验收；必须核对接收端 qq-bot.status 和 ZCode 结果/日志",
+  "records": [
+    {
+      "at": "2026-10-05T18:20:16.776Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "6459"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:20:17.262Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/v2/groups/<GROUP_OPENID_A>/bot_state",
+      "http": 200,
+      "body": {
+        "member_openid": "<OPENID_MEMBER_4>",
+        "joined_at": "2026-10-05T23:41:36+08:00",
+        "allow_proactive_msg": true,
+        "recv_msg_setting": "only_mention",
+        "member_role": "member"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:20:18.243Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_2>\" /> 请只回复“自然语言互派验证-A到B成功”，不要调用工具，不要读写文件，不要转发消息。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYcKiQrBx8Sv3LeOrFKxuuP5LSK2hhcefoeJxXExIDv1qUsyAQbKbL5VS2.hpda.61A!!",
+        "timestamp": "2026-10-06T02:20:20+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_u9p46u1dh4Z1u7ZB4Vr8drv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:20:20.684Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "4393"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:20:21.175Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/v2/groups/<GROUP_OPENID_B>/bot_state",
+      "http": 200,
+      "body": {
+        "member_openid": "<OPENID_MEMBER_3>",
+        "joined_at": "2026-10-05T23:41:28+08:00",
+        "allow_proactive_msg": true,
+        "recv_msg_setting": "only_mention",
+        "member_role": "member"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:20:22.082Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_1>\" /> 请只回复“自然语言互派验证-B到A成功”，不要调用工具，不要读写文件，不要转发消息。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NOM20ujmzwRn7GVAdIRwfBs5-XFeD2HNnl.fYMD5fEOE-bxB3mnZ159R9nYZORfoQg!!",
+        "timestamp": "2026-10-06T02:20:23+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_+wHYArso0E2NM63e+YHAzVMP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

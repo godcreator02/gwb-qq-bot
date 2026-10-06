@@ -1,0 +1,99 @@
+{
+  "mode": "run",
+  "agent": "zcode",
+  "at": "2026-10-06T04:34:09.398Z",
+  "home": "qqbotb-2610052319",
+  "passed": true,
+  "source": {
+    "home": "qqbotb-2610052319",
+    "appId": "<APP_ID_B>",
+    "scene": "group",
+    "target": "<GROUP_OPENID_B>",
+    "id": "<REDACTED>",
+    "lastSeen": "2026-10-06T04:29:56.430Z",
+    "lastSender": "<OPENID_MEMBER_1>",
+    "generation": 1,
+    "binding": {
+      "agent": "zcode",
+      "kind": "project",
+      "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+      "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+      "title": "混合型 MMC 样机",
+      "journalLibrary": ""
+    }
+  },
+  "marker": "B-DIRECT-zcode-1791261249434",
+  "job": {
+    "agent": "zcode",
+    "ticketHash": "<REDACTED>",
+    "dispatch": "accepted",
+    "id": "b03952e3-b7a8-4c66-a7e9-b4d84f1456f0",
+    "openid": "<OPENID_MEMBER_1>",
+    "sourceId": "<REDACTED>",
+    "conversationId": "584bd1bf-a211-4d54-a464-99fb651bb764",
+    "taskId": "sess_1c8d5814-e61d-461f-965f-5ef07c99d5ee",
+    "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+    "round": 1,
+    "route": {
+      "appId": "<APP_ID_B>",
+      "scene": "group",
+      "target": "<GROUP_OPENID_B>",
+      "trigger": {
+        "msgId": "ROBOT1.0_calQ8LI45UkpyBBD2rJKK0Ot3L-GgqyfLaN7RTQQzXZYlfFPSZ3QTWhEAuDW8yYU6rY40rMPh6g91K6WrxxR-oyRHmCpHtLsaAVwz1EOwUINIqrVm3QhC6-bhktADRFg",
+        "receivedAt": 1791261251213,
+        "repliesSent": 2
+      }
+    },
+    "source": {
+      "home": "qqbotb-2610052319",
+      "appId": "<APP_ID_B>",
+      "scene": "group",
+      "target": "<GROUP_OPENID_B>",
+      "senderOpenid": "<OPENID_MEMBER_1>",
+      "senderIsBot": true,
+      "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+      "title": "混合型 MMC 样机",
+      "journalLibrary": ""
+    },
+    "prompt": "这是回报链路测试。只通过本轮后附服务调用 qq-bot.report，state=completed，text=\"B-DIRECT-zcode-1791261249434 scene=group title=混合型 MMC 样机\"，然后结束。禁止读取或修改任何文件，不派其他任务、不发送其他消息。",
+    "reportServer": "gwb_botb",
+    "state": "completed",
+    "text": "B-DIRECT-zcode-1791261249434 scene=group title=混合型 MMC 样机",
+    "delivery": "delivered"
+  },
+  "requests": [
+    {
+      "at": "2026-10-06T04:34:09.622Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "6043"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-06T04:34:10.532Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_2>\" /> 这是回报链路测试。只通过本轮后附服务调用 qq-bot.report，state=completed，text=\"B-DIRECT-zcode-1791261249434 scene=group title=混合型 MMC 样机\"，然后结束。禁止读取或修改任何文件，不派其他任务、不发送其他消息。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYS3Bax73OI0YyPdZ0Qy4Eh-S5x.FSsWGlNUh0Ug8q2ZvBIPyFFP-6vy4SDZcsyTgCg!!",
+        "timestamp": "2026-10-06T12:34:10+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_wGN6UokYlhLrUd7YvtsVGbv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "name": "@godcreator/gwb-qq-bot",
-  "version": "0.1.3",
-  "description": "QQ 官方机器人当通道：机器人收私聊与群 @ 消息，把任务文本转给运行中的 ZCode 桌面端执行，轮询结果后回推 QQ；按 openid 白名单只响应配置过的 QQ 用户。命令 2 条；skill 1 份。",
+  "version": "0.3.1",
+  "description": "QQ 多来源对话：独立 agent 适配、直接回报、项目与日志绑定、结果持久化与送达。",
   "type": "module",
   "exports": {
     ".": "./dist/index.js"
@@ -28,6 +28,7 @@
     "check": "pnpm run typecheck && pnpm run lint && pnpm run test"
   },
   "peerDependencies": {
+    "@godcreator/gwb-data": "^0.1.12",
     "@godcreator/gwb-commands": "^0.6.0",
     "@godcreator/gwb-kernel-desktop": "^0.10.1",
     "@godcreator/gwb-settings": "^0.4.0",

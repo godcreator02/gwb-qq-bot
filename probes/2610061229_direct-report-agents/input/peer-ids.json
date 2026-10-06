@@ -1,0 +1,4 @@
+[
+  {"caller":"A","callerAppId":"<APP_ID_A>","groupOpenid":"<GROUP_OPENID_A>","target":"B","targetMemberOpenid":"<OPENID_MEMBER_2>","observedAt":"2026-10-06T02:11:54+08:00","source":"A 收到 B 的 GROUP_MESSAGE_CREATE.author.member_openid"},
+  {"caller":"B","callerAppId":"<APP_ID_B>","groupOpenid":"<GROUP_OPENID_B>","target":"A","targetMemberOpenid":"<OPENID_MEMBER_1>","observedAt":"2026-10-06T02:11:53+08:00","source":"B 收到 A 的 GROUP_MESSAGE_CREATE.author.member_openid"}
+]

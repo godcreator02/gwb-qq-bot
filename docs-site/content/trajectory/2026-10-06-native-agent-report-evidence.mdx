@@ -1,0 +1,21 @@
+---
+born-at: 2026-10-06T12:45
+type: evidence
+parent: [2026-10-05-gwb-qq-bot-root]
+label: 原生双端回报
+domain: 任务通道
+---
+
+## 背景
+
+架构 B 由 QQ 自己保存业务回报，分别适配 ZCode 和 Claude Code 原生命令。用户要求接入 Claude，继而明确「claudecode改成bypasspermission」。需要证明执行端能直接调用 QQ 的回报命令，并返回原聊天。
+
+## 结论与边界
+
+ZCode 和 Claude Code 均完成真实群任务、调用 qq-bot.report、保存 completed 并送达原群。Claude 首轮启动成功但 MCP run 权限被拒绝；按用户授权为新建和续聊统一指定 bypassPermissions 后，原会话恢复提交成功，新一轮续聊任务也完成并送达。插件仍加载本机 MCP 与 hooks，没有修改全局权限设置。
+
+旧回报恢复时已超过群被动窗口，保存为 undelivered；随后新消息测试为 delivered，不能把两轮混成一次成功。这里验证短任务的原生模型调用与 QQ 回传，不宣称长任务故障一定能自动恢复或所有模型调用一定成功。
+
+## 依据
+
+ZCode 的独立实验记录在 `probes/2610061229_direct-report-agents/runs/2026-10-06T043409-398Z-run-zcode.json`。Claude 恢复、新任务和安装信息在 `probes/2610061243_claude-bypass/`：开发包冻结在 input，成功回执为 `runs/2026-10-06T044333-725Z-run-claudecode.json`，最终客户端显示在 `runs/2026-10-06-completed-window.png`。新建和续聊的权限参数均有插件单元测试覆盖；该真实成功轮实际走续聊路径。

@@ -1,0 +1,222 @@
+{
+  "at": "2026-10-05T18:14:57.189Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "subjectCommit": "98c25f5d44b31e8802d3ba035fe4e3354e1288f7",
+  "probeSha256": "d8e77003a310e73aac836c9416325b674f40159d07e48e1d7dc9c8374be79564",
+  "question": "开启 all 后，机器人消息是否向另一机器人投递，并能取得本应用 peer ID？",
+  "mode": "--live",
+  "nonce": "ALLMSG-1791223908276",
+  "states": [
+    {
+      "peer": "A",
+      "http": 200,
+      "member_openid": "<OPENID_MEMBER_4>",
+      "joined_at": "2026-10-05T23:41:36+08:00",
+      "allow_proactive_msg": true,
+      "recv_msg_setting": "all",
+      "member_role": "member"
+    },
+    {
+      "peer": "B",
+      "http": 200,
+      "member_openid": "<OPENID_MEMBER_3>",
+      "joined_at": "2026-10-05T23:41:28+08:00",
+      "allow_proactive_msg": true,
+      "recv_msg_setting": "all",
+      "member_role": "member"
+    }
+  ],
+  "sent": [
+    {
+      "peer": "A",
+      "kind": "hello",
+      "http": 200,
+      "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYQbKxMFknIKJGD-H-pSRPDk34isxnqQF1nv3qVlQsn.jm0Uu4Jvbka4Pbabm6O65Mw!!"
+    },
+    {
+      "peer": "B",
+      "kind": "hello",
+      "http": 200,
+      "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NO2OZ-9EC3i.9IQmVBX32i2LUTzcCNopLKAG0QRCo9uKwBh.Bw0MnlsE7rOzS6U3Yw!!"
+    },
+    {
+      "peer": "A",
+      "kind": "mention-task",
+      "http": 200,
+      "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYcZTdCb555dEcegZR45t4KI3teRj1rswvnBE0cztK7RW6I7cfThEcj8UsBRg1BTn8w!!",
+      "target": "<OPENID_MEMBER_2>"
+    },
+    {
+      "peer": "B",
+      "kind": "mention-task",
+      "http": 200,
+      "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NLTdwCESJpCp5yQ07aV6OSKxAAiuLeVR1ClY8iV.v9g49tlzFl5SFr57t5RXeZYWmQ!!",
+      "target": "<OPENID_MEMBER_1>"
+    }
+  ],
+  "peerIds": {
+    "B": "<OPENID_MEMBER_1>",
+    "A": "<OPENID_MEMBER_2>"
+  },
+  "eventFile": "/D:/unitfolders/evew5-gwbapps/gwb-qq-bot/probes/2610060211_all-message-peer/runs/2026-10-05T181148-276Z-events.jsonl",
+  "received": 4,
+  "records": [
+    {
+      "at": "2026-10-05T18:11:48.613Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "6967"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:11:49.177Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/v2/groups/<GROUP_OPENID_A>/bot_state",
+      "http": 200,
+      "body": {
+        "member_openid": "<OPENID_MEMBER_4>",
+        "joined_at": "2026-10-05T23:41:36+08:00",
+        "allow_proactive_msg": true,
+        "recv_msg_setting": "all",
+        "member_role": "member"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:11:49.675Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "4904"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:11:50.149Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/v2/groups/<GROUP_OPENID_B>/bot_state",
+      "http": 200,
+      "body": {
+        "member_openid": "<OPENID_MEMBER_3>",
+        "joined_at": "2026-10-05T23:41:28+08:00",
+        "allow_proactive_msg": true,
+        "recv_msg_setting": "all",
+        "member_role": "member"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:11:50.595Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/gateway",
+      "http": 200,
+      "body": {
+        "url": "wss://api.sgroup.qq.com/websocket"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:11:51.432Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/gateway",
+      "http": 200,
+      "body": {
+        "url": "wss://api.sgroup.qq.com/websocket"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:11:53.626Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 0,
+        "content": "ALLMSG-1791223908276 HELLO-A 全量消息投递测试，不执行任务。"
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYQbKxMFknIKJGD-H-pSRPDk34isxnqQF1nv3qVlQsn.jm0Uu4Jvbka4Pbabm6O65Mw!!",
+        "timestamp": "2026-10-06T02:11:55+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_1drPcNNZWYfXpNrW/7U78rv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:11:54.506Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+      "request": {
+        "msg_type": 0,
+        "content": "ALLMSG-1791223908276 HELLO-B 全量消息投递测试，不执行任务。"
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NO2OZ-9EC3i.9IQmVBX32i2LUTzcCNopLKAG0QRCo9uKwBh.Bw0MnlsE7rOzS6U3Yw!!",
+        "timestamp": "2026-10-06T02:11:56+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_vyP4rVRmFWAS9ZVR68rMBVMP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:12:10.519Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_2>\" /> ALLMSG-1791223908276 TASK-A-TO-B 只回复收到，不调用工具。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYcZTdCb555dEcegZR45t4KI3teRj1rswvnBE0cztK7RW6I7cfThEcj8UsBRg1BTn8w!!",
+        "timestamp": "2026-10-06T02:12:12+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_YyKz/cZ/+F2C+QiAB75WvLv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:12:11.414Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_1>\" /> ALLMSG-1791223908276 TASK-B-TO-A 只回复收到，不调用工具。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NLTdwCESJpCp5yQ07aV6OSKxAAiuLeVR1ClY8iV.v9g49tlzFl5SFr57t5RXeZYWmQ!!",
+        "timestamp": "2026-10-06T02:12:13+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_wTB3GxYTdOOb8JOvmanqdlMP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

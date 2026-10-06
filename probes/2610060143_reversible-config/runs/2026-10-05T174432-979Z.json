@@ -1,0 +1,688 @@
+{
+  "at": "2026-10-05T17:44:32.979Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "subjectCommit": "98c25f5d44b31e8802d3ba035fe4e3354e1288f7",
+  "probeSha256": "c63d4eb47b2b96e5ea01c31090042f476f4ac094e2d3aa394c14de684b864d5c",
+  "question": "仅使用新建测试资源时，面板与停用审批策略的增改查删是否可用？",
+  "cleanup": [
+    {
+      "peer": "A",
+      "kind": "panel",
+      "id": "p_Y0O7kHukUyNtQcAjc3c8IA",
+      "ok": true
+    },
+    {
+      "peer": "A",
+      "kind": "disabled-strategy",
+      "id": "st_b32772bd75",
+      "ok": true
+    },
+    {
+      "peer": "B",
+      "kind": "panel",
+      "id": "p_Y0O7lvI3NW99QcAjcPdiIA",
+      "ok": true
+    },
+    {
+      "peer": "B",
+      "kind": "disabled-strategy",
+      "id": "st_b32a091429",
+      "ok": true
+    }
+  ],
+  "observations": [
+    {
+      "peer": "A",
+      "kind": "menu-same-value-write",
+      "http": 200,
+      "preserved": true
+    },
+    {
+      "peer": "B",
+      "kind": "menu-same-value-write",
+      "http": 200,
+      "preserved": true
+    }
+  ],
+  "records": [
+    {
+      "at": "2026-10-05T17:44:10.073Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "1313"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:10.340Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/v2/panels?scope=group&limit=50",
+      "http": 200,
+      "body": {
+        "is_end": true
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:11.144Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/panels",
+      "request": {
+        "scope": "group",
+        "target_type": "specific",
+        "group_openids": [
+          "<GROUP_OPENID_A>"
+        ],
+        "panel": {
+          "items": [
+            {
+              "type": "command",
+              "name": "/帮助",
+              "desc": "接口测试"
+            }
+          ],
+          "remark": "qq-api-probe-1791222249858-A"
+        }
+      },
+      "http": 200,
+      "body": {
+        "panel_id": "p_Y0O7kHukUyNtQcAjc3c8IA"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:11.583Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA",
+      "http": 200,
+      "body": {
+        "panel_id": "p_Y0O7kHukUyNtQcAjc3c8IA",
+        "scope": "group",
+        "target_type": "specific",
+        "panel": {
+          "items": [
+            {
+              "name": "帮助",
+              "desc": "接口测试",
+              "type": "command"
+            }
+          ],
+          "remark": "qq-api-probe-1791222249858-A"
+        },
+        "created_at": "2026-10-06T01:44:13+08:00",
+        "updated_at": "2026-10-06T01:44:13+08:00",
+        "version": 1,
+        "group_openids": [
+          "<GROUP_OPENID_A>"
+        ]
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:12.315Z",
+      "peer": "A",
+      "method": "PUT",
+      "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA",
+      "request": {
+        "panel": {
+          "items": [
+            {
+              "type": "command",
+              "name": "/帮助",
+              "desc": "接口测试更新"
+            }
+          ],
+          "remark": "qq-api-probe-1791222249858-A-updated"
+        }
+      },
+      "http": 200,
+      "body": {
+        "version": 2
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:13.086Z",
+      "peer": "A",
+      "method": "PUT",
+      "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA/target",
+      "request": {
+        "op": "del",
+        "group_openids": [
+          "<GROUP_OPENID_A>"
+        ]
+      },
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:13.811Z",
+      "peer": "A",
+      "method": "PUT",
+      "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA/target",
+      "request": {
+        "op": "add",
+        "group_openids": [
+          "<GROUP_OPENID_A>"
+        ]
+      },
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:14.356Z",
+      "peer": "A",
+      "method": "DELETE",
+      "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:14.818Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/v2/panels?scope=group&limit=50",
+      "http": 200,
+      "body": {
+        "is_end": true
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:15.290Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/v2/menu",
+      "http": 200,
+      "body": {
+        "version": 40,
+        "menu": {}
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:15.867Z",
+      "peer": "A",
+      "method": "PUT",
+      "path": "/v2/menu",
+      "request": {
+        "menu": {}
+      },
+      "http": 200,
+      "body": {
+        "version": 41
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:16.308Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/v2/menu",
+      "http": 200,
+      "body": {
+        "version": 41,
+        "menu": {}
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:16.761Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/join_approval_strategy",
+      "request": {
+        "group_openids": [
+          "<GROUP_OPENID_A>"
+        ],
+        "is_enable": "off",
+        "remark": "qq-api-probe-1791222249858-A"
+      },
+      "http": 200,
+      "body": {
+        "strategy_id": "st_b32772bd75",
+        "is_enable": "off",
+        "expire_at": "2027-10-06T01:44:18+08:00"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:17.230Z",
+      "peer": "A",
+      "method": "PATCH",
+      "path": "/v2/groups/join_approval_strategy/st_b32772bd75",
+      "request": {
+        "is_enable": "off",
+        "remark": "qq-api-probe-1791222249858-A-updated"
+      },
+      "http": 200,
+      "body": {
+        "is_enable": "off",
+        "expire_at": "2027-10-06T01:44:18+08:00"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:17.703Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/users/@me",
+      "http": 200,
+      "body": {
+        "id": "11041581154919605758",
+        "username": "zcode测试",
+        "avatar": "http://thirdqq.qlogo.cn/g?<REDACTED_QUERY>",
+        "share_url": "https://qun.qq.com/qunpro/robot/qunshare?<REDACTED_QUERY>",
+        "welcome_msg": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:18.158Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/join_approval_strategy/st_b32772bd75/whitelist_users",
+      "request": {
+        "op": "add",
+        "whitelist_users": [
+          "4014620533"
+        ]
+      },
+      "http": 200,
+      "body": {
+        "strategy_id": "st_b32772bd75",
+        "whitelist_user_count": 1,
+        "updated_at": "2026-10-06T01:44:20+08:00"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:18.849Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/join_approval_strategy/st_b32772bd75/whitelist_users",
+      "request": {
+        "op": "del",
+        "whitelist_users": [
+          "4014620533"
+        ]
+      },
+      "http": 200,
+      "body": {
+        "strategy_id": "st_b32772bd75",
+        "whitelist_user_count": 0,
+        "updated_at": "2026-10-06T01:44:20+08:00"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:19.307Z",
+      "peer": "A",
+      "method": "DELETE",
+      "path": "/v2/groups/join_approval_strategy/st_b32772bd75",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:19.735Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/v2/groups/join_approval_strategy",
+      "http": 200,
+      "body": {
+        "strategies": [],
+        "next_cursor": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:20.240Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/generate_url_link",
+      "request": {
+        "callback_data": "qq-api-probe-261006"
+      },
+      "http": 200,
+      "body": {
+        "retcode": 0,
+        "msg": "success",
+        "data": {
+          "url": "https://bot.q.qq.com/s/vEPXELbxaU"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:21.175Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "6552"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:21.745Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/v2/panels?scope=group&limit=50",
+      "http": 200,
+      "body": {
+        "is_end": true
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:22.481Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/panels",
+      "request": {
+        "scope": "group",
+        "target_type": "specific",
+        "group_openids": [
+          "<GROUP_OPENID_B>"
+        ],
+        "panel": {
+          "items": [
+            {
+              "type": "command",
+              "name": "/帮助",
+              "desc": "接口测试"
+            }
+          ],
+          "remark": "qq-api-probe-1791222261065-B"
+        }
+      },
+      "http": 200,
+      "body": {
+        "panel_id": "p_Y0O7lvI3NW99QcAjcPdiIA"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:22.927Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA",
+      "http": 200,
+      "body": {
+        "panel_id": "p_Y0O7lvI3NW99QcAjcPdiIA",
+        "scope": "group",
+        "target_type": "specific",
+        "panel": {
+          "items": [
+            {
+              "name": "帮助",
+              "desc": "接口测试",
+              "type": "command"
+            }
+          ],
+          "remark": "qq-api-probe-1791222261065-B"
+        },
+        "created_at": "2026-10-06T01:44:24+08:00",
+        "updated_at": "2026-10-06T01:44:24+08:00",
+        "version": 1,
+        "group_openids": [
+          "<GROUP_OPENID_B>"
+        ]
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:23.607Z",
+      "peer": "B",
+      "method": "PUT",
+      "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA",
+      "request": {
+        "panel": {
+          "items": [
+            {
+              "type": "command",
+              "name": "/帮助",
+              "desc": "接口测试更新"
+            }
+          ],
+          "remark": "qq-api-probe-1791222261065-B-updated"
+        }
+      },
+      "http": 200,
+      "body": {
+        "version": 2
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:24.301Z",
+      "peer": "B",
+      "method": "PUT",
+      "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA/target",
+      "request": {
+        "op": "del",
+        "group_openids": [
+          "<GROUP_OPENID_B>"
+        ]
+      },
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:24.782Z",
+      "peer": "B",
+      "method": "PUT",
+      "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA/target",
+      "request": {
+        "op": "add",
+        "group_openids": [
+          "<GROUP_OPENID_B>"
+        ]
+      },
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:25.266Z",
+      "peer": "B",
+      "method": "DELETE",
+      "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:25.691Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/v2/panels?scope=group&limit=50",
+      "http": 200,
+      "body": {
+        "is_end": true
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:26.124Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/v2/menu",
+      "http": 200,
+      "body": {
+        "version": 40,
+        "menu": {}
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:26.684Z",
+      "peer": "B",
+      "method": "PUT",
+      "path": "/v2/menu",
+      "request": {
+        "menu": {}
+      },
+      "http": 200,
+      "body": {
+        "version": 41
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:27.378Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/v2/menu",
+      "http": 200,
+      "body": {
+        "version": 41,
+        "menu": {}
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:27.879Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/join_approval_strategy",
+      "request": {
+        "group_openids": [
+          "<GROUP_OPENID_B>"
+        ],
+        "is_enable": "off",
+        "remark": "qq-api-probe-1791222261065-B"
+      },
+      "http": 200,
+      "body": {
+        "strategy_id": "st_b32a091429",
+        "is_enable": "off",
+        "expire_at": "2027-10-06T01:44:29+08:00"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:28.628Z",
+      "peer": "B",
+      "method": "PATCH",
+      "path": "/v2/groups/join_approval_strategy/st_b32a091429",
+      "request": {
+        "is_enable": "off",
+        "remark": "qq-api-probe-1791222261065-B-updated"
+      },
+      "http": 200,
+      "body": {
+        "is_enable": "off",
+        "expire_at": "2027-10-06T01:44:29+08:00"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:29.341Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/users/@me",
+      "http": 200,
+      "body": {
+        "id": "10828251844074546874",
+        "username": "zcode2号",
+        "avatar": "http://thirdqq.qlogo.cn/g?<REDACTED_QUERY>",
+        "share_url": "https://qun.qq.com/qunpro/robot/qunshare?<REDACTED_QUERY>",
+        "welcome_msg": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:29.821Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/join_approval_strategy/st_b32a091429/whitelist_users",
+      "request": {
+        "op": "add",
+        "whitelist_users": [
+          "4019707355"
+        ]
+      },
+      "http": 200,
+      "body": {
+        "strategy_id": "st_b32a091429",
+        "whitelist_user_count": 1,
+        "updated_at": "2026-10-06T01:44:31+08:00"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:30.512Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/join_approval_strategy/st_b32a091429/whitelist_users",
+      "request": {
+        "op": "del",
+        "whitelist_users": [
+          "4019707355"
+        ]
+      },
+      "http": 200,
+      "body": {
+        "strategy_id": "st_b32a091429",
+        "whitelist_user_count": 0,
+        "updated_at": "2026-10-06T01:44:32+08:00"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:31.135Z",
+      "peer": "B",
+      "method": "DELETE",
+      "path": "/v2/groups/join_approval_strategy/st_b32a091429",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:31.621Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/v2/groups/join_approval_strategy",
+      "http": 200,
+      "body": {
+        "strategies": [],
+        "next_cursor": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:44:32.161Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/generate_url_link",
+      "request": {
+        "callback_data": "qq-api-probe-261006"
+      },
+      "http": 200,
+      "body": {
+        "retcode": 0,
+        "msg": "success",
+        "data": {
+          "url": "https://bot.q.qq.com/s/vEPYxqXgvm"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

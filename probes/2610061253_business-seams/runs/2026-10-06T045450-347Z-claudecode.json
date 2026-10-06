@@ -1,0 +1,193 @@
+{
+  "at": "2026-10-06T04:54:50.347Z",
+  "agent": "claudecode",
+  "marker": "B-SEAMS-claudecode-1791262490347",
+  "home": "qqbotb-2610052319",
+  "passed": true,
+  "plugins": [
+    {
+      "pkg": "@godcreator/gwb-bn-core",
+      "spec": "0.25.6",
+      "installed": true,
+      "entries": [
+        {
+          "id": "bn-core",
+          "entryId": "home:bn-core",
+          "pkg": "@godcreator/gwb-bn-core",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-bn-journal",
+      "spec": "0.3.7",
+      "installed": true,
+      "entries": [
+        {
+          "id": "bn-journal",
+          "entryId": "home:bn-journal",
+          "pkg": "@godcreator/gwb-bn-journal",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-claudecode",
+      "spec": "file:./dev-packs/godcreator-gwb-claudecode-0.2.1-dev.20261006124122.tgz",
+      "installed": true,
+      "entries": [
+        {
+          "id": "claudecode",
+          "entryId": "home:claudecode",
+          "pkg": "@godcreator/gwb-claudecode",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-collab",
+      "spec": "file:./dev-packs/godcreator-gwb-collab-0.21.6-dev.20261006030243.tgz",
+      "installed": true,
+      "entries": [
+        {
+          "id": "collab",
+          "entryId": "home:collab",
+          "pkg": "@godcreator/gwb-collab",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-qq-bot",
+      "spec": "file:./dev-packs/godcreator-gwb-qq-bot-0.3.1-dev.20261006124306.tgz",
+      "installed": true,
+      "entries": [
+        {
+          "id": "qq-bot",
+          "entryId": "home:qq-bot",
+          "pkg": "@godcreator/gwb-qq-bot",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    },
+    {
+      "pkg": "@godcreator/gwb-zcode",
+      "spec": "file:./dev-packs/godcreator-gwb-zcode-0.2.6-dev.20261006122743.tgz",
+      "installed": true,
+      "entries": [
+        {
+          "id": "zcode",
+          "entryId": "home:zcode",
+          "pkg": "@godcreator/gwb-zcode",
+          "disabled": false,
+          "active": true,
+          "group": false
+        }
+      ],
+      "unmetPeers": []
+    }
+  ],
+  "expectedInbox": {
+    "tasks": 4,
+    "mentions": 1,
+    "repliesToMe": 0
+  },
+  "job": {
+    "agent": "claudecode",
+    "ticketHash": "<REDACTED>",
+    "dispatch": "accepted",
+    "id": "be374767-b10f-440b-9ca5-9e18f1374c3e",
+    "openid": "<OPENID_MEMBER_1>",
+    "sourceId": "<REDACTED>",
+    "conversationId": "7edb968c-fd36-402d-86e2-0f9fe8e4ec3e",
+    "taskId": "7345712d-3832-4eaf-b1c6-f5a6372f642f",
+    "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+    "round": 1,
+    "route": {
+      "appId": "<APP_ID_B>",
+      "scene": "group",
+      "target": "<GROUP_OPENID_B>",
+      "trigger": {
+        "msgId": "ROBOT1.0_calQ8LI45UkpyBBD2rJKK7aEseqh1PMZGbGCwfsTiPFdCN0Z9I6MPZQ8sWt23Q0PZ2OVpcKy.M0hktHOgJUe2pr6BxNkDy89-AZDqMRqbLcNIqrVm3QhC6-bhktADRFg",
+        "receivedAt": 1791262492885,
+        "repliesSent": 2
+      }
+    },
+    "source": {
+      "home": "qqbotb-2610052319",
+      "appId": "<APP_ID_B>",
+      "scene": "group",
+      "target": "<GROUP_OPENID_B>",
+      "senderOpenid": "<OPENID_MEMBER_1>",
+      "senderIsBot": true,
+      "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+      "title": "混合型 MMC 样机",
+      "journalLibrary": "notes"
+    },
+    "prompt": "这是业务接缝测试。请经本轮指定 home 的 MCP 读取绑定项目的 collab.inbox，只报告 tasks、mentions、repliesToMe 数量，不复述项目内容。然后在本聊天已绑定的隔离 notes 库当日日志创建且只创建一条原文：B-SEAMS-claudecode-1791262490347。先读 bn-journal 说明书，再 ensure、block.create；回报前读回这一条，确认没有重复。不要改项目文件、不要提交或联网取回项目、不要派单。最后调用本轮 qq-bot.report，text 为 JSON 字符串，包含 marker、blockId、lib、repo、tasks、mentions、repliesToMe。",
+    "reportServer": "gwb_botb",
+    "state": "completed",
+    "text": "{\"marker\":\"B-SEAMS-claudecode-1791262490347\",\"blockId\":\"20261006125518-8fm6ea9\",\"lib\":\"notes\",\"repo\":\"D:\\\\unitfolders\\\\b2o8l-sst-mmc-2026\\\\hybrid-mmc\\\\collab\",\"tasks\":4,\"mentions\":1,\"repliesToMe\":0}",
+    "delivery": "delivered"
+  },
+  "entries": [
+    {
+      "id": "20261006125518-8fm6ea9",
+      "text": "B-SEAMS-claudecode-1791262490347",
+      "task": null,
+      "depth": 1,
+      "source": "B-SEAMS-claudecode-1791262490347"
+    }
+  ],
+  "restored": true,
+  "requests": [
+    {
+      "at": "2026-10-06T04:54:50.969Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "4802"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-06T04:54:52.613Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_2>\" /> 这是业务接缝测试。请经本轮指定 home 的 MCP 读取绑定项目的 collab.inbox，只报告 tasks、mentions、repliesToMe 数量，不复述项目内容。然后在本聊天已绑定的隔离 notes 库当日日志创建且只创建一条原文：B-SEAMS-claudecode-1791262490347。先读 bn-journal 说明书，再 ensure、block.create；回报前读回这一条，确认没有重复。不要改项目文件、不要提交或联网取回项目、不要派单。最后调用本轮 qq-bot.report，text 为 JSON 字符串，包含 marker、blockId、lib、repo、tasks、mentions、repliesToMe。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYY7G9DVlxTfjFHeEVrNQMI-yBn7mR3pRMT6eLRef7yVZ-bnjJm4rRWh68f3dNUZWEw!!",
+        "timestamp": "2026-10-06T12:54:52+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_7i94R9Bsg43gzWhdbJtQAbv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

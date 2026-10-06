@@ -22,7 +22,7 @@ describe('QQ 官方 REST 请求', () => {
     expect(await rest.getAccessToken()).toBe('new-token')
     expect(fetcher).toHaveBeenCalledTimes(2)
   })
-  it('当前域名鉴权，私聊和群聊发送 snake_case 被动回复字段', async () => {
+  it('群聊 Markdown 避免平台自动白色 @ 前缀，私聊保留文本；均携带被动回复字段', async () => {
     const requests: { url: string; init: RequestInit }[] = []
     vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit) => {
       requests.push({ url, init })
@@ -38,7 +38,7 @@ describe('QQ 官方 REST 请求', () => {
     expect(requests[1]?.url).toBe('https://api.bot.qq.com/v2/groups/test-group/messages')
     expect(requests[2]?.url).toBe('https://api.bot.qq.com/v2/users/test-user/messages')
     expect(requests[1]?.init.headers).toMatchObject({ Authorization: 'QQBot test-token' })
-    expect(JSON.parse(String(requests[1]?.init.body))).toEqual({ msg_type: 0, content: 'hello', msg_id: 'incoming', msg_seq: 2 })
+    expect(JSON.parse(String(requests[1]?.init.body))).toEqual({ msg_type: 2, markdown: { content: 'hello' }, msg_id: 'incoming', msg_seq: 2 })
     expect(JSON.parse(String(requests[2]?.init.body))).toEqual({ msg_type: 0, content: 'hello', msg_id: 'incoming', msg_seq: 3 })
   })
 

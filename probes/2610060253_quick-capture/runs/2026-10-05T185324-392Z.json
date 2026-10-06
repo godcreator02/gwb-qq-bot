@@ -1,0 +1,103 @@
+{
+  "at": "2026-10-05T18:53:24.393Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "subjectCommit": "98c25f5d44b31e8802d3ba035fe4e3354e1288f7",
+  "probeSha256": "206e09759c1c5fc86275109e093d0bdb4196075f2fd0d8cd0bffa6cd11e2fa6c",
+  "question": "自然语言快速记录是否实际写入本 home 的 notes 当日日志并主动回报？",
+  "marker": "快速记录验证-A-1791226364475",
+  "receiverHome": "qqbotb-2610052319",
+  "job": {
+    "id": "f9d242c6-a7ce-4d2d-a357-5ebf63f3182a",
+    "openid": "<OPENID_MEMBER_1>",
+    "taskId": "sess_68b9e69f-2a9c-4d5d-955b-59848961f951",
+    "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+    "round": 2,
+    "route": {
+      "scene": "group",
+      "target": "<GROUP_OPENID_B>",
+      "trigger": {
+        "msgId": "ROBOT1.0_calQ8LI45UkpyBBD2rJKK0xjR.RvYgkwHjfquP0fq8MdUI1ul9Y73XaXBp5umJUgIutGkJXim-jTHKPA9UrcKDLr7Bqs.RjKlHr-dU7uk9ANIqrVm3QhC6-bhktADRFg",
+        "receivedAt": 1791226365857,
+        "repliesSent": 2
+      }
+    },
+    "state": "completed",
+    "text": "已保存到 notes 库 2026-10-06 当日日志：快速记录验证-A-1791226364475；新建块 id 20261006025317-pgs0rlx",
+    "delivery": "delivered"
+  },
+  "status": {
+    "ok": true,
+    "data": {
+      "gateway": "open",
+      "sandbox": false,
+      "appIdConfigured": true,
+      "appSecretSet": "<REDACTED>",
+      "defaultWorkspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+      "allowedOpenidCount": 2,
+      "sessions": [
+        {
+          "openid": "<OPENID_MEMBER_1>",
+          "taskId": "sess_68b9e69f-2a9c-4d5d-955b-59848961f951",
+          "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+          "roundIndex": 2,
+          "roundRunning": false,
+          "resultDelivered": true
+        }
+      ],
+      "pendingResults": 0,
+      "recentRejected": []
+    }
+  },
+  "day": {
+    "ok": true,
+    "data": {
+      "date": "2026-10-06",
+      "id": "20261006025306-a5tfm1b",
+      "entries": [
+        {
+          "id": "20261006025317-pgs0rlx",
+          "text": "快速记录验证-A-1791226364475",
+          "task": null,
+          "depth": 1,
+          "source": "快速记录验证-A-1791226364475"
+        }
+      ]
+    }
+  },
+  "records": [
+    {
+      "at": "2026-10-05T18:52:44.782Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "4511"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T18:52:45.508Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_2>\" /> 记一下：快速记录验证-A-1791226364475。\n这是隔离 home 的快速记录联调，只把上面这句验证标记保存到本 home 的 notes 库当日日志，不要改其他文件。回报包含验证标记和实际创建的块 id。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYd5XNzap-qJ3Drz6yd9p09hxwZVJ8P8flDbHmKTkEYY.SO7lBGEd8aKb6cSg6r.G9A!!",
+        "timestamp": "2026-10-06T02:52:47+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_c0Wfw+SK8edQxo4sCHvJQrv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

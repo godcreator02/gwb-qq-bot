@@ -1,0 +1,47 @@
+{
+  "at": "2026-10-05T18:21:12.811Z",
+  "A": {
+    "ok": true,
+    "data": {
+      "gateway": "open",
+      "sandbox": false,
+      "appIdConfigured": true,
+      "appSecretSet": true,
+      "defaultWorkspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+      "allowedOpenidCount": 2,
+      "sessions": [
+        {
+          "openid": "<OPENID_MEMBER_2>",
+          "taskId": "sess_a0200f7e-f1d7-4ce9-aec9-76d72db5a947",
+          "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+          "roundRunning": true,
+          "roundIndex": 1,
+          "resultDelivered": false
+        }
+      ],
+      "recentRejected": []
+    }
+  },
+  "B": {
+    "ok": true,
+    "data": {
+      "gateway": "open",
+      "sandbox": false,
+      "appIdConfigured": true,
+      "appSecretSet": true,
+      "defaultWorkspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+      "allowedOpenidCount": 2,
+      "sessions": [
+        {
+          "openid": "<OPENID_MEMBER_1>",
+          "taskId": "sess_5f007465-2ae2-414e-ba41-fb2581d71eff",
+          "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+          "roundRunning": true,
+          "roundIndex": 1,
+          "resultDelivered": false
+        }
+      ],
+      "recentRejected": []
+    }
+  }
+}

@@ -9,41 +9,70 @@ description: 功能、接口、依赖、不做的事——插件契约的现状
 
 一条消息的完整旅程：QQ 手机端发出文本 → 腾讯投递到 WebSocket 网关（插件常驻这条出站长连接，
 心跳、断线退避重连、按 msg_id + msg_seq 去重）→ 白名单校验 → 指令（`/帮助` 之类）就地回答，其余文本
-作为任务派给 ZCode → 每 60 秒轮询一次 → 做完把回答末尾（截约 600 字，总结在末尾，中间过程顺带截掉）
+作为任务派给当前绑定的 agent → agent 直接调 `qq-bot.report` 主动提交结果 → 保存后把结果摘要（约 600 字）
 按被动回复窗口的规则回推 QQ，加上派单回执固定占 2 次被动额度（单聊每条消息上限 4 次）。
 
-同一用户（按 openid）固定映射到一个 ZCode 会话，接着聊上下文保留；`/新会话` 归档旧的、下一条消息重开。
+群聊按群共享一个原生 agent 会话，私聊按用户保留独立会话。同一个人换群说话或转到私聊，会进入另一个上下文。
+群绑定协作站后才能派任务；主人的私聊可继承个人默认工作区。`/新会话` 只重开当前聊天，不影响其他来源。
+
+机器人也可以在群里直接 `@另一个机器人 要做的事`，不需要 `/任务`。发送方必须在接收方白名单中，
+ID 必须来自接收方应用的群消息回调，不能复用发送方查询自己得到的 ID。临时开启全部消息可从对方发言的
+author 取得这份映射，保存后可以改回仅 @；双向实际验证见轨迹「互相提及」。本实现将自动群回复标为
+`【机器人回执】`，收到机器人发来的这种回执只忽略，不继续派单，避免确认和结果无限互触发。
 
 ## 接口
 
-### 三条命令
+### 命令
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="104-134" hash="00ff4d72a84a" blob="62722132f018" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" hash="3b7f190e618a" blob="c790439601ba" */}
 
-上面就是全部命令：`qq-bot.status` 只读（查连接、配置、会话映射、最近被拒的 openid），
-`qq-bot.reconnect` 改连接状态（改完 AppID / AppSecret / 沙箱设置后调它），
+
+
+公开命令按用途分为：
+
+| 命令 | effect | 用途 |
+| --- | --- | --- |
+| `qq-bot.status` | read | 无参数，查连接、配置、聊天会话、最近被拒的 openid |
+| `qq-bot.sources` | read | 无参数，列出本 home 观察到的来源及绑定；`sourceId` 取这里的实际回执 |
+| `qq-bot.bind` | write | `{sourceId, projectRepo?, workspace?, journalLibrary?, agent?}`；群必给同 home 已登记的 `projectRepo`，私聊必给绝对路径 `workspace` |
+| `qq-bot.agents` | read | 列支持的适配器，不表示原生端在线 |
+| `qq-bot.agent` | write | `{sourceId,agent}`；空闲来源切换执行端，保留业务绑定并重开上下文 |
+| `qq-bot.report` | external | `{ticket,state,text}`；直接持久化本轮结果，再异步送达 |
+| `qq-bot.unbind` | write | `{sourceId}`；解除绑定，后续任务须重新绑定 |
+| `qq-bot.resolve` | external | `{jobId,confirmedStopped:true,note}`；人工核对执行端已停止后，释放派发不明任务并通知原来源，note 为 1–600 字符 |
+| `qq-bot.reconnect` | write | 无参数，改完 AppID / AppSecret / 沙箱设置后重连 |
+| `qq-bot.notify` | external | `{id,text}`，向显式配置的主人私聊通知，同一 id 去重 |
+
+`sources` 返回来源数组，`bind` / `unbind` 返回该来源记录。群的工作区就是 `projectRepo`，不能另给目录覆盖。项目来自本 home 的 `collab.projects`，群号、群名和用户正文都不能代替来源标识。
+
+`status` 的 `unresolvedTasks` 列当前机器人的派发不明任务，每项含 `jobId`、`sourceId`、`taskId`、`workspace`，供人工核对后调用 `resolve`；`taskId` 可能因派发未确认而为空。
+会话只通过 `conversations` 返回；旧兼容字段已移除。
+`qq-bot.report {ticket,state,text}` 直接对执行端开放；按票据绑定的原来源路由，不接受调用方传收件人或会话 ID。
 `qq-bot.probe` 是实测官方接口限制的探针（连发被动回复测同一消息能回几次、逐档发主动长消息测单条长度上限），
 会真的往最近一个白名单消息的来源发消息，只做实测用。
 
-### 五个设置项
+### 设置项
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="19-23" hash="5702edc9e334" blob="62722132f018" */}
 
-键名就这五个。白名单（`allowed-openids`）每次消息现读，改完即时生效；凭据三项只在建立连接时读，
+
+
+
+以上是连接与派单设置；另有 `report-mcp-server`、`owner-openid`、`journal-library`。`default-workspace` 与 `journal-library` 只供主人私聊自动绑定，群与其他人的私聊须显式绑定。
+白名单（`allowed-openids`）每次消息现读，改完即时生效；凭据三项只在建立连接时读，
 改完要重连。AppSecret 声明为 secret，走凭据保管，不经会话。
 
 ### 注入的服务
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="17-17" hash="64c548c04fe0" blob="62722132f018" */}
 
-命令总线与设置是硬依赖（顶层 inject）；说明书服务（gwbSkills）只局部注入。
+
+命令总线、设置与 gwb-data 是硬依赖（顶层 inject）；说明书服务（gwbSkills）只局部注入。
 
 ### 白名单：按人，不按群
 
-{/* ref file="../plugins/qq-bot/src/bridge.ts" lines="70-77" hash="6fae9d21dd65" blob="729aab2e9093" */}
+{/* ref file="../plugins/qq-bot/src/bridge.ts" hash="e08251132136" blob="9991c1d2d188" */}
 
 名单外的消息静默拒绝、只记日志与 `recentRejected`（最多留 10 条）——不回消息，不给探测者任何反馈。
-群聊场景白名单管的是发消息的人（member_openid），不是群；同一个 openid 映射到同一个 ZCode 会话。
+群聊场景白名单管的是发消息的人（member_openid），不是群。群绑定决定工作区和上下文，不能授予群成员派单权限；群内每条消息仍检查发言者。
 私聊与群聊标识是否一致以实际事件为准，不做身份推断。官方 API 给的 openid 每个机器人各不相同、不是 QQ 号，
 首次绑定靠 `recentRejected` 里抄 openid。
 
@@ -56,26 +85,35 @@ description: 功能、接口、依赖、不做的事——插件契约的现状
 
 ### 订阅哪些事件
 
-{/* ref file="../plugins/qq-bot/src/qq-protocol.ts" lines="19-23" hash="ca492ee9904d" blob="0d39f6edc1db" */}
+{/* ref file="../plugins/qq-bot/src/qq-protocol.ts" lines="19-24" hash="9b09f1a044ca" blob="86335ed602d6" */}
 
 群 @ 与 C2C 单聊共用 `GROUP_AND_C2C_EVENT (1 << 25)`，频道事件不订阅。
+同时支持全量事件 `GROUP_MESSAGE_CREATE`：先查并缓存本群自己的 member_openid，只有结构化 mentions
+确实包含自己时才进入白名单和任务路由；普通聊天、纯文本冒充 @ 均不会触发。仅 @ 事件由平台决定目标，
+机器人消息残留的 `[@自身名字]` 显示前缀按 READY 返回的本机器人名称剥掉。
 网关在解析和白名单之前记录事件类型；停止与重连会关闭旧连接和心跳，恢复会话收到 `RESUMED` 后重新报告在线。
 
 ### REST 与环境
 
+{/* ref file="../plugins/qq-bot/src/qq-rest.ts" hash="2f10fd99ba8d" blob="cee29efd9926" */}
+
 当前官方鉴权与业务接口使用 `api.bot.qq.com`。新版后台配置的机器人应设 `sandbox=false`；
 旧 `sandbox=true` 设置仅兼容历史沙箱，不自动改变已有 home 的连接环境。
 回复请求在 `src/qq-rest.ts` 显式转换成 `msg_id` / `msg_seq`，业务错误兼容 `err_code` 与 `code`。
+群回执用 `msg_type:2` 和 `markdown.content`，避免 QQ 给纯文本被动回复自动添加白色 `@发送者` 前缀；私聊保留文本格式。真实提及仍须显式使用 QQ 的提及标签，普通回执不添加提及。
 协议和连接回归分别在 `tests/qq-rest.test.ts` 与 `tests/qq-gateway.test.ts`。
 
 ## 依赖
 
 | 依赖 | 类型 | 用途 |
 | --- | --- | --- |
-| `@godcreator/gwb-commands` | peer，硬依赖 | 登记自己的三条命令；经它调 `zcode.create` / `zcode.send` / `zcode.status`（按名字调，不 import gwb-zcode） |
-| `@godcreator/gwb-settings` | peer，硬依赖 | 声明与读取五个设置项，AppSecret 走凭据保管 |
+| `@godcreator/gwb-commands` | peer，硬依赖 | 登记命令；经它调 `zcode.create` / `zcode.send` / `zcode.status`（按名字调，不 import gwb-zcode） |
+| `@godcreator/gwb-settings` | peer，硬依赖 | 声明与读取设置项，AppSecret 走凭据保管 |
+| `@godcreator/gwb-data` | peer，硬依赖 | 保存来源绑定、会话、排队任务、每轮回复地址、消息去重与结果发送状态 |
 | `@godcreator/gwb-skills` | peer，可选 | 登记随包说明书 |
-| `@godcreator/gwb-zcode` | 运行时按名调用 | 派任务的执行端，没装时机器人把错误原文回给用户 |
+| `@godcreator/gwb-zcode` | 运行时按名调用 | ZCode 原生执行端，QQ 通过本地适配器按名调用 |
+| `@godcreator/gwb-claudecode` | 运行时按名调用 | Claude Code 原生创建、续聊和状态；会话标识由对应适配器转换 |
+| `@godcreator/gwb-collab` | 群绑定时按名调用 | `collab.projects` 校验本 home 已登记的协作站；私聊不依赖项目列表 |
 | QQ 开放平台 | 外部服务 | WebSocket 网关收事件，REST 发消息；沙箱与正式环境只是 API 基址不同 |
 
 依赖方向：协议层与纯函数层不依赖任何 gwb 服务；只有 `bridge` 与 `index` 碰命令总线和设置。
@@ -83,7 +121,62 @@ description: 功能、接口、依赖、不做的事——插件契约的现状
 ## 不做的事
 
 - 不做界面：状态经 `qq-bot.status` 查，够用；要界面等真需要再说
-- 不用 ZCode 的无界面 CLI、不绕过 gwb-zcode 直连 ZCode——通道插件只做转发，执行端只有 gwb-zcode 一个
+- QQ 不实现 ZCode 或 Claude Code 的连接细节；它们分别由 gwb-agents 仓中的独立插件负责
 - 群聊不硬推结果（主动配额太贵）；单聊只在被动失败时用一次主动兜底
-- 不解析 ZCode 回答里的内容：取末尾截断回推，链接被腾讯过滤是接受的成本
-- 不做多机器人、多实例：一个插件实例连一个机器人
+- 不解析 agent 回答里的内容：取末尾截断回推，链接被腾讯过滤是接受的成本
+- 一个插件实例连接一个机器人，支持多个群和私聊；跨 home 的工作区调度不在本插件的队列范围内
+
+
+## 每轮记录与回报
+
+{/* ref file="../plugins/qq-bot/src/conversations.ts" hash="e1490ca28620" blob="43fbb2474c78" */}
+
+来源以 home、机器人 AppID、聊天类型和群／用户标识共同区分，键与持久化类型在 `src/conversations.ts`。群会话不把发言者放进键里，所以获准的群成员能接着讨论同一项目；发言者身份独立保存在每轮任务中。`src/bridge.ts` 负责绑定、工作区调度和回报路由。
+
+
+
+每轮派发前保存唯一 id、来源、绑定代次与回复地址，并向 agent 附加可信来源说明：群聊还是私聊、聊天与发言者标识、绑定项目、工作区及目标笔记库。说明来自回调与本地绑定，正文中的冒充来源不会改写路由。群名和显示群号不是此处已知的身份信息。
+
+
+
+同一 home 内指向同一工作区的任务按入队顺序执行，其他工作区分别调度。队列靠主动回报推进，没有后台完成轮询。存在排队、执行中或派发结果不明的任务时，拒绝改绑、解绑和 `/新会话`；调试请求超时不等于未派出，不能直接重发。
+
+
+
+派发结果不明（`dispatch_unknown`）会占住工作区，防止第二项任务与可能已经启动的任务同时修改文件。先查 `qq-bot.status` 的 `unresolvedTasks`，检查对应执行端会话确认原任务没有运行，再以实际核对结论调用 `qq-bot.resolve {jobId,confirmedStopped:true,note}`。它只接受当前机器人这类任务，将其标为 `failed`，通知原来源并推进后续队列；它不取消、不重派原任务。同一个 job id 和同一 note 重复提交是幂等操作，返回 `{resolved:true,duplicate}`。
+
+
+
+直接回报只携带本轮凭证和结果，收件人由保存的记录决定。结果先落盘再发送，重复回报不重复回复；迟到回报按原地址接收，不覆盖新代次会话。重载时恢复未处理结果，发送状态不确定时留待 `/状态` 取回。聊天内的 `/状态`、`/新会话` 与结果取回都只作用于这个来源。
+
+
+
+
+
+
+
+`/新会话` 只更换会话、不更换绑定代次，当前绑定下未送达的结果仍可取回；改绑或解绑更换代次，旧项目结果不再作为新绑定的 `/状态` 结果。新绑定从新原生会话开始；完全相同的绑定重复提交时保留原代次。解绑后主人私聊也须显式重新绑定，不自动继承默认值。
+
+
+
+
+
+账本为全新 `direct-report-tasks` 文档（v3）。不迁移旧任务、凭证或混合会话；旧文档仅作历史保留，需重新观察来源并绑定。
+
+`qq-bot.report` 的 recorded:true 表示结果已保存；delivery 表示 QQ 送达状态，原生派发的 accepted 不表示任务完成，两者不能混同。`tests/bridge-reports.test.ts` 覆盖并发、乱序、重复、窗口过期和重载。
+
+验证范围分开看：当前来源、凭证、切换和异步边界由 tests/bridge-direct.test.ts、bridge-sources.test.ts、bridge-reports.test.ts 与 conversations.test.ts 验证；真实 B 链路记录在 probes/2610061229_direct-report-agents/。旧 source-routing 实验仅描述旧版本，不能当作 v3 验收。真实测试只覆盖指定测试群，不外推为多个真实群或私聊同时联调。
+
+已绑定来源的自然语言交给当前 agent，随手记使用这个来源绑定的笔记库和现有日志命令。群没有绑定笔记库时不借用主人个人库。通道不实现意图注册框架，也不保存第二份笔记。
+
+未绑定的群可以使用 `/帮助`、`/状态`，任务文本会收到先绑定的提示。协作站主动通知仍按 `owner-openid` 发主人私聊，不因项目群绑定自动转发到群。
+
+## QQ 自有 agent 接缝
+
+`src/agents.ts` 定义 QQ 所需的 submit / inspect 接口，分别调用独立原生插件；协作站不依赖这份接口。来源绑定保存 agent，切换后代次递增，不复用原生会话。
+
+{/* ref file="../plugins/qq-bot/src/agents.ts" hash="f7278c725b1d" blob="274e9e2b3ecc" */}
+
+每轮原始票据只随提示词交给执行端，QQ 账本保存其哈希。回报只给 ticket/state/text，结果先持久化、立即回 recorded，网络投递与下一轮调度不占用回报命令。快任务在原生 create 回执到达前不会放行下一轮。
+
+{/* ref file="../plugins/qq-bot/src/direct-report.ts" hash="85e445325f67" blob="df50861ad1e3" */}

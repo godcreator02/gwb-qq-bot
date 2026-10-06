@@ -1,0 +1,72 @@
+{
+  "at": "2026-10-05T17:56:35.131Z",
+  "method": "复制到仓外独立目录，检查语法、依赖边界和明文 AppSecret；离线实验在外部 cwd 执行；不重发在线请求",
+  "experiment": "2610060139_api-catalog",
+  "files": 13,
+  "noSecretFound": true,
+  "nodeSyntax": true,
+  "importsContained": true,
+  "offlineRuns": [
+    [
+      "probe.mjs"
+    ],
+    [
+      "extract.mjs"
+    ]
+  ],
+  "liveRequestsRepeated": false,
+  "manifest": [
+    {
+      "path": "coverage.md",
+      "sha256": "f61f6e8c8b30841c971ba2c81e62cb4b4cc0dd07f6f53817a25567cdc12f49ef"
+    },
+    {
+      "path": "extract.mjs",
+      "sha256": "f16e57ae39536acda8e4b0817221ea491de53c99226c056defdac6c83c30ab23"
+    },
+    {
+      "path": "input/document-index.json",
+      "sha256": "feaf40dd9bcb9ee05224023e82106274bed18239a304654b149ceb2eb4b2a38d"
+    },
+    {
+      "path": "input/endpoints.json",
+      "sha256": "ec069225b6da90dc5d131627babf7d5cb8d6b1f0cdcbf6dc51a09749f15d166a"
+    },
+    {
+      "path": "input/http-observations.json",
+      "sha256": "892b9c88d6a17858e7d046d90f3981ce93ab26fd9f437c881e3a010e90a0662f"
+    },
+    {
+      "path": "input/official-directories.json",
+      "sha256": "4495285cc51ac1c227a960914f017c69d7cab7019ece7c201459d6b0efddec5f"
+    },
+    {
+      "path": "input/official-pages.json",
+      "sha256": "6e4944c5b1ba91c0acf30348dab68d9c467ea7598f0ff69fc1dbf8d8c99ea255"
+    },
+    {
+      "path": "input/official-review.md",
+      "sha256": "4568d60e53bb03efe4a6da3e58cb08507492e8f8b7f82cde60794dbc846c503d"
+    },
+    {
+      "path": "probe.mjs",
+      "sha256": "7f987beaa5630d8e19fbb833a4251a7001d7e62a4b6736c5eb6d0491cbd5f149"
+    },
+    {
+      "path": "README.md",
+      "sha256": "3c340a5b93bf50786831293f152d4d1477ccfe74281ad5886f8e6efb35532dac"
+    },
+    {
+      "path": "runs/2026-10-05T175126-735Z.json",
+      "sha256": "6d4504f7dc928b814e5c8b8632f688602a3956b11fa4065ab421f914bc480a3d"
+    },
+    {
+      "path": "runs/2026-10-05T175454-786Z.json",
+      "sha256": "107569bd8019205ac550e535b89ce8163723b7c460c2f05635ae1e8e76f9fa0d"
+    },
+    {
+      "path": "runs/extracted-1791222951402.json",
+      "sha256": "ec069225b6da90dc5d131627babf7d5cb8d6b1f0cdcbf6dc51a09749f15d166a"
+    }
+  ]
+}

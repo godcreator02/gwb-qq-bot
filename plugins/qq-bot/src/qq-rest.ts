@@ -96,14 +96,20 @@ export class QqRestClient {
     return this.postSend(`/v2/users/${openid}/messages`, body)
   }
 
-  async sendGroup(groupOpenid: string, body: SendMessageBody): Promise<SendOutcome> {
-    return this.postSend(`/v2/groups/${groupOpenid}/messages`, body)
+  async fetchGroupSelfId(groupOpenid: string): Promise<string> {
+    const body = await this.getJson(`/v2/groups/${encodeURIComponent(groupOpenid)}/bot_state`)
+    if (!isRecord(body) || typeof body['member_openid'] !== 'string' || body['member_openid'] === '') throw new Error('bot_state 回执缺 member_openid')
+    return body['member_openid']
   }
 
-  private async postSend(path: string, body: SendMessageBody): Promise<SendOutcome> {
+  async sendGroup(groupOpenid: string, body: SendMessageBody): Promise<SendOutcome> {
+    // QQ 的纯文本被动回复会自动加白色 @发送者；Markdown 仅显示实际正文。
+    return this.postSend(`/v2/groups/${groupOpenid}/messages`, body, true)
+  }
+
+  private async postSend(path: string, body: SendMessageBody, markdown = false): Promise<SendOutcome> {
     const response = await this.request('POST', path, {
-      msg_type: 0,
-      content: body.content,
+      ...(markdown ? { msg_type: 2, markdown: { content: body.content } } : { msg_type: 0, content: body.content }),
       msg_id: body.msgId,
       msg_seq: body.msgSeq,
     })

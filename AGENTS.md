@@ -3,17 +3,20 @@
 这份 AGENTS.md 由 `docs-site/content/docs/outputs/agents.mdx` 生成：改那份正本，再运行 `pnpm doc:render`。
 
 gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`）：QQ 官方机器人通道——收私聊与群 @ 消息，
-经命令总线派给运行中的 ZCode 桌面端（`zcode.create` / `zcode.send`），轮询 `zcode.status` 回推结果。
+经命令总线派给当前绑定的原生 agent 插件（ZCode 或 Claude Code），接收 `qq-bot.report` 主动回报后发回结果。
 
 ## 硬约束
 
 - 白名单外的消息一律静默拒绝（记日志与 recentRejected），绝不回消息
+- 来源按 home + AppID + 聊天类型 + 群／用户标识隔离；群内共享上下文、每轮保留发言者，正文不能改来源或执行目录
+- 群只绑定本 home 登记的协作站；只有主人私聊可继承默认工作区与笔记库，群笔记不借主人库
+- 同 home 同工作区串行；有排队、执行中或派发不明任务时拒绝改绑与重开，超时不自动重派；`resolve` 须先人工核对执行端已停止；旧回报保留原来源
 - 官方接口的回执在入口校验形状，不对就报错或丢弃，不猜字段：`expires_in` 官方回数字字符串、两种都收，是核对过的契约不是兜底
 - access token 与 AppSecret 不进日志、不进命令回执
 - 群聊过被动窗口不硬推（主动消息月配额不拿来发结果）；单聊只在被动失败时用主动兜底一次
 - 协议字段名、事件位值集中在 `src/qq-protocol.ts`；接口报错先对官方文档核对再改，改了同步插件页钉码
 - 命令名、参数与回执形状是契约：改了同一个提交里改正本 `content/docs/outputs/skills/qq-bot.mdx` 并 render
-- 不绕过 gwb-zcode 直连 ZCode，不给插件加界面
+- 只经各自原生插件调用执行端，不给插件加界面
 
 ## 怎么跑
 

@@ -27,10 +27,11 @@ export const EVENT_READY = 'READY'
 export const EVENT_RESUMED = 'RESUMED'
 export const EVENT_C2C_MESSAGE_CREATE = 'C2C_MESSAGE_CREATE'
 export const EVENT_GROUP_AT_MESSAGE_CREATE = 'GROUP_AT_MESSAGE_CREATE'
+export const EVENT_GROUP_MESSAGE_CREATE = 'GROUP_MESSAGE_CREATE'
 
 export type MessageScene = 'c2c' | 'group'
 
-/** 归一后的入站消息：senderOpenid 用于白名单与会话映射（按人），replyTarget 是回复地址（群聊是 group_openid） */
+/** 归一后的入站消息：senderOpenid 用于白名单与本轮发言者，scene + replyTarget 标识聊天来源（群聊是 group_openid） */
 export interface IncomingMessage {
   scene: MessageScene
   msgId: string
@@ -39,6 +40,8 @@ export interface IncomingMessage {
   senderOpenid: string
   replyTarget: string
   content: string
+  /** 平台声明的机器人发送者，用于区分任务与机器人回执。 */
+  senderIsBot?: boolean
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -63,13 +66,31 @@ function readEventInto(raw: unknown, scene: MessageScene): IncomingMessage | nul
   const groupOpenid = raw['group_openid']
   const memberOpenid = author['member_openid']
   if (typeof groupOpenid !== 'string' || typeof memberOpenid !== 'string') return null
-  return { scene, msgId, msgSeq, senderOpenid: memberOpenid, replyTarget: groupOpenid, content }
+  return { scene, msgId, msgSeq, senderOpenid: memberOpenid, replyTarget: groupOpenid, content, ...(author['bot'] === true ? { senderIsBot: true } : {}) }
 }
 
 export function readC2cMessageEvent(raw: unknown): IncomingMessage | null {
   return readEventInto(raw, 'c2c')
 }
 
-export function readGroupAtMessageEvent(raw: unknown): IncomingMessage | null {
-  return readEventInto(raw, 'group')
+export function readGroupAtMessageEvent(raw: unknown, selfName?: string): IncomingMessage | null {
+  const message = readEventInto(raw, 'group')
+  if (message !== null && selfName !== undefined) stripSelfMention(message, selfName)
+  return message
+}
+
+/** 全量事件不保证 @ 了自己；只信结构化 mentions，不能匹配正文昵称来决定执行。 */
+export function readMentionedGroupMessageEvent(raw: unknown, selfId: string): IncomingMessage | null {
+  const message = readEventInto(raw, 'group')
+  if (message === null || !isRecord(raw) || !Array.isArray(raw['mentions'])) return null
+  const self = raw['mentions'].find((entry: unknown) => isRecord(entry) && (entry['member_openid'] === selfId || entry['id'] === selfId)) as Record<string, unknown> | undefined
+  if (self === undefined) return null
+  if (typeof self['username'] === 'string') stripSelfMention(message, self['username'])
+  return message
+}
+
+function stripSelfMention(message: IncomingMessage, name: string): void {
+  const prefix = `[@${name}]`
+  const text = message.content.trimStart()
+  if (text.startsWith(prefix)) message.content = text.slice(prefix.length).trimStart()
 }

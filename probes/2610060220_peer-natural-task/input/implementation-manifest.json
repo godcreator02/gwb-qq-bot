@@ -1,0 +1,29 @@
+{
+  "version": "0.1.4-dev.20261006021903",
+  "files": [
+    {
+      "path": "src/bridge.ts",
+      "sha256": "e6932350ad80d884c6cb69938cfd4c41b375889ce6aa2ca1706f58f8dd7ccf2e"
+    },
+    {
+      "path": "src/qq-gateway.ts",
+      "sha256": "2b5f02d93e42df081aa7d50872ad7b36cb9a1133fcc60da1f75f5f9732653f41"
+    },
+    {
+      "path": "src/qq-protocol.ts",
+      "sha256": "d3a716a4ff7b3cce7e9b36f9ed59d5f0989b6bb893cf12219c967f63178b42df"
+    },
+    {
+      "path": "src/qq-rest.ts",
+      "sha256": "aeb51b2f53d23f47ad6b4acb3568cc61e024d60f20a397f5210184fb85037b1c"
+    },
+    {
+      "path": "tests/qq-gateway.test.ts",
+      "sha256": "bb16cffeccd5bd3aea81d8a246c3f3f9295f16a48661086b83d92dc20f4c1c2f"
+    },
+    {
+      "path": "tests/bridge-bot-routing.test.ts",
+      "sha256": "989b9b3fc73e62a782dac13c14e428363e2d73d0efbcdeff418fb6a55ff57c41"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import {mcp} from './mcp.mjs';
+const original=JSON.parse(await readFile(new URL('runs/2026-10-05T185324-392Z.json',import.meta.url),'utf8'));
+const current=await mcp(original.receiverHome,'run',{command:'bn-journal.day',args:{lib:'notes',date:original.day.data.date}});
+assert.equal(current.ok,true);
+const matches=current.data.entries.filter(x=>x.source.includes(original.marker));
+assert.equal(matches.length,1);assert.ok(original.job.text.includes(matches[0].id));
+const evidence={at:new Date().toISOString(),marker:original.marker,matches,reportedBlockMatches:true,entryCount:matches.length};
+await writeFile(new URL(`runs/readback-${Date.now()}.json`,import.meta.url),JSON.stringify(evidence,null,2));console.log(JSON.stringify(evidence));

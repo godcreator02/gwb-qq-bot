@@ -1,0 +1,1182 @@
+[
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:51.539Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/app/getAppAccessToken",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:51.798Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/users/@me",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:52.545Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/gateway",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:53.080Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/gateway/bot",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:53.802Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/users/@me/guilds?limit=100",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:54.708Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_A>/bot_state",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:55.668Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_A>/info",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:56.186Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_A>/members",
+    "http": 400,
+    "code": 11253,
+    "errCode": 40012010,
+    "verdict": "permission-denied"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:56.636Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_A>/join_request_list",
+    "http": 400,
+    "code": 11703,
+    "errCode": 40011030,
+    "verdict": "api-error"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:57.071Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_A>/member_blacklist",
+    "http": 400,
+    "code": 11253,
+    "errCode": 40012010,
+    "verdict": "permission-denied"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:57.533Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_A>/restrict_chat_setting",
+    "http": 400,
+    "code": 11703,
+    "errCode": 40011030,
+    "verdict": "api-error"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:57.971Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_A>/members/<OPENID_OWNER_A>",
+    "http": 400,
+    "code": 11253,
+    "errCode": 40012010,
+    "verdict": "permission-denied"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:58.442Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_A>/members/<OPENID_MEMBER_4>",
+    "http": 400,
+    "code": 11253,
+    "errCode": 40012010,
+    "verdict": "permission-denied"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:59.060Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/join_approval_strategy",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:41:59.735Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/menu",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:00.411Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/panels?scope=group&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:01.255Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/panels?scope=c2c&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:01.923Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/panels?scope=channel&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:02.622Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/panels?scope=dm&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:03.052Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/app/getAppAccessToken",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:03.292Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/users/@me",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:03.726Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/gateway",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:04.188Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/gateway/bot",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:04.660Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/users/@me/guilds?limit=100",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:05.445Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_B>/bot_state",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:06.140Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_B>/info",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:06.587Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_B>/members",
+    "http": 400,
+    "code": 11253,
+    "errCode": 40012010,
+    "verdict": "permission-denied"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:07.023Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_B>/join_request_list",
+    "http": 400,
+    "code": 11703,
+    "errCode": 40011030,
+    "verdict": "api-error"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:07.815Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_B>/member_blacklist",
+    "http": 400,
+    "code": 11253,
+    "errCode": 40012010,
+    "verdict": "permission-denied"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:08.257Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_B>/restrict_chat_setting",
+    "http": 400,
+    "code": 11703,
+    "errCode": 40011030,
+    "verdict": "api-error"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:08.703Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_B>/members/<OPENID_OWNER_B>",
+    "http": 400,
+    "code": 11253,
+    "errCode": 40012010,
+    "verdict": "permission-denied"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:09.454Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/<GROUP_OPENID_B>/members/<OPENID_MEMBER_3>",
+    "http": 400,
+    "code": 11253,
+    "errCode": 40012010,
+    "verdict": "permission-denied"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:10.171Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/join_approval_strategy",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:10.617Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/menu",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:11.059Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/panels?scope=group&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:11.664Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/panels?scope=c2c&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:12.260Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/panels?scope=channel&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060139_read-api-access/runs/2026-10-05T174212-984Z.json",
+    "at": "2026-10-05T17:42:12.684Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/panels?scope=dm&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:10.073Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/app/getAppAccessToken",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:10.340Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/panels?scope=group&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:11.144Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/panels",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:11.583Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:12.315Z",
+    "peer": "A",
+    "method": "PUT",
+    "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:13.086Z",
+    "peer": "A",
+    "method": "PUT",
+    "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA/target",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:13.811Z",
+    "peer": "A",
+    "method": "PUT",
+    "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA/target",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:14.356Z",
+    "peer": "A",
+    "method": "DELETE",
+    "path": "/v2/panels/p_Y0O7kHukUyNtQcAjc3c8IA",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:14.818Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/panels?scope=group&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:15.290Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/menu",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:15.867Z",
+    "peer": "A",
+    "method": "PUT",
+    "path": "/v2/menu",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:16.308Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/menu",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:16.761Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/join_approval_strategy",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:17.230Z",
+    "peer": "A",
+    "method": "PATCH",
+    "path": "/v2/groups/join_approval_strategy/st_b32772bd75",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:17.703Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/users/@me",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:18.158Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/join_approval_strategy/st_b32772bd75/whitelist_users",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:18.849Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/join_approval_strategy/st_b32772bd75/whitelist_users",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:19.307Z",
+    "peer": "A",
+    "method": "DELETE",
+    "path": "/v2/groups/join_approval_strategy/st_b32772bd75",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:19.735Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/v2/groups/join_approval_strategy",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:20.240Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/generate_url_link",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:21.175Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/app/getAppAccessToken",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:21.745Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/panels?scope=group&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:22.481Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/panels",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:22.927Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:23.607Z",
+    "peer": "B",
+    "method": "PUT",
+    "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:24.301Z",
+    "peer": "B",
+    "method": "PUT",
+    "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA/target",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:24.782Z",
+    "peer": "B",
+    "method": "PUT",
+    "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA/target",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:25.266Z",
+    "peer": "B",
+    "method": "DELETE",
+    "path": "/v2/panels/p_Y0O7lvI3NW99QcAjcPdiIA",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:25.691Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/panels?scope=group&limit=50",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:26.124Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/menu",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:26.684Z",
+    "peer": "B",
+    "method": "PUT",
+    "path": "/v2/menu",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:27.378Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/menu",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:27.879Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/join_approval_strategy",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:28.628Z",
+    "peer": "B",
+    "method": "PATCH",
+    "path": "/v2/groups/join_approval_strategy/st_b32a091429",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:29.341Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/users/@me",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:29.821Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/join_approval_strategy/st_b32a091429/whitelist_users",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:30.512Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/join_approval_strategy/st_b32a091429/whitelist_users",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:31.135Z",
+    "peer": "B",
+    "method": "DELETE",
+    "path": "/v2/groups/join_approval_strategy/st_b32a091429",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:31.621Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/v2/groups/join_approval_strategy",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060143_reversible-config/runs/2026-10-05T174432-979Z.json",
+    "at": "2026-10-05T17:44:32.161Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/generate_url_link",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:46.074Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/app/getAppAccessToken",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:46.403Z",
+    "peer": "A",
+    "method": "GET",
+    "path": "/users/@me",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:47.360Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:47.915Z",
+    "peer": "A",
+    "method": "DELETE",
+    "path": "/v2/groups/<GROUP_OPENID_A>/messages/ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYS4ta5PM2q.Utztu4qzfiA9p4WbW.MxmIydGzJ-x5bNJtIwK67B7r5x4xXCzzdVWAA!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:49.625Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:50.184Z",
+    "peer": "A",
+    "method": "DELETE",
+    "path": "/v2/groups/<GROUP_OPENID_A>/messages/ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYV.DNNOopwxpvx2TpB3YDUnOACva-pl1TkcUiBXrmMb75Vijo9baqTnQduWqP7dOFg!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:50.997Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_A>/files",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:54.487Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:55.022Z",
+    "peer": "A",
+    "method": "DELETE",
+    "path": "/v2/groups/<GROUP_OPENID_A>/messages/ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYU7L10zw7-8Nds4p3PvViRo8iSfnpz8Rlb-XUpZkNDzo8qLmKvOFNTQB04xNWHcOWQ!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:55.823Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_A>/upload_prepare",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:58.651Z",
+    "peer": "A",
+    "method": "PUT",
+    "path": "<official-presigned-upload>",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:45:59.738Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_A>/upload_part_finish",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:00.463Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_A>/files",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:02.086Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_A>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:02.666Z",
+    "peer": "A",
+    "method": "DELETE",
+    "path": "/v2/users/<OPENID_OWNER_A>/messages/ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvGmpRh-IE0-GDpQIDx6LtSP17RLq05qUSNxHLUAQmrcQL0TP.gR8GxqOrVN93gmbZA!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:03.317Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_A>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:03.826Z",
+    "peer": "A",
+    "method": "DELETE",
+    "path": "/v2/users/<OPENID_OWNER_A>/messages/ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvLfVawEx0dxX64r.nLymNBWizr-4nqt22XnBdVEaGydqL0TP.gR8GxqOrVN93gmbZA!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:04.605Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_A>/files",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:06.377Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_A>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:06.898Z",
+    "peer": "A",
+    "method": "DELETE",
+    "path": "/v2/users/<OPENID_OWNER_A>/messages/ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvItpqol0RiiGjez5MlveAVQrqPsexud.64iJ2l5hv.BLxfizwd0I-QvONndRrGzXjQ!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:07.521Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_A>/upload_prepare",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:10.274Z",
+    "peer": "A",
+    "method": "PUT",
+    "path": "<official-presigned-upload>",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:10.858Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_A>/upload_part_finish",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:11.480Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_A>/files",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:12.905Z",
+    "peer": "A",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_A>/stream_messages",
+    "http": 500,
+    "code": 50015001,
+    "errCode": 50015001,
+    "verdict": "api-error"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:13.330Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/app/getAppAccessToken",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:13.659Z",
+    "peer": "B",
+    "method": "GET",
+    "path": "/users/@me",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:14.598Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:15.182Z",
+    "peer": "B",
+    "method": "DELETE",
+    "path": "/v2/groups/<GROUP_OPENID_B>/messages/ROBOT1.0_vbKhVFTBlSNAA4r780Q3NKj5tkk2B7AZU6oBmt4siLG4whEVXfKuaBqIrtJ9aDlpXh.PI9JfgtKVF7Nj0U-SFA!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:15.983Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:16.537Z",
+    "peer": "B",
+    "method": "DELETE",
+    "path": "/v2/groups/<GROUP_OPENID_B>/messages/ROBOT1.0_vbKhVFTBlSNAA4r780Q3NJoCmujMpypHF5WJuHO4zU0ujhwbFwuTxy4CtrfeMks835u4SuI-r7C8Z7FeW737Cw!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:17.288Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_B>/files",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:19.611Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:20.165Z",
+    "peer": "B",
+    "method": "DELETE",
+    "path": "/v2/groups/<GROUP_OPENID_B>/messages/ROBOT1.0_vbKhVFTBlSNAA4r780Q3NOk11hDw..-arJapZLIDATQWF8mCkuXw0V8m6V78z4v22O71q4LyrnkqU90KNdJMWg!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:20.934Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_B>/upload_prepare",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:23.638Z",
+    "peer": "B",
+    "method": "PUT",
+    "path": "<official-presigned-upload>",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:24.055Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_B>/upload_part_finish",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:24.609Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/groups/<GROUP_OPENID_B>/files",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:26.266Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_B>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:26.849Z",
+    "peer": "B",
+    "method": "DELETE",
+    "path": "/v2/users/<OPENID_OWNER_B>/messages/ROBOT1.0_l0R6UDX34Z7nlewe4a1isHsOwT5sGmbGNVdojbxc51g5LT1jiwPDmYFdWel.Zjyhxfizwd0I-QvONndRrGzXjQ!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:27.523Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_B>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:28.088Z",
+    "peer": "B",
+    "method": "DELETE",
+    "path": "/v2/users/<OPENID_OWNER_B>/messages/ROBOT1.0_l0R6UDX34Z7nlewe4a1isJ6fDsVcg.aaSTFi8zUUnqk8eBBG8QBVZSkVoICltZgjL0TP.gR8GxqOrVN93gmbZA!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:29.649Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_B>/files",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:31.496Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_B>/messages",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:32.019Z",
+    "peer": "B",
+    "method": "DELETE",
+    "path": "/v2/users/<OPENID_OWNER_B>/messages/ROBOT1.0_l0R6UDX34Z7nlewe4a1isNip4-HZuIm6a1kD20MmYhOSxU7fYDhReClco-VKyBJBL0TP.gR8GxqOrVN93gmbZA!!",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:32.639Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_B>/upload_prepare",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:35.612Z",
+    "peer": "B",
+    "method": "PUT",
+    "path": "<official-presigned-upload>",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:36.100Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_B>/upload_part_finish",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:37.294Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_B>/files",
+    "http": 200,
+    "verdict": "success"
+  },
+  {
+    "source": "probes/2610060146_message-media/runs/2026-10-05T174639-070Z.json",
+    "at": "2026-10-05T17:46:38.753Z",
+    "peer": "B",
+    "method": "POST",
+    "path": "/v2/users/<OPENID_OWNER_B>/stream_messages",
+    "http": 500,
+    "code": 50015001,
+    "errCode": 50015001,
+    "verdict": "api-error"
+  }
+]

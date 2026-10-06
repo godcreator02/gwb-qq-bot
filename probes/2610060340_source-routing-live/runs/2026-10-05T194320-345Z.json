@@ -1,0 +1,151 @@
+{
+  "at": "2026-10-05T19:43:20.346Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "subjectCommit": "98c25f5d44b31e8802d3ba035fe4e3354e1288f7",
+  "probeSha256": "b3ff7212f41418be126cb6f6c1cf6b5d33f3a17ce11ea033391edc2b25c4f858",
+  "question": "真实群 @ 是否路由到指定协作站、新建来源独立会话，并由回调送回原群？",
+  "marker": "来源验证-A-1791229376772",
+  "receiver": "B",
+  "passed": true,
+  "job": {
+    "id": "6e8395ac-90ef-4b55-b820-7861777e0e86",
+    "openid": "<OPENID_MEMBER_1>",
+    "sourceId": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+    "conversationId": "90e9e8b8-45bd-43a2-aac6-9e71e0a205c3",
+    "taskId": "sess_7c7e1a33-207a-47f6-a608-45d8cae55a2f",
+    "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+    "round": 1,
+    "route": {
+      "appId": "<APP_ID_B>",
+      "scene": "group",
+      "target": "<GROUP_OPENID_B>",
+      "trigger": {
+        "msgId": "ROBOT1.0_calQ8LI45UkpyBBD2rJKK7pWHNH5vpX3kZpQHgPGe9co.almt3LQy7mPtLXkN.6vxCzTvCSBeSi.sNT8odRgcWFG6RTJ.KzwC7404GFFveUNIqrVm3QhC6-bhktADRFg",
+        "receivedAt": 1791229378124,
+        "repliesSent": 2
+      }
+    },
+    "source": {
+      "home": "qqbotb-2610052319",
+      "appId": "<APP_ID_B>",
+      "scene": "group",
+      "target": "<GROUP_OPENID_B>",
+      "senderOpenid": "<OPENID_MEMBER_1>",
+      "senderIsBot": true,
+      "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+      "title": "混合型 MMC 样机",
+      "journalLibrary": ""
+    },
+    "prompt": "来源联调：读取本轮后附的QQ来源信息，结果只写“来源验证-A-1791229376772 scene=实际scene title=实际title”。不读取或修改文件，不派其他任务。只通过本轮指定 MCP 服务调用 zcode.report 提交完成结果，然后结束。",
+    "reportServer": "gwb_botb",
+    "state": "completed",
+    "text": "来源验证-A-1791229376772 scene=group title=混合型 MMC 样机",
+    "delivery": "delivered"
+  },
+  "ledgerVersion": 2,
+  "status": {
+    "ok": true,
+    "data": {
+      "gateway": "open",
+      "sandbox": false,
+      "appIdConfigured": true,
+      "appSecretSet": "<REDACTED>",
+      "defaultWorkspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+      "allowedOpenidCount": 2,
+      "sessions": [
+        {
+          "id": "90e9e8b8-45bd-43a2-aac6-9e71e0a205c3",
+          "sourceId": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+          "generation": 1,
+          "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+          "taskId": "sess_7c7e1a33-207a-47f6-a608-45d8cae55a2f",
+          "roundIndex": 1,
+          "latest": "6e8395ac-90ef-4b55-b820-7861777e0e86",
+          "scene": "group",
+          "target": "<GROUP_OPENID_B>",
+          "appId": "<APP_ID_B>",
+          "title": "混合型 MMC 样机",
+          "roundRunning": false,
+          "resultDelivered": true
+        }
+      ],
+      "conversations": [
+        {
+          "id": "90e9e8b8-45bd-43a2-aac6-9e71e0a205c3",
+          "sourceId": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+          "generation": 1,
+          "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+          "taskId": "sess_7c7e1a33-207a-47f6-a608-45d8cae55a2f",
+          "roundIndex": 1,
+          "latest": "6e8395ac-90ef-4b55-b820-7861777e0e86",
+          "scene": "group",
+          "target": "<GROUP_OPENID_B>",
+          "appId": "<APP_ID_B>",
+          "title": "混合型 MMC 样机",
+          "roundRunning": false,
+          "resultDelivered": true
+        }
+      ],
+      "sources": [
+        {
+          "home": "qqbotb-2610052319",
+          "appId": "<APP_ID_B>",
+          "scene": "group",
+          "target": "<GROUP_OPENID_B>",
+          "id": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+          "lastSeen": "2026-10-05T19:42:58.124Z",
+          "lastSender": "<OPENID_MEMBER_1>",
+          "generation": 1,
+          "binding": {
+            "kind": "project",
+            "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+            "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+            "title": "混合型 MMC 样机",
+            "journalLibrary": ""
+          }
+        }
+      ],
+      "queuedTasks": 0,
+      "unresolvedTasks": [],
+      "pendingResults": 0,
+      "legacyTaskCount": 2,
+      "recentRejected": []
+    }
+  },
+  "records": [
+    {
+      "at": "2026-10-05T19:42:56.972Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "1499"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T19:42:57.803Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_2>\" /> 来源联调：读取本轮后附的QQ来源信息，结果只写“来源验证-A-1791229376772 scene=实际scene title=实际title”。不读取或修改文件，不派其他任务。只通过本轮指定 MCP 服务调用 zcode.report 提交完成结果，然后结束。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYeZ3MQn2SswnoGbkFWgRSxXSEZxwKjRdxgFHqBOaoKs2UjhHELVMGLKAfQXqfXYpOg!!",
+        "timestamp": "2026-10-06T03:42:59+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_kYkQayMT8tFHFebUrjBHerv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

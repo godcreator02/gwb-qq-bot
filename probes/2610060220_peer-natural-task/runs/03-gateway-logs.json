@@ -1,0 +1,90 @@
+{
+  "A": [
+    {
+      "ts": "2026-10-05T18:20:22.464Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "QQ 入站事件：GROUP_AT_MESSAGE_CREATE，s=2"
+    },
+    {
+      "ts": "2026-10-05T18:20:35.445Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "openid=<OPENID_MEMBER_2> 的任务派给 ZCode 会话 sess_a0200f7e-f1d7-4ce9-aec9-76d72db5a947 第 1 轮"
+    },
+    {
+      "ts": "2026-10-05T18:20:36.394Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "QQ 入站事件：GROUP_AT_MESSAGE_CREATE，s=4"
+    },
+    {
+      "ts": "2026-10-05T18:20:36.394Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "忽略机器人回执，避免回复互相触发任务"
+    },
+    {
+      "ts": "2026-10-05T18:21:39.107Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "QQ 入站事件：GROUP_AT_MESSAGE_CREATE，s=6"
+    },
+    {
+      "ts": "2026-10-05T18:21:39.107Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "忽略机器人回执，避免回复互相触发任务"
+    }
+  ],
+  "B": [
+    {
+      "ts": "2026-10-05T18:20:18.646Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "QQ 入站事件：GROUP_AT_MESSAGE_CREATE，s=2"
+    },
+    {
+      "ts": "2026-10-05T18:20:35.217Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "openid=<OPENID_MEMBER_1> 的任务派给 ZCode 会话 sess_5f007465-2ae2-414e-ba41-fb2581d71eff 第 1 轮"
+    },
+    {
+      "ts": "2026-10-05T18:20:36.539Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "QQ 入站事件：GROUP_AT_MESSAGE_CREATE，s=4"
+    },
+    {
+      "ts": "2026-10-05T18:20:36.539Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "忽略机器人回执，避免回复互相触发任务"
+    },
+    {
+      "ts": "2026-10-05T18:21:40.005Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "QQ 入站事件：GROUP_AT_MESSAGE_CREATE，s=6"
+    },
+    {
+      "ts": "2026-10-05T18:21:40.005Z",
+      "level": "info",
+      "source": "plugin",
+      "name": "gwb-qq-bot",
+      "msg": "忽略机器人回执，避免回复互相触发任务"
+    }
+  ]
+}

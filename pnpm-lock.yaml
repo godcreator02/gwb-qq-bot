@@ -13,6 +13,9 @@ importers:
       '@godcreator/gwb-commands':
         specifier: ^0.6.0
         version: 0.6.0(@godcreator/gwb-kernel-desktop@0.10.1(cordis@4.0.0-rc.10))(cordis@4.0.0-rc.10)
+      '@godcreator/gwb-data':
+        specifier: ^0.1.12
+        version: 0.1.12(@godcreator/gwb-kernel-desktop@0.10.1(cordis@4.0.0-rc.10))(cordis@4.0.0-rc.10)
       '@godcreator/gwb-kernel-desktop':
         specifier: ^0.10.1
         version: 0.10.1(cordis@4.0.0-rc.10)
@@ -220,6 +223,12 @@ packages:
 
   '@godcreator/gwb-commands@0.6.0':
     resolution: {integrity: sha512-+qi66ZZ4Q4ouV21R+AD70dtwkhs9uSlHPJoHPicpCL4ky0OdLzuGadxgBHg8juNksct5hBcNHXjylM0YL1Qgig==, tarball: https://git.tianshen02.online:28377/api/packages/godcreator/npm/%40godcreator%2Fgwb-commands/-/0.6.0/gwb-commands-0.6.0.tgz}
+    peerDependencies:
+      '@godcreator/gwb-kernel-desktop': ^0.10.0
+      cordis: ^4.0.0-rc.10
+
+  '@godcreator/gwb-data@0.1.12':
+    resolution: {integrity: sha512-yVrHsZPfPWjUrHR6seTy7mb7HVE+IPPPxJrHryvNIp2TjyuSvYbO9aIBVr+OOok+pttM3r9YxacoRhj/qq9AZQ==, tarball: https://git.tianshen02.online:28377/api/packages/godcreator/npm/%40godcreator%2Fgwb-data/-/0.1.12/gwb-data-0.1.12.tgz}
     peerDependencies:
       '@godcreator/gwb-kernel-desktop': ^0.10.0
       cordis: ^4.0.0-rc.10
@@ -1082,6 +1091,11 @@ snapshots:
     optional: true
 
   '@godcreator/gwb-commands@0.6.0(@godcreator/gwb-kernel-desktop@0.10.1(cordis@4.0.0-rc.10))(cordis@4.0.0-rc.10)':
+    dependencies:
+      '@godcreator/gwb-kernel-desktop': 0.10.1(cordis@4.0.0-rc.10)
+      cordis: 4.0.0-rc.10(@cordisjs/plugin-include@1.1.0)(@cordisjs/plugin-loader@1.0.0-rc.7)
+
+  '@godcreator/gwb-data@0.1.12(@godcreator/gwb-kernel-desktop@0.10.1(cordis@4.0.0-rc.10))(cordis@4.0.0-rc.10)':
     dependencies:
       '@godcreator/gwb-kernel-desktop': 0.10.1(cordis@4.0.0-rc.10)
       cordis: 4.0.0-rc.10(@cordisjs/plugin-include@1.1.0)(@cordisjs/plugin-loader@1.0.0-rc.7)

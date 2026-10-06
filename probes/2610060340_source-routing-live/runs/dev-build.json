@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "data": {
+    "home": "C:\\Users\\godamericatb14\\AppData\\Roaming\\gwb-kernel\\homes\\qqbotb-2610052319",
+    "homeName": "qqbotb-2610052319",
+    "shipped": [
+      {
+        "pkg": "@godcreator/gwb-qq-bot",
+        "version": "0.2.1-dev.20261006034218",
+        "dir": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot\\plugins\\qq-bot",
+        "packFile": "C:\\Users\\godamericatb14\\AppData\\Roaming\\gwb-kernel\\homes\\qqbotb-2610052319\\dev-packs\\godcreator-gwb-qq-bot-0.2.1-dev.20261006034218.tgz",
+        "via": "update"
+      }
+    ],
+    "update": {
+      "updated": [
+        {
+          "pkg": "@godcreator/gwb-qq-bot",
+          "from": "0.2.1-dev.20261006034040",
+          "to": "0.2.1-dev.20261006034218",
+          "entries": [
+            {
+              "id": "qq-bot",
+              "action": "remounted",
+              "state": "ACTIVE"
+            }
+          ]
+        }
+      ],
+      "dependents": [],
+      "selfDeferred": false
+    },
+    "reload": {
+      "page": "gwb",
+      "在哪个home": "qqbotb-2610052319",
+      "did": "reload",
+      "等到了": true,
+      "等的是": "readyState"
+    },
+    "evidence": {
+      "ok": true,
+      "installed": [
+        {
+          "pkg": "@godcreator/gwb-qq-bot",
+          "expected": "0.2.1-dev.20261006034218",
+          "actual": "0.2.1-dev.20261006034218"
+        }
+      ],
+      "entries": [
+        {
+          "pkg": "@godcreator/gwb-qq-bot",
+          "entryId": "home:qq-bot",
+          "active": true
+        }
+      ],
+      "dead": [],
+      "errors": [],
+      "warns": [],
+      "note": "装上的是这次的版本号(@godcreator/gwb-qq-bot@0.2.1-dev.20261006034218),1 条条目都在运行,日志新增部分里没有 error"
+    }
+  }
+}

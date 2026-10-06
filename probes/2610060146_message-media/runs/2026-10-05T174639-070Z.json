@@ -1,0 +1,944 @@
+{
+  "at": "2026-10-05T17:46:39.070Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "subjectCommit": "98c25f5d44b31e8802d3ba035fe4e3354e1288f7",
+  "probeSha256": "aacd085ed1526eaca85144bd2119793261325f9d7410ab3e8827a33bce70a244",
+  "question": "正式API的群聊/私聊文本、Markdown、URL上传、分片上传、流式及本次测试消息撤回是否可用？",
+  "notes": [
+    {
+      "peer": "A",
+      "scene": "groups",
+      "multipartMerge": true
+    },
+    {
+      "peer": "A",
+      "scene": "users",
+      "multipartMerge": true
+    },
+    {
+      "peer": "B",
+      "scene": "groups",
+      "multipartMerge": true
+    },
+    {
+      "peer": "B",
+      "scene": "users",
+      "multipartMerge": true
+    }
+  ],
+  "cleanup": [
+    {
+      "peer": "A",
+      "path": "/v2/groups/<GROUP_OPENID_A>",
+      "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYS4ta5PM2q.Utztu4qzfiA9p4WbW.MxmIydGzJ-x5bNJtIwK67B7r5x4xXCzzdVWAA!!",
+      "ok": true
+    },
+    {
+      "peer": "A",
+      "path": "/v2/groups/<GROUP_OPENID_A>",
+      "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYV.DNNOopwxpvx2TpB3YDUnOACva-pl1TkcUiBXrmMb75Vijo9baqTnQduWqP7dOFg!!",
+      "ok": true
+    },
+    {
+      "peer": "A",
+      "path": "/v2/groups/<GROUP_OPENID_A>",
+      "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYU7L10zw7-8Nds4p3PvViRo8iSfnpz8Rlb-XUpZkNDzo8qLmKvOFNTQB04xNWHcOWQ!!",
+      "ok": true
+    },
+    {
+      "peer": "A",
+      "path": "/v2/users/<OPENID_OWNER_A>",
+      "id": "ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvGmpRh-IE0-GDpQIDx6LtSP17RLq05qUSNxHLUAQmrcQL0TP.gR8GxqOrVN93gmbZA!!",
+      "ok": true
+    },
+    {
+      "peer": "A",
+      "path": "/v2/users/<OPENID_OWNER_A>",
+      "id": "ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvLfVawEx0dxX64r.nLymNBWizr-4nqt22XnBdVEaGydqL0TP.gR8GxqOrVN93gmbZA!!",
+      "ok": true
+    },
+    {
+      "peer": "A",
+      "path": "/v2/users/<OPENID_OWNER_A>",
+      "id": "ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvItpqol0RiiGjez5MlveAVQrqPsexud.64iJ2l5hv.BLxfizwd0I-QvONndRrGzXjQ!!",
+      "ok": true
+    },
+    {
+      "peer": "B",
+      "path": "/v2/groups/<GROUP_OPENID_B>",
+      "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NKj5tkk2B7AZU6oBmt4siLG4whEVXfKuaBqIrtJ9aDlpXh.PI9JfgtKVF7Nj0U-SFA!!",
+      "ok": true
+    },
+    {
+      "peer": "B",
+      "path": "/v2/groups/<GROUP_OPENID_B>",
+      "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NJoCmujMpypHF5WJuHO4zU0ujhwbFwuTxy4CtrfeMks835u4SuI-r7C8Z7FeW737Cw!!",
+      "ok": true
+    },
+    {
+      "peer": "B",
+      "path": "/v2/groups/<GROUP_OPENID_B>",
+      "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NOk11hDw..-arJapZLIDATQWF8mCkuXw0V8m6V78z4v22O71q4LyrnkqU90KNdJMWg!!",
+      "ok": true
+    },
+    {
+      "peer": "B",
+      "path": "/v2/users/<OPENID_OWNER_B>",
+      "id": "ROBOT1.0_l0R6UDX34Z7nlewe4a1isHsOwT5sGmbGNVdojbxc51g5LT1jiwPDmYFdWel.Zjyhxfizwd0I-QvONndRrGzXjQ!!",
+      "ok": true
+    },
+    {
+      "peer": "B",
+      "path": "/v2/users/<OPENID_OWNER_B>",
+      "id": "ROBOT1.0_l0R6UDX34Z7nlewe4a1isJ6fDsVcg.aaSTFi8zUUnqk8eBBG8QBVZSkVoICltZgjL0TP.gR8GxqOrVN93gmbZA!!",
+      "ok": true
+    },
+    {
+      "peer": "B",
+      "path": "/v2/users/<OPENID_OWNER_B>",
+      "id": "ROBOT1.0_l0R6UDX34Z7nlewe4a1isNip4-HZuIm6a1kD20MmYhOSxU7fYDhReClco-VKyBJBL0TP.gR8GxqOrVN93gmbZA!!",
+      "ok": true
+    }
+  ],
+  "records": [
+    {
+      "at": "2026-10-05T17:45:46.074Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "1217"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:46.403Z",
+      "peer": "A",
+      "method": "GET",
+      "path": "/users/@me",
+      "http": 200,
+      "body": {
+        "id": "11041581154919605758",
+        "username": "zcode测试",
+        "avatar": "http://thirdqq.qlogo.cn/g?<REDACTED_QUERY>",
+        "share_url": "https://qun.qq.com/qunpro/robot/qunshare?<REDACTED_QUERY>",
+        "welcome_msg": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:47.360Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 0,
+        "content": "QQ-API-PROBE A groups：文本发送与撤回测试。"
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYS4ta5PM2q.Utztu4qzfiA9p4WbW.MxmIydGzJ-x5bNJtIwK67B7r5x4xXCzzdVWAA!!",
+        "timestamp": "2026-10-06T01:45:49+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_cJ95Rqsjki0hpVtMdoZz77v+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:47.915Z",
+      "peer": "A",
+      "method": "DELETE",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages/ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYS4ta5PM2q.Utztu4qzfiA9p4WbW.MxmIydGzJ-x5bNJtIwK67B7r5x4xXCzzdVWAA!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:49.625Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "**QQ-API-PROBE A groups**\n\nMarkdown 发送与撤回测试。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYV.DNNOopwxpvx2TpB3YDUnOACva-pl1TkcUiBXrmMb75Vijo9baqTnQduWqP7dOFg!!",
+        "timestamp": "2026-10-06T01:45:51+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_knpxavJyMy5B2QcQg9OFFrv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:50.184Z",
+      "peer": "A",
+      "method": "DELETE",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages/ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYV.DNNOopwxpvx2TpB3YDUnOACva-pl1TkcUiBXrmMb75Vijo9baqTnQduWqP7dOFg!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:50.997Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/files",
+      "request": {
+        "file_type": 1,
+        "url": "http://thirdqq.qlogo.cn/g?<REDACTED_QUERY>",
+        "srv_send_msg": false
+      },
+      "http": 200,
+      "body": {
+        "file_uuid": "EhQFPHe3OI4lhPs32wSNyrrdUGSO3RiliRYg_woowN7AoLejlwMyBHByb2RQgL2jAVoQS_Hlx3_YxFlsRxHfWEGgRHoCf4uCAQJneg",
+        "file_info": "<REDACTED>",
+        "ttl": 86400,
+        "id": "",
+        "raw_url": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:54.487Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 7,
+        "media": {
+          "file_info": "<REDACTED>"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYU7L10zw7-8Nds4p3PvViRo8iSfnpz8Rlb-XUpZkNDzo8qLmKvOFNTQB04xNWHcOWQ!!",
+        "timestamp": "2026-10-06T01:45:56+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_jFulNW40f4/Ev5OxJFkKG7v+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:55.022Z",
+      "peer": "A",
+      "method": "DELETE",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages/ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYU7L10zw7-8Nds4p3PvViRo8iSfnpz8Rlb-XUpZkNDzo8qLmKvOFNTQB04xNWHcOWQ!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:55.823Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/upload_prepare",
+      "request": {
+        "file_type": 4,
+        "file_size": "71",
+        "file_name": "qq-api-probe.txt",
+        "md5": "d510609d6a1e5edcaa9d417d27ef8eb6",
+        "sha1": "5d53c65796c252bfd1137e72bfd7e6525bf40b9f",
+        "md5_10m": "d510609d6a1e5edcaa9d417d27ef8eb6"
+      },
+      "http": 200,
+      "body": {
+        "upload_id": "<REDACTED>",
+        "block_size": "10485760",
+        "parts": [
+          {
+            "index": 1,
+            "presigned_url": "<REDACTED>",
+            "block_size": "71"
+          }
+        ],
+        "upload_config": {
+          "concurrency": 1,
+          "retry_timeout": 300,
+          "retry_delay": 1
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:45:58.651Z",
+      "peer": "A",
+      "method": "PUT",
+      "path": "<official-presigned-upload>",
+      "http": 200,
+      "verdict": "success",
+      "bytes": 71
+    },
+    {
+      "at": "2026-10-05T17:45:59.738Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/upload_part_finish",
+      "request": {
+        "upload_id": "<REDACTED>",
+        "part_index": 1,
+        "block_size": "71",
+        "md5": "d510609d6a1e5edcaa9d417d27ef8eb6"
+      },
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:00.463Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/files",
+      "request": {
+        "file_type": 4,
+        "srv_send_msg": false,
+        "file_name": "qq-api-probe.txt",
+        "upload_id": "<REDACTED>"
+      },
+      "http": 200,
+      "body": {
+        "file_uuid": "/5d0965d9-0b0a-4852-86e9-189cf0744196",
+        "file_info": "<REDACTED>",
+        "ttl": 86400,
+        "id": "",
+        "raw_url": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:02.086Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_A>/messages",
+      "request": {
+        "msg_type": 0,
+        "content": "QQ-API-PROBE A users：文本发送与撤回测试。"
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvGmpRh-IE0-GDpQIDx6LtSP17RLq05qUSNxHLUAQmrcQL0TP.gR8GxqOrVN93gmbZA!!",
+        "timestamp": "2026-10-06T01:46:04+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_PiNG0dIWeEUx74csLBIEvRFKxMexigsnLGq60OGAx7gbbG7eh8/nLe/7z+IhKJLu2f1uhNQq8f1rjZF1KIDVcjdym5m/dX8DBN257YrOkbvEFD0ztVqQnGdK4ATKIBUh"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:02.666Z",
+      "peer": "A",
+      "method": "DELETE",
+      "path": "/v2/users/<OPENID_OWNER_A>/messages/ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvGmpRh-IE0-GDpQIDx6LtSP17RLq05qUSNxHLUAQmrcQL0TP.gR8GxqOrVN93gmbZA!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:03.317Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "**QQ-API-PROBE A users**\n\nMarkdown 发送与撤回测试。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvLfVawEx0dxX64r.nLymNBWizr-4nqt22XnBdVEaGydqL0TP.gR8GxqOrVN93gmbZA!!",
+        "timestamp": "2026-10-06T01:46:05+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_JrTw29c5xCjB/Ngv/IplnxFKxMexigsnLGq60OGAx7gbbG7eh8/nLe/7z+IhKJLu2f1uhNQq8f1rjZF1KIDVcjdym5m/dX8DBN257YrOkbvEFD0ztVqQnGdK4ATKIBUh"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:03.826Z",
+      "peer": "A",
+      "method": "DELETE",
+      "path": "/v2/users/<OPENID_OWNER_A>/messages/ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvLfVawEx0dxX64r.nLymNBWizr-4nqt22XnBdVEaGydqL0TP.gR8GxqOrVN93gmbZA!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:04.605Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_A>/files",
+      "request": {
+        "file_type": 1,
+        "url": "http://thirdqq.qlogo.cn/g?<REDACTED_QUERY>",
+        "srv_send_msg": false
+      },
+      "http": 200,
+      "body": {
+        "file_uuid": "EhQFPHe3OI4lhPs32wSNyrrdUGSO3RiliRYg_gooo56Ap7ejlwMyBHByb2RaEDMvmlN1-q4Vqh6HvkseXmJ6AmfJggECZ3o",
+        "file_info": "<REDACTED>",
+        "ttl": 86400,
+        "id": "",
+        "raw_url": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:06.377Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_A>/messages",
+      "request": {
+        "msg_type": 7,
+        "media": {
+          "file_info": "<REDACTED>"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvItpqol0RiiGjez5MlveAVQrqPsexud.64iJ2l5hv.BLxfizwd0I-QvONndRrGzXjQ!!",
+        "timestamp": "2026-10-06T01:46:08+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_L+tWf7RGfpVJYUgnBC0kkbv+aImLuFtJzeV9pHH6SDX6cyhhNRwAG51d5HK0Ltxh60F4fQwTRSqEMoy8CVMsYih3HqFyFTHvYwdwBUuRvYo4BfuEJG0esllflFVUEw9W"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:06.898Z",
+      "peer": "A",
+      "method": "DELETE",
+      "path": "/v2/users/<OPENID_OWNER_A>/messages/ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvItpqol0RiiGjez5MlveAVQrqPsexud.64iJ2l5hv.BLxfizwd0I-QvONndRrGzXjQ!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:07.521Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_A>/upload_prepare",
+      "request": {
+        "file_type": 4,
+        "file_size": "71",
+        "file_name": "qq-api-probe.txt",
+        "md5": "d510609d6a1e5edcaa9d417d27ef8eb6",
+        "sha1": "5d53c65796c252bfd1137e72bfd7e6525bf40b9f",
+        "md5_10m": "d510609d6a1e5edcaa9d417d27ef8eb6"
+      },
+      "http": 200,
+      "body": {
+        "upload_id": "<REDACTED>",
+        "block_size": "10485760",
+        "parts": [
+          {
+            "index": 1,
+            "presigned_url": "<REDACTED>",
+            "block_size": "71"
+          }
+        ],
+        "upload_config": {
+          "concurrency": 1,
+          "retry_timeout": 300,
+          "retry_delay": 1
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:10.274Z",
+      "peer": "A",
+      "method": "PUT",
+      "path": "<official-presigned-upload>",
+      "http": 200,
+      "verdict": "success",
+      "bytes": 71
+    },
+    {
+      "at": "2026-10-05T17:46:10.858Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_A>/upload_part_finish",
+      "request": {
+        "upload_id": "<REDACTED>",
+        "part_index": 1,
+        "block_size": "71",
+        "md5": "d510609d6a1e5edcaa9d417d27ef8eb6"
+      },
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:11.480Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_A>/files",
+      "request": {
+        "file_type": 4,
+        "srv_send_msg": false,
+        "file_name": "qq-api-probe.txt",
+        "upload_id": "<REDACTED>"
+      },
+      "http": 200,
+      "body": {
+        "file_uuid": "753f4aeff95b09df4de35ea1c783c368_a5fbfd72-c0e4-11f1-b99e-3729003ba505",
+        "file_info": "<REDACTED>",
+        "ttl": 86400,
+        "id": "",
+        "raw_url": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:12.905Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_A>/stream_messages",
+      "request": {
+        "input_mode": "append",
+        "input_state": 10,
+        "index": 0,
+        "content_type": "text",
+        "content_raw": "QQ-API-PROBE A：流式接口单片结束测试。",
+        "msg_seq": 1
+      },
+      "http": 500,
+      "body": {
+        "message": "系统繁忙，请稍后重试",
+        "code": 50015001,
+        "err_code": 50015001,
+        "trace_id": "0bc60de37f11a10ab2f6c6c3ab069484"
+      },
+      "verdict": "api-error"
+    },
+    {
+      "at": "2026-10-05T17:46:13.330Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "6440"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:13.659Z",
+      "peer": "B",
+      "method": "GET",
+      "path": "/users/@me",
+      "http": 200,
+      "body": {
+        "id": "10828251844074546874",
+        "username": "zcode2号",
+        "avatar": "http://thirdqq.qlogo.cn/g?<REDACTED_QUERY>",
+        "share_url": "https://qun.qq.com/qunpro/robot/qunshare?<REDACTED_QUERY>",
+        "welcome_msg": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:14.598Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+      "request": {
+        "msg_type": 0,
+        "content": "QQ-API-PROBE B groups：文本发送与撤回测试。"
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NKj5tkk2B7AZU6oBmt4siLG4whEVXfKuaBqIrtJ9aDlpXh.PI9JfgtKVF7Nj0U-SFA!!",
+        "timestamp": "2026-10-06T01:46:16+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_YrdfWgJKywkMSulvwAOBh1MP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:15.182Z",
+      "peer": "B",
+      "method": "DELETE",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages/ROBOT1.0_vbKhVFTBlSNAA4r780Q3NKj5tkk2B7AZU6oBmt4siLG4whEVXfKuaBqIrtJ9aDlpXh.PI9JfgtKVF7Nj0U-SFA!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:15.983Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "**QQ-API-PROBE B groups**\n\nMarkdown 发送与撤回测试。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NJoCmujMpypHF5WJuHO4zU0ujhwbFwuTxy4CtrfeMks835u4SuI-r7C8Z7FeW737Cw!!",
+        "timestamp": "2026-10-06T01:46:17+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_cRFXdEb672IVSTVUJFICkFMP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:16.537Z",
+      "peer": "B",
+      "method": "DELETE",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages/ROBOT1.0_vbKhVFTBlSNAA4r780Q3NJoCmujMpypHF5WJuHO4zU0ujhwbFwuTxy4CtrfeMks835u4SuI-r7C8Z7FeW737Cw!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:17.288Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/files",
+      "request": {
+        "file_type": 1,
+        "url": "http://thirdqq.qlogo.cn/g?<REDACTED_QUERY>",
+        "srv_send_msg": false
+      },
+      "http": 200,
+      "body": {
+        "file_uuid": "EhQ4BM8x_XvdiqvtXIZeb5xZteSUExjppRIg_woo-6KGrbejlwMyBHByb2RQgL2jAVoQgdUoKd6OXHY_Gzo1vlV2a3oC6SmCAQJneg",
+        "file_info": "<REDACTED>",
+        "ttl": 86400,
+        "id": "",
+        "raw_url": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:19.611Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+      "request": {
+        "msg_type": 7,
+        "media": {
+          "file_info": "<REDACTED>"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NOk11hDw..-arJapZLIDATQWF8mCkuXw0V8m6V78z4v22O71q4LyrnkqU90KNdJMWg!!",
+        "timestamp": "2026-10-06T01:46:21+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_4hKLxDHCdRMiUfk7r09Aw1MP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:20.165Z",
+      "peer": "B",
+      "method": "DELETE",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages/ROBOT1.0_vbKhVFTBlSNAA4r780Q3NOk11hDw..-arJapZLIDATQWF8mCkuXw0V8m6V78z4v22O71q4LyrnkqU90KNdJMWg!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:20.934Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/upload_prepare",
+      "request": {
+        "file_type": 4,
+        "file_size": "71",
+        "file_name": "qq-api-probe.txt",
+        "md5": "d510609d6a1e5edcaa9d417d27ef8eb6",
+        "sha1": "5d53c65796c252bfd1137e72bfd7e6525bf40b9f",
+        "md5_10m": "d510609d6a1e5edcaa9d417d27ef8eb6"
+      },
+      "http": 200,
+      "body": {
+        "upload_id": "<REDACTED>",
+        "block_size": "10485760",
+        "parts": [
+          {
+            "index": 1,
+            "presigned_url": "<REDACTED>",
+            "block_size": "71"
+          }
+        ],
+        "upload_config": {
+          "concurrency": 1,
+          "retry_timeout": 300,
+          "retry_delay": 1
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:23.638Z",
+      "peer": "B",
+      "method": "PUT",
+      "path": "<official-presigned-upload>",
+      "http": 200,
+      "verdict": "success",
+      "bytes": 71
+    },
+    {
+      "at": "2026-10-05T17:46:24.055Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/upload_part_finish",
+      "request": {
+        "upload_id": "<REDACTED>",
+        "part_index": 1,
+        "block_size": "71",
+        "md5": "d510609d6a1e5edcaa9d417d27ef8eb6"
+      },
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:24.609Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/files",
+      "request": {
+        "file_type": 4,
+        "srv_send_msg": false,
+        "file_name": "qq-api-probe.txt",
+        "upload_id": "<REDACTED>"
+      },
+      "http": 200,
+      "body": {
+        "file_uuid": "/334e7fd6-c646-4ed6-938f-53026a86a3c2",
+        "file_info": "<REDACTED>",
+        "ttl": 86400,
+        "id": "",
+        "raw_url": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:26.266Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_B>/messages",
+      "request": {
+        "msg_type": 0,
+        "content": "QQ-API-PROBE B users：文本发送与撤回测试。"
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_l0R6UDX34Z7nlewe4a1isHsOwT5sGmbGNVdojbxc51g5LT1jiwPDmYFdWel.Zjyhxfizwd0I-QvONndRrGzXjQ!!",
+        "timestamp": "2026-10-06T01:46:28+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_wTnOmgEDiPvAxqNA1UNG6FMP67dRPAgc2Fj8B7Q7Ee/6qOKTuTKlZs6aRh1EBfqOSGFfNhfcP4pBi1Fq5M7MnDKWSaFdwIqRk5b76SlCcOzANafFn1ipJVgj2J82xBNv"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:26.849Z",
+      "peer": "B",
+      "method": "DELETE",
+      "path": "/v2/users/<OPENID_OWNER_B>/messages/ROBOT1.0_l0R6UDX34Z7nlewe4a1isHsOwT5sGmbGNVdojbxc51g5LT1jiwPDmYFdWel.Zjyhxfizwd0I-QvONndRrGzXjQ!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:27.523Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_B>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "**QQ-API-PROBE B users**\n\nMarkdown 发送与撤回测试。"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_l0R6UDX34Z7nlewe4a1isJ6fDsVcg.aaSTFi8zUUnqk8eBBG8QBVZSkVoICltZgjL0TP.gR8GxqOrVN93gmbZA!!",
+        "timestamp": "2026-10-06T01:46:29+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_BLgNI4nlyL37DFvp3kJUyvqTjiaYGg57wsczlvqySstbUExvN6b9nkH9/vv6+aOy6xPP0kUgapCrpZHPNt0Gh3JVEo+6e8DUNw5U1L7Yj3KVmNGwdWWh7+W1OGFgZ4Z4"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:28.088Z",
+      "peer": "B",
+      "method": "DELETE",
+      "path": "/v2/users/<OPENID_OWNER_B>/messages/ROBOT1.0_l0R6UDX34Z7nlewe4a1isJ6fDsVcg.aaSTFi8zUUnqk8eBBG8QBVZSkVoICltZgjL0TP.gR8GxqOrVN93gmbZA!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:29.649Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_B>/files",
+      "request": {
+        "file_type": 1,
+        "url": "http://thirdqq.qlogo.cn/g?<REDACTED_QUERY>",
+        "srv_send_msg": false
+      },
+      "http": 200,
+      "body": {
+        "file_uuid": "EhQ4BM8x_XvdiqvtXIZeb5xZteSUExjppRIg_goo6v_lsrejlwMyBHByb2RaEC_aKumb4bkvTJZa24P6_5R6AvKNggECbmo",
+        "file_info": "<REDACTED>",
+        "ttl": 86400,
+        "id": "",
+        "raw_url": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:31.496Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_B>/messages",
+      "request": {
+        "msg_type": 7,
+        "media": {
+          "file_info": "<REDACTED>"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_l0R6UDX34Z7nlewe4a1isNip4-HZuIm6a1kD20MmYhOSxU7fYDhReClco-VKyBJBL0TP.gR8GxqOrVN93gmbZA!!",
+        "timestamp": "2026-10-06T01:46:33+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_+riqHggSU5/Dy312h1a2kfqTjiaYGg57wsczlvqySstbUExvN6b9nkH9/vv6+aOy6xPP0kUgapCrpZHPNt0Gh3JVEo+6e8DUNw5U1L7Yj3KVmNGwdWWh7+W1OGFgZ4Z4"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:32.019Z",
+      "peer": "B",
+      "method": "DELETE",
+      "path": "/v2/users/<OPENID_OWNER_B>/messages/ROBOT1.0_l0R6UDX34Z7nlewe4a1isNip4-HZuIm6a1kD20MmYhOSxU7fYDhReClco-VKyBJBL0TP.gR8GxqOrVN93gmbZA!!",
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:32.639Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_B>/upload_prepare",
+      "request": {
+        "file_type": 4,
+        "file_size": "71",
+        "file_name": "qq-api-probe.txt",
+        "md5": "d510609d6a1e5edcaa9d417d27ef8eb6",
+        "sha1": "5d53c65796c252bfd1137e72bfd7e6525bf40b9f",
+        "md5_10m": "d510609d6a1e5edcaa9d417d27ef8eb6"
+      },
+      "http": 200,
+      "body": {
+        "upload_id": "<REDACTED>",
+        "block_size": "10485760",
+        "parts": [
+          {
+            "index": 1,
+            "presigned_url": "<REDACTED>",
+            "block_size": "71"
+          }
+        ],
+        "upload_config": {
+          "concurrency": 1,
+          "retry_timeout": 300,
+          "retry_delay": 1
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:35.612Z",
+      "peer": "B",
+      "method": "PUT",
+      "path": "<official-presigned-upload>",
+      "http": 200,
+      "verdict": "success",
+      "bytes": 71
+    },
+    {
+      "at": "2026-10-05T17:46:36.100Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_B>/upload_part_finish",
+      "request": {
+        "upload_id": "<REDACTED>",
+        "part_index": 1,
+        "block_size": "71",
+        "md5": "d510609d6a1e5edcaa9d417d27ef8eb6"
+      },
+      "http": 200,
+      "body": {},
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:37.294Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_B>/files",
+      "request": {
+        "file_type": 4,
+        "srv_send_msg": false,
+        "file_name": "qq-api-probe.txt",
+        "upload_id": "<REDACTED>"
+      },
+      "http": 200,
+      "body": {
+        "file_uuid": "dbdd97eff95b09df4de35ea1c783c368_b4f34696-c0e4-11f1-b096-998944a273e1",
+        "file_info": "<REDACTED>",
+        "ttl": 86400,
+        "id": "",
+        "raw_url": ""
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-05T17:46:38.753Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/users/<OPENID_OWNER_B>/stream_messages",
+      "request": {
+        "input_mode": "append",
+        "input_state": 10,
+        "index": 0,
+        "content_type": "text",
+        "content_raw": "QQ-API-PROBE B：流式接口单片结束测试。",
+        "msg_seq": 1
+      },
+      "http": 500,
+      "body": {
+        "message": "系统繁忙，请稍后重试",
+        "code": 50015001,
+        "err_code": 50015001,
+        "trace_id": "1a9e9ead7eef26336900784bc8f262d2"
+      },
+      "verdict": "api-error"
+    }
+  ]
+}

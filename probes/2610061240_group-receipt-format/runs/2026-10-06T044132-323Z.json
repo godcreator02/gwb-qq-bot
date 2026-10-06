@@ -1,0 +1,99 @@
+{
+  "at": "2026-10-06T04:41:32.324Z",
+  "node": "v24.14.1",
+  "platform": "win32",
+  "subjectCommit": "98c25f5d44b31e8802d3ba035fe4e3354e1288f7",
+  "probeSha256": "052136bda8a88d1a25749649c8b88a875b6672a1d65bcb0f89c3c9335879724e",
+  "purpose": "Compare passive text and markdown without explicit mention",
+  "records": [
+    {
+      "at": "2026-10-06T04:41:27.695Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "5605"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-06T04:41:28.447Z",
+      "peer": "A",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_A>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "<qqbot-at-user id=\"<OPENID_MEMBER_2>\" /> /帮助"
+        }
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYb76rPWYanStWGFzZel7QUWt2XgP.a132gkTQDOu99EpMz25xWyq-QOyv1vFTe23nA!!",
+        "timestamp": "2026-10-06T12:41:28+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_VEceQ4kcdACi7aw5cfw+wLv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-06T04:41:29.743Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/app/getAppAccessToken",
+      "http": 200,
+      "body": {
+        "access_token": "<REDACTED>",
+        "expires_in": "3665"
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-06T04:41:31.184Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+      "request": {
+        "msg_type": 0,
+        "content": "【机器人回执】\nFORMAT-TEXT：正文没有任何提及标签，这是显示格式测试。",
+        "msg_id": "ROBOT1.0_calQ8LI45UkpyBBD2rJKK5DIak8SOGCVwOc4dVqZnc5Kw1y6yeLg-C-0HQX2CG25bfu0HPfzezT0sWNew9dJrpxfUoIjpcyfREePEmOkNFkNIqrVm3QhC6-bhktADRFg",
+        "msg_seq": 4
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NGlgx1n1Kn5t7IQaQYpRHL0Z.9G5JbXIxvIW1wpf7vGYUigScIH1l9ZBOuGHUUgD6Q!!",
+        "timestamp": "2026-10-06T12:41:30+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_KE0Ul+qs9oJvqwEzyP8fGVMP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      },
+      "verdict": "success"
+    },
+    {
+      "at": "2026-10-06T04:41:32.008Z",
+      "peer": "B",
+      "method": "POST",
+      "path": "/v2/groups/<GROUP_OPENID_B>/messages",
+      "request": {
+        "msg_type": 2,
+        "markdown": {
+          "content": "【机器人回执】\nFORMAT-MARKDOWN：正文没有任何提及标签，这是显示格式测试。"
+        },
+        "msg_id": "ROBOT1.0_calQ8LI45UkpyBBD2rJKK5DIak8SOGCVwOc4dVqZnc5Kw1y6yeLg-C-0HQX2CG25bfu0HPfzezT0sWNew9dJrpxfUoIjpcyfREePEmOkNFkNIqrVm3QhC6-bhktADRFg",
+        "msg_seq": 5
+      },
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NMvuSLVGsPFx5oRNH52-5UMq2590TgUzwziKbPBZTfa3oMuv8jASQ44SlDoY0Uo.MQ!!",
+        "timestamp": "2026-10-06T12:41:31+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_TO/F4C/G1IP0JRczLStQh1MP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      },
+      "verdict": "success"
+    }
+  ]
+}

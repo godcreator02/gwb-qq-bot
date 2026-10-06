@@ -1,0 +1,46 @@
+{
+  "at": "2026-10-05T17:56:35.131Z",
+  "method": "复制到仓外独立目录，检查语法、依赖边界和明文 AppSecret；离线实验在外部 cwd 执行；不重发在线请求",
+  "experiment": "2610060133_at-openid-scope",
+  "files": 7,
+  "noSecretFound": true,
+  "nodeSyntax": true,
+  "importsContained": true,
+  "offlineRuns": [
+    [
+      "probe.mjs",
+      "--replay"
+    ]
+  ],
+  "liveRequestsRepeated": false,
+  "manifest": [
+    {
+      "path": "api.mjs",
+      "sha256": "7282edaf134d0527aa76bbf8b61106cc0cd1d7bafd5c521f030b50a6bbf5a157"
+    },
+    {
+      "path": "input/historical-script.txt",
+      "sha256": "d29202b3255bfcee7d5e369fc99af0741946756f0646c9451b1f2a0bcad979c2"
+    },
+    {
+      "path": "input/targets.json",
+      "sha256": "1f4bb1df737a971bef5e4644997b5ab012e43c3d49e2017ed86100aa5642316f"
+    },
+    {
+      "path": "probe.mjs",
+      "sha256": "5e2f2c1360f957161963028109b001a3a32f550369cb6e014e75ac985a12ecbb"
+    },
+    {
+      "path": "README.md",
+      "sha256": "5b8d8e85eefbe275d038f27d795e0fa6f0ae5931784de272249d6dd339373793"
+    },
+    {
+      "path": "runs/01-original-api.json",
+      "sha256": "ffa4e713f5ab599dc759cb4f2c8a43b3736b365831152970cdaa91508712e10e"
+    },
+    {
+      "path": "runs/01-qq-window.png",
+      "sha256": "4cc0825f288b19d906bf8363c324a2cb65e55d7078403a26e1e8cdf44e6de601"
+    }
+  ]
+}

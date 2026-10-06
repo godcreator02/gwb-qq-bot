@@ -1,0 +1,71 @@
+{
+  "time": "2026-10-05T17:33:36.080Z",
+  "results": [
+    {
+      "case": "A-state",
+      "http": 200,
+      "body": {
+        "member_openid": "<OPENID_MEMBER_4>",
+        "joined_at": "2026-10-05T23:41:36+08:00",
+        "allow_proactive_msg": true,
+        "recv_msg_setting": "only_mention",
+        "member_role": "member"
+      }
+    },
+    {
+      "case": "B-state",
+      "http": 200,
+      "body": {
+        "member_openid": "<OPENID_MEMBER_3>",
+        "joined_at": "2026-10-05T23:41:28+08:00",
+        "allow_proactive_msg": true,
+        "recv_msg_setting": "only_mention",
+        "member_role": "member"
+      }
+    },
+    {
+      "case": "A-mention-comparison",
+      "content": "SCOPE-A /帮助\n\n①本端天神：<qqbot-at-user id=\"<OPENID_OWNER_A>\" />\n\n②本端机器人：<qqbot-at-user id=\"<OPENID_MEMBER_4>\" />\n\n③另一端天神：<qqbot-at-user id=\"<OPENID_OWNER_B>\" />\n\n④另一端机器人：<qqbot-at-user id=\"<OPENID_MEMBER_3>\" />",
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_.KE-uxKYZlr2qI1p3u1WYanp1rAHAiEuriqTWFqE2kSB-XZRWOrJXTyjiBxp48JQYHPopYdAWn-kXLWFfPaGMw!!",
+        "timestamp": "2026-10-06T01:33:36+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_vAoBnwjJYKMUYxasjMJTzLv+aImLuFtJzeV9pHH6SDUzciF8rDMIGtzT7SB8yS2hzAyjbl0vSyFya1t0YwxY86SceKwDN1SKwwwzKJ0w+3cIN3RQpBhJZcCwT4nOtQZn"
+        }
+      }
+    },
+    {
+      "case": "A-member-info-control",
+      "http": 400,
+      "body": {
+        "message": "应用无接口访问权限",
+        "code": 11253,
+        "err_code": 40012010,
+        "trace_id": "32cba3209b08599414ea5323063d8808"
+      }
+    },
+    {
+      "case": "B-mention-comparison",
+      "content": "SCOPE-B /帮助\n\n①本端天神：<qqbot-at-user id=\"<OPENID_OWNER_B>\" />\n\n②本端机器人：<qqbot-at-user id=\"<OPENID_MEMBER_3>\" />\n\n③另一端天神：<qqbot-at-user id=\"<OPENID_OWNER_A>\" />\n\n④另一端机器人：<qqbot-at-user id=\"<OPENID_MEMBER_4>\" />",
+      "http": 200,
+      "body": {
+        "id": "ROBOT1.0_vbKhVFTBlSNAA4r780Q3NElOQ4DX050nLZ6BZsA0QGsT.Kpg7q2pKtvy-Tja235nvL0bG9QPAP-DPiXOKxgaJQ!!",
+        "timestamp": "2026-10-06T01:33:37+08:00",
+        "ext_info": {
+          "ref_idx": "REFIDX_l+N5iaGjI0+H3Zm+kMLtCVMP67dRPAgc2Fj8B7Q7Ee+ld8fOB+x9UoZQagtpzx2wK7nfQ/rQa6KhKrpMzYE/Z/ncL/hrraItGKbk45W63VYNYzwGiYcGg1I5NUPJ/anC"
+        }
+      }
+    },
+    {
+      "case": "B-member-info-control",
+      "http": 400,
+      "body": {
+        "message": "应用无接口访问权限",
+        "code": 11253,
+        "err_code": 40012010,
+        "trace_id": "be9779628608a884187daf6913c618bc"
+      }
+    }
+  ]
+}

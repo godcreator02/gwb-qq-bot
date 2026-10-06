@@ -1,0 +1,21 @@
+---
+born-at: 2026-10-06T12:59
+type: evidence
+parent: [2026-10-05-gwb-qq-bot-root]
+label: 业务接缝实测
+domain: 任务通道
+---
+
+## 背景
+
+用户要求继续完成架构 B，并把协作站和日志加入开发工作区。不能仅以 agent 成功回报就宣称业务接缝可用，需要核对执行端确实调用绑定项目和指定日志库。
+
+## 结论与边界
+
+ZCode 与 Claude Code 分别从真实 QQ 群收到任务，读取已绑定协作站的 inbox 数量，各向隔离 home 的 notes 日志写入一条唯一标记，再直接回报原群。两轮都是 completed、delivered，读回各恰好一条，块 ID 与回报一致，三个 inbox 数量与测试前直接查询一致。测试后群绑定恢复到原项目、原 agent 和空日志库。
+
+协作站模拟 MR 通知在新版 QQ 上送达，重复同一通知 ID 返回 duplicate，不再发送。不把模拟检查结论当作新的真实 Gitea webhook 验收，也未写入真实项目任务或 default 的个人笔记。
+
+## 依据
+
+自包含实验 `probes/2610061253_business-seams/`：固定身份和安装包在 input；Claude 结果为 `runs/2026-10-06T045450-347Z-claudecode.json`，ZCode 为 `runs/2026-10-06T045602-327Z-zcode.json`。两轮日志块分别为 `20261006125518-8fm6ea9` 与 `20261006125656-9hvff86`。通知回归在 `probes/2610060305_collab-notify/runs/1791262574063.json`（同目录保留旧运行记录）。

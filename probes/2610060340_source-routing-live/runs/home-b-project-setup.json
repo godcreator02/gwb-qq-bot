@@ -1,0 +1,25 @@
+[
+  {
+    "command": "credentials.copy",
+    "result": {
+      "ok": true,
+      "data": {
+        "section": "gitea",
+        "key": "token",
+        "type": "secret",
+        "secret": true,
+        "isSet": true,
+        "live": true
+      }
+    }
+  },
+  {
+    "command": "collab.project.add",
+    "result": {
+      "ok": true,
+      "data": {
+        "repo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab"
+      }
+    }
+  }
+]

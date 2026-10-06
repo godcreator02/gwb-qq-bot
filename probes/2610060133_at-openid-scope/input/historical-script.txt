@@ -1,0 +1,17 @@
+import {writeFile} from 'node:fs/promises';
+import {api} from './qq-peer-api.mjs';
+const peers=[
+ {label:'A',home:'default',group:'<GROUP_OPENID_A>',human:'<OPENID_OWNER_A>'},
+ {label:'B',home:'qqbotb-2610052319',group:'<GROUP_OPENID_B>',human:'<OPENID_OWNER_B>'},
+];
+const results=[];
+for(const p of peers){const state=await api(p.home,'GET',`/v2/groups/${p.group}/bot_state`);if(state.http!==200||typeof state.body.member_openid!=='string')throw new Error(`Cannot identify ${p.label}`);p.self=state.body.member_openid;results.push({case:`${p.label}-state`,...state});}
+for(let i=0;i<peers.length;i++){
+ const p=peers[i],other=peers[1-i];
+ const at=id=>`<qqbot-at-user id="${id}" />`;
+ const content=`SCOPE-${p.label} /帮助\n\n①本端天神：${at(p.human)}\n\n②本端机器人：${at(p.self)}\n\n③另一端天神：${at(other.human)}\n\n④另一端机器人：${at(other.self)}`;
+ results.push({case:`${p.label}-mention-comparison`,content,...await api(p.home,'POST',`/v2/groups/${p.group}/messages`,{msg_type:2,markdown:{content}})});
+ results.push({case:`${p.label}-member-info-control`,...await api(p.home,'GET',`/v2/groups/${p.group}/members/${p.human}`)});
+}
+await writeFile(new URL('./qq-at-scope-results.json',import.meta.url),JSON.stringify({time:new Date().toISOString(),results},null,2));
+for(const r of results)console.log(JSON.stringify(r));

@@ -5,6 +5,7 @@ import { platform } from 'node:process'
 import {
   EVENT_C2C_MESSAGE_CREATE,
   EVENT_GROUP_AT_MESSAGE_CREATE,
+  EVENT_GROUP_MESSAGE_CREATE,
   EVENT_READY,
   EVENT_RESUMED,
   OP_DISPATCH,
@@ -19,6 +20,7 @@ import {
   isRecord,
   readC2cMessageEvent,
   readGroupAtMessageEvent,
+  readMentionedGroupMessageEvent,
   type IncomingMessage,
   type QqLog,
 } from './qq-protocol.js'
@@ -48,6 +50,8 @@ export class QqGateway {
   private sessionId: string | null = null
   private lastSeq: number | null = null
   private seenMessageIds = new Set<string>()
+  private groupSelfIds = new Map<string, Promise<string>>()
+  private selfName: string | undefined
   private backoffMs = BACKOFF_START_MS
 
   constructor(
@@ -73,6 +77,8 @@ export class QqGateway {
     this.controller = null
     this.sessionId = null
     this.lastSeq = null
+    this.groupSelfIds.clear()
+    this.selfName = undefined
     this.backoffMs = BACKOFF_START_MS
     this.setState('stopped')
   }
@@ -194,6 +200,8 @@ export class QqGateway {
           giveUp('网关判定会话无效，清掉后重新 Identify')
         } else if (frame.op === OP_DISPATCH) {
           if (frame.t === EVENT_READY) {
+            const user = isRecord(frame.d) ? frame.d['user'] : undefined
+            this.selfName = isRecord(user) && typeof user['username'] === 'string' ? user['username'] : undefined
             this.sessionId = isRecord(frame.d) && typeof frame.d['session_id'] === 'string' ? frame.d['session_id'] : null
             if (this.sessionId === null) {
               giveUp('READY 事件缺 session_id')
@@ -206,30 +214,57 @@ export class QqGateway {
             this.backoffMs = BACKOFF_START_MS
             readySeen = true
             this.setState('open', 'RESUMED')
+          } else if (frame.t === EVENT_GROUP_MESSAGE_CREATE) {
+            this.log.info(`QQ 入站事件：${frame.t}，s=${String(frame.s)}`)
+            void this.handleFullGroupMessage(frame.d, signal).catch(() => {
+              if (!signal.aborted) this.log.warn('全量群消息自身标识查询失败，忽略该消息；下条重试（不记录载荷）')
+            })
           } else if (frame.t === EVENT_C2C_MESSAGE_CREATE || frame.t === EVENT_GROUP_AT_MESSAGE_CREATE) {
             this.log.info(`QQ 入站事件：${frame.t}，s=${String(frame.s)}`)
-            const message = frame.t === EVENT_C2C_MESSAGE_CREATE ? readC2cMessageEvent(frame.d) : readGroupAtMessageEvent(frame.d)
+            const message = frame.t === EVENT_C2C_MESSAGE_CREATE ? readC2cMessageEvent(frame.d) : readGroupAtMessageEvent(frame.d, this.selfName)
             if (message === null) {
               this.log.warn(`${frame.t} 事件形状不对，丢弃（不记录原始载荷）`)
               return
             }
-            const key = JSON.stringify([message.scene, message.msgId, message.msgSeq ?? null])
-            if (this.seenMessageIds.has(key)) {
-              this.log.info(`QQ 重复投递已忽略：${frame.t}`)
-              return
-            }
-            this.seenMessageIds.add(key)
-            if (this.seenMessageIds.size > SEEN_MESSAGE_LIMIT) {
-              const oldest = this.seenMessageIds.values().next().value
-              if (oldest !== undefined) this.seenMessageIds.delete(oldest)
-            }
-            this.events.onMessage(message)
+            this.deliverOnce(message)
           } else {
             this.log.info(`QQ 其他事件：${String(frame.t)}，s=${String(frame.s)}`)
           }
         }
       })
     })
+  }
+
+  private async handleFullGroupMessage(raw: unknown, signal: AbortSignal): Promise<void> {
+    if (!isRecord(raw) || typeof raw['group_openid'] !== 'string' || !Array.isArray(raw['mentions']) || raw['mentions'].length === 0) return
+    const group = raw['group_openid']
+    let pending = this.groupSelfIds.get(group)
+    if (pending === undefined) {
+      pending = this.rest.fetchGroupSelfId(group)
+      this.groupSelfIds.set(group, pending)
+    }
+    let selfId: string
+    try { selfId = await pending } catch (error) {
+      if (this.groupSelfIds.get(group) === pending) this.groupSelfIds.delete(group)
+      throw error
+    }
+    if (signal.aborted) return
+    const message = readMentionedGroupMessageEvent(raw, selfId)
+    if (message !== null) this.deliverOnce(message)
+  }
+
+  private deliverOnce(message: IncomingMessage): void {
+    const key = JSON.stringify([message.scene, message.msgId, message.msgSeq ?? null])
+    if (this.seenMessageIds.has(key)) {
+      this.log.info('QQ 重复投递已忽略')
+      return
+    }
+    this.seenMessageIds.add(key)
+    if (this.seenMessageIds.size > SEEN_MESSAGE_LIMIT) {
+      const oldest = this.seenMessageIds.values().next().value
+      if (oldest !== undefined) this.seenMessageIds.delete(oldest)
+    }
+    this.events.onMessage(message)
   }
 }
 

@@ -1,0 +1,37 @@
+{
+  "at": "2026-10-05T17:56:35.131Z",
+  "method": "复制到仓外独立目录，检查语法、依赖边界和明文 AppSecret；离线实验在外部 cwd 执行；不重发在线请求",
+  "experiment": "2610060143_reversible-config",
+  "files": 6,
+  "noSecretFound": true,
+  "nodeSyntax": true,
+  "importsContained": true,
+  "offlineRuns": [],
+  "liveRequestsRepeated": false,
+  "manifest": [
+    {
+      "path": "api.mjs",
+      "sha256": "7282edaf134d0527aa76bbf8b61106cc0cd1d7bafd5c521f030b50a6bbf5a157"
+    },
+    {
+      "path": "input/docs.json",
+      "sha256": "f426a0370bc6b7e7f4d39030aed0ed7e2e3d4a9337a3975244c914218d1b66ea"
+    },
+    {
+      "path": "input/targets.json",
+      "sha256": "1f4bb1df737a971bef5e4644997b5ab012e43c3d49e2017ed86100aa5642316f"
+    },
+    {
+      "path": "probe.mjs",
+      "sha256": "c63d4eb47b2b96e5ea01c31090042f476f4ac094e2d3aa394c14de684b864d5c"
+    },
+    {
+      "path": "README.md",
+      "sha256": "7df0a512ad02502a7a9df5feb36b74aa30b19981d44a6ab6a6803dde1f81c2ba"
+    },
+    {
+      "path": "runs/2026-10-05T174432-979Z.json",
+      "sha256": "3f81f0b70ca81ab29e1475a61ee8f018b42f8509a8d5381fb2cda4947dd24149"
+    }
+  ]
+}

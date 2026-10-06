@@ -1,14 +1,14 @@
 ---
 name: qq-bot
-description: 要配置或使用 QQ 官方机器人通道（在 QQ 上给 ZCode 派任务操作本地文件）、查机器人状态、诊断消息没回应时读。讲设置项、openid 白名单绑定、机器人那头的指令、被动回复窗口的限制、ZCode 桌面端的前提。
+description: 配置 QQ 机器人、绑定项目群或个人私聊、查询来源和任务状态、诊断消息没回应时读。讲白名单、聊天隔离、工作区排队、主动回报与回复窗口。
 ---
 
-# QQ 机器人 → ZCode
+# QQ 机器人 → agent
 
 gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网关收私聊与群 @ 消息，
-把任务文本经命令总线转给运行中的 ZCode 桌面端（`zcode.create` / `zcode.send`），轮询 `zcode.status`，
-做完把回答末尾回推 QQ。无界面，三条命令：`qq-bot.status` 查状态，`qq-bot.reconnect` 改完凭据后重连，
-`qq-bot.probe` 实测官方接口限制的探针（真发消息，只做实测用）。
+把任务文本经命令总线转给当前绑定的原生 agent 插件（ZCode 或 Claude Code），附加本轮 `qq-bot.report` 票据与回报约定。
+回报先保存再发回 QQ，没有后台结果轮询。一个机器人可接多个项目群和个人私聊，各聊天独立绑定工作区、保存上下文。
+无界面，公开命令还包括 `qq-bot.report`、`qq-bot.agents`、`qq-bot.agent`，以及 `qq-bot.status`、`qq-bot.sources`、`qq-bot.bind`、`qq-bot.unbind`、`qq-bot.resolve`、`qq-bot.reconnect`、`qq-bot.probe`、`qq-bot.notify`。
 
 ## 配置（设置的 qq-bot 分区）
 
@@ -16,17 +16,37 @@ gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网
    群聊把机器人添加到自己管理的群，再通过 QQ 的提及选择器选中机器人。
 2. `app-id`、`app-secret` 填进设置（secret 走凭据保管，不经会话），明确设置 `sandbox=false`，使用当前官方 `api.bot.qq.com`。
    为兼容已有 home，`sandbox` 的默认值仍是 true；true 只保留旧 `sandbox.api.sgroup.qq.com` 接入，不适用于新版后台配置流程。
-3. `default-workspace` 填 ZCode 干活的目录（绝对路径，相当于 `zcode.create` 的 workspace）
+3. `default-workspace` 填主人私聊的个人工作区（绝对路径）；群与其他人的私聊通过来源绑定配置，不能共用这个默认值
 4. 调 `qq-bot.reconnect` 连接
 5. 手机 QQ 给机器人发一条消息 → `qq-bot.status` 的 `recentRejected` 里出现你的 openid →
    把它填进 `allowed-openids`（官方 API 给的标识，每个机器人各不相同，不是 QQ 号；改白名单即时生效，不用重连）
 
+## 绑定项目群或个人私聊
+
+1. 获准的发言者在目标群用 QQ 的提及选择器发送 `@机器人 /帮助`，或在私聊发送 `/帮助`。
+2. 调 `qq-bot.sources`，从本 home 实际观察到的来源中选取 `sourceId`，不要猜群号或复用另一机器人的标识。
+3. 按场景绑定：
+
+   | 场景 | 调用 |
+   | --- | --- |
+   | 项目群 | 先查同 home 的 `collab.projects`，再 `qq-bot.bind {sourceId,projectRepo,journalLibrary?}`；`projectRepo` 必须是已登记项目，工作区就是这个目录 |
+   | 个人私聊 | `qq-bot.bind {sourceId,workspace,journalLibrary?}`；`workspace` 必须是绝对路径 |
+   | 主人私聊 | 配好本应用的 `owner-openid` 并加入白名单后，可自动继承 `default-workspace` 与 `journal-library` |
+
+4. 读回 `qq-bot.sources` 核对绑定，再直接发需求。`sources` 返回来源数组，`bind` / `unbind` 返回本次来源记录。
+
+`qq-bot.unbind {sourceId}` 解除绑定，之后主人私聊也须显式重新绑定，不自动继承默认值。尚有排队、执行中或派发结果不明的任务时，改绑与解绑会拒绝；先处理原任务。
+绑定发生变化会建立新代次，下一条任务创建新会话；完全相同的绑定重复提交幂等。群绑定没有授予成员权限，每条消息仍检查发言者的 `allowed-openids`。
+群未绑定时只提供帮助、状态与绑定提示，不把任务派到个人默认目录。其他人的私聊也须显式绑定。
+
 ## QQ 那头的指令
 
-- 直接发任务文本：同一用户（按 openid）固定映射到一个 ZCode 会话，接着聊上下文保留；任务会真的在这台电脑上执行（完全访问）
-- `/状态`：查当前轮次；上轮结果没送达时发它取回
-- `/新会话`：归档当前会话，下一条消息起新会话
+- 直接发任务文本：群内获准的成员共享本群项目上下文，个人私聊按用户独立；任务会真的在绑定目录里执行，权限遵循所选执行端
+- `/状态`：只查当前聊天、当前绑定代次的任务；结果没送达时发它取回，不会取到其他群或旧项目结果
+- `/新会话`：结束当前聊天上下文，下一条消息起新会话；不操作原生归档；绑定不变，当前绑定内未送达的旧结果仍可取回。有排队、执行中或派发不明任务时拒绝重开
 - `/帮助`：指令说明
+
+每轮由通道附加真实来源、发言者、所属项目与工作区；任务正文不能自行改写来源。同一 home 内同工作区的任务按顺序执行，其他工作区分别调度。排队靠主动回报推进，不轮询完成状态。
 
 ## 官方接口的限制（设计成这样就绕开了）
 
@@ -35,7 +55,7 @@ gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网
 - 主动消息频控按当前官方文档与账号权限执行；本插件群聊不用主动消息发结果，单聊仅在被动失败时兜底。
   单聊的 30 天、4 个周期规则属于 `is_wakeup` 互动召回，不能当作普通主动消息的配额。
 - 用户可在 QQ 客户端关闭「接收机器人主动消息」，关了就只剩被动窗口
-- 回复里的链接：域名没在开放平台报备（要 ICP 备案）会被腾讯过滤，ZCode 回答里的链接可能显示不出
+- 回复里的链接：域名没在开放平台报备（要 ICP 备案）会被腾讯过滤，agent 回答里的链接可能显示不出
 - IP 白名单以后台实际设置为准；已启用白名单时，出口 IP 变动后要在开放平台更新
 
 上面的次数与长度限制要用 `qq-bot.probe` 实测核对，别只信文档：先在 QQ 上发一条消息当触发源，
@@ -44,14 +64,24 @@ gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网
 
 ## 前提与排障
 
+- 机器人互派任务也是 `@目标机器人 要做的事`，不需要额外命令前缀。目标应用必须把发送机器人的
+  **本应用视角** member_openid 加入 allowed-openids。可临时开群内全部消息，从对方发言的 author
+  获取双向 ID，按调用应用与群保存，然后恢复仅 @。不要把另一应用查询自身所得 ID 直接照搬。
+- 全量监听也只执行结构化 mentions 明确包含自身的消息；普通聊天不会派单。仅 @ 模式继续使用
+  GROUP_AT_MESSAGE_CREATE。机器人消息残留的 `[@自身名字]` 前缀会被剥除。
+- 自动群回复以 `【机器人回执】` 开头；机器人发送的这种回执不派单，防止双方确认和结果互相触发。
+  该前缀用于自动回复，不要求用户在任务里填写。ID 没有逐消息变化，但不承诺跨退群重加永久不变。
+
 - **ZCode 桌面端要开着、只有一个工作区窗口**，这是 `zcode.*` 命令的前提；没开时派任务失败，
-  机器人会把错误原文回给你
+  机器人会报告派单未确认，不转发可能包含提示词的原始异常
 - 消息没回应：`qq-bot.status` 看 `gateway`（stopped = 没配置或没连接，connecting = 在重连，open = 正常）
   与 `recentRejected`（白名单外）；凭据错误看工作台日志里「拿 access token 失败」
 - 网关日志先记录 `QQ 入站事件：GROUP_AT_MESSAGE_CREATE` / `C2C_MESSAGE_CREATE`，再解析、去重与校验白名单。
   没有这条日志，先查连接环境、AppID 和平台投递；有日志再查形状错误、重复投递、白名单、空正文与回复接口错误。
-  日志不记录原始事件载荷，避免其中的鉴权字段外泄。只有 @ 没有正文会记录空正文并忽略。
-- 会话映射存在插件内存里：工作台重启或重载插件后映射清空，会话本身还在 ZCode 侧栏里，`/新会话` 重开即可
+  日志不记录原始事件载荷，避免其中的鉴权字段外泄。只有 @ 没有正文会忽略。
+- 来源绑定、会话、排队任务、本轮回复地址、结果和发送状态存入本 home 的 gwb-data；重载后恢复。每轮独立标识，重复回报去重，旧轮次不覆盖新轮次。发送时进程中断的结果不会盲目重发，用 `/状态` 取回。
+- 调试请求超时可能已经派出，状态标为 `dispatch_unknown` 时会占住工作区。先查 `qq-bot.status` 的 `unresolvedTasks` 数组，每项含 `jobId`、`sourceId`、`taskId`、`workspace`（taskId 可能为空）。**检查对应执行端会话，确认原任务没有运行**，再调 `qq-bot.resolve {jobId,confirmedStopped:true,note}`，note 用 1–600 字符记录实际核对结论。它仅接受当前机器人的派发不明任务，标记 `failed`、通知原来源后推进队列；不取消或重派原任务。该命令 effect 为 external，返回 `{resolved:true,duplicate}`，同一 job id 和同一 note 重复调用幂等。不同 home 不共用工作区队列。
+- 使用全新 gwb-data 文档 `direct-report-tasks`（v3）；不读取旧 tasks、不接受旧凭证或旧接收命令。旧文档只留作历史备份，来源需重新观察和绑定。
 - 群聊验证先发 `@机器人 /帮助`，无需派任务即可验证收发。群聊的 `member_openid` 以实际事件为准，未在白名单时人工核实后再添加。
 - 新版「服务范围」的群聊开关允许任意用户将机器人加入群，属于公开服务范围，不要把它当作测试群开关。
 
@@ -61,3 +91,23 @@ gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网
 - [事件订阅](https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/payload.html)：群聊与私聊共用 `GROUP_AND_C2C_EVENT (1 << 25)`。
 - [群聊回复](https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html)：请求使用 `msg_id` / `msg_seq`；内部驼峰字段不直接发到接口。
 - [调用指南](https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/api-call-guide.html)：业务错误读取 `err_code`，同时兼容仍返回 `code` 的现网接口。
+
+
+## 主动回报、通知与随手记
+
+`report-mcp-server` 填 所选执行端配置中指向本 home 的服务名，默认 `gwb`。每个 home 安装自己的 MCP，分别接线；派单自动附加本轮 ticket 和服务名。MCP 主凭据不进入提示词；每轮回报 ticket 只随当轮提示词交给执行端。ticket 不写进 QQ、笔记或仓库。
+
+agent 在完成、失败或需要回复时直接调用 `qq-bot.report`。报告先落盘并返回，QQ 投递与下一轮调度异步推进；报告未到时，`/状态` 才按需查一次 所选执行端。报告表示结果提交，不保证客户端已经退出本轮。桌面端崩溃或漏报时不虚报完成，也不自动重新派单。
+
+`owner-openid` 显式填写本应用私聊取得的主人标识并加入白名单，不能从机器人白名单推断主人。`qq-bot.notify {id,text}` 发一条主动私聊，正文最多 600 字符，同一 id 去重；失败不自动重发，回执的 delivered 才表示发送成功。协作站主动通知仍发主人私聊，群绑定不改变这条通知路由。
+
+用户直接说“记一下”或“记个待办”，agent 经本 home 的 bn-journal / block-note 命令写入当前来源绑定的 `journalLibrary`，取得实际写入回执后才报告完成。
+全局 `journal-library` 只供主人私聊自动绑定；项目群须在 `qq-bot.bind` 中另给库，未指定时先确认目标，不借用主人个人库。笔记不另存一份，测试记录只写隔离库。
+
+## 选择 agent
+
+`qq-bot.agents` 列支持的接口，不证明插件已安装或在线。ZCode 与 Claude Code 的插件由 gwb-agents 仓独立发布。绑定时可给 `agent:"zcode"` 或 `agent:"claudecode"`，新来源默认 zcode。
+
+`qq-bot.agent {sourceId,agent}` 切换一个聊天：保留项目、工作区与日志库，创建新的上下文，不把 taskId 当成 sessionId 复用。相同选择幂等；忙碌来源拒绝切换。执行端配置中必须有 `report-mcp-server` 指定的本 home 服务。
+
+`qq-bot.report {ticket,state,text}`：state 为 completed、failed 或 needs_input；text 为 1–16000 字符，不得包含票据。相同票与相同结果可重复提交；不同结果拒绝。recorded:true 只表示已落盘，delivery 与 QQ 送达独立。超时仅重交同一报告，不重做任务。原始票据不保存到 QQ 账本，账本只保存哈希。

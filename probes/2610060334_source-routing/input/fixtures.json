@@ -1,0 +1,15 @@
+{
+  "home": "probe-source-routing",
+  "appId": "probe-app",
+  "owner": "human-owner",
+  "peer": "human-peer",
+  "personalWorkspace": "D:/probe/personal",
+  "personalLibrary": "probe-personal-notes",
+  "projectLibrary": "probe-project-notes",
+  "reportServer": "probe-mcp",
+  "groups": { "a": "probe-group-a", "b": "probe-group-b", "shared": "probe-group-shared" },
+  "projects": [
+    { "repo": "D:/probe/project-a", "summary": { "title": "实验项目 A" }, "error": null },
+    { "repo": "D:/probe/project-b", "summary": { "title": "实验项目 B" }, "error": null }
+  ]
+}

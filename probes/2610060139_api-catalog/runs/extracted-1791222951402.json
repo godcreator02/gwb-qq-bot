@@ -1,0 +1,2080 @@
+[
+  {
+    "method": "POST",
+    "path": "/app/getAppAccessToken",
+    "title": "获取访问凭证",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/api-use.html"
+    ],
+    "scope": "authentication",
+    "sideEffect": "token-read-or-refresh",
+    "prerequisites": [
+      "当前应用 AppID 与 AppSecret；凭据只在本地读取，禁止进入输出"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/channels/{channel_id}",
+    "title": "删除子频道",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/channels_channel_id.delete.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [
+      "删除子频道   删除子频道。需要管理员权限。成功返回 HTTP 200。   需要管理员权限。私域接口，删除成功后会触发 CHANNEL_DELETE 事件。子频道删除后无法恢复。    #  请求    #  基础信息      字段   值",
+      "d   DELETE     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       channel_id   string   是          #  请求示例    示例1      DELE"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}",
+    "title": "获取子频道详情",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/channels_channel_id.get.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       channel_id   string   是          #  请求示例    示例1      GET"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/channels/{channel_id}",
+    "title": "修改子频道",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/channels_channel_id.patch.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [
+      "改子频道   修改子频道信息。需要管理员权限。   需要管理员权限。私域接口，只需传入要修改的字段，修改成功后会触发 CHANNEL_UPDATE 事件。    #  请求    #  基础信息      字段   值       HTTP URL   /ch",
+      "od   PATCH     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       channel_id   string   是          #  请求体      名称   类型   必填"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/channels/{channel_id}/announces",
+    "title": "创建子频道公告（2022年3月15日后废弃）",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/announces/post_channel_announces.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "官方已废弃；仅记录文档覆盖，不应据此修改现网"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "deprecated": true,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/channels/{channel_id}/announces/{message_id}",
+    "title": "删除子频道公告（2022年3月15日后废弃）",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/announces/delete_channel_announces.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源",
+      "官方已废弃；仅记录文档覆盖，不应据此修改现网"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "deprecated": true,
+    "resourceParameters": [
+      "channel_id",
+      "message_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/channels/{channel_id}/audio",
+    "title": "音频控制",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/audio/audio_control.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "audio-state-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [
+      "下的音频。    音频接口：仅限 音频类机器人 才能使用，后续会根据机器人类型自动开通接口权限，现如需调用，需联系平台申请权限。     #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}/members/{user_id}/permissions",
+    "title": "获取子频道用户权限",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/channel_permissions/get_channel_permissions.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "已知目标成员在当前应用场景的 ID；本接口不能凭 QQ 号或另一应用 OpenID 反查"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "user_id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/channels/{channel_id}/members/{user_id}/permissions",
+    "title": "修改子频道用户权限",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/channel_permissions/put_channel_permissions.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "已知目标成员在当前应用场景的 ID；本接口不能凭 QQ 号或另一应用 OpenID 反查"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "user_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/channels/{channel_id}/messages",
+    "title": "发送子频道消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/send.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "send-message",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "使用本实验无害文本；主动消息需目标允许，被动消息需有效 msg_id/event_id 和剩余回复次数"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/channels/{channel_id}/messages/{message_id}",
+    "title": "撤回子频道消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/recall.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "的消息。     注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "message_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/channels/{channel_id}/messages/{message_id}/reactions/{type}/{id}",
+    "title": "表情表态",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/emoji.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "说明   目前表情表态仅支持在频道内使用     #  机器人发表表情表态    #  接口     PUT /channels/{channel_id}/messages/{message_id}/reactions/{type}/{id}"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "message_id",
+      "type",
+      "id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}/messages/{message_id}/reactions/{type}/{id}",
+    "title": "表情表态",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/emoji.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "说明   目前表情表态仅支持在频道内使用     #  机器人发表表情表态    #  接口     PUT /channels/{channel_id}/messages/{message_id}/reactions/{type}/{id}"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "message_id",
+      "type",
+      "id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/channels/{channel_id}/messages/{message_id}/reactions/{type}/{id}",
+    "title": "表情表态",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/emoji.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "说明   目前表情表态仅支持在频道内使用     #  机器人发表表情表态    #  接口     PUT /channels/{channel_id}/messages/{message_id}/reactions/{type}/{id}"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "message_id",
+      "type",
+      "id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/channels/{channel_id}/mic",
+    "title": "机器人下麦",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/audio/delete_mic.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [
+      "音子频道下麦。   音频接口：仅限音频类机器人才能使用，后续会根据机器人类型自动开通接口权限，现如需调用，需联系平台申请权限。    #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/channels/{channel_id}/mic",
+    "title": "机器人上麦",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/audio/put_mic.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "audio-state-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [
+      "音子频道上麦。   音频接口：仅限音频类机器人才能使用，后续会根据机器人类型自动开通接口权限，现如需调用，需联系平台申请权限。    #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}/online_nums",
+    "title": "获取子频道在线成员数",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/get_online_nums.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}/pins",
+    "title": "获取精华消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/pins/get_pins_message.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/channels/{channel_id}/pins/{message_id}",
+    "title": "删除精华消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/pins/delete_pins_message.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "message_id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/channels/{channel_id}/pins/{message_id}",
+    "title": "添加精华消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/pins/put_pins_message.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "message_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}/roles/{role_id}/permissions",
+    "title": "获取子频道身份组权限",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/channel_permissions/get_channel_roles_permissions.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "role_id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/channels/{channel_id}/roles/{role_id}/permissions",
+    "title": "修改子频道身份组权限",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/channel_permissions/put_channel_roles_permissions.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "role_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}/schedules",
+    "title": "获取频道日程列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/get_schedules.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/channels/{channel_id}/schedules",
+    "title": "创建日程",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/post_schedule.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/channels/{channel_id}/schedules/{schedule_id}",
+    "title": "删除日程",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/delete_schedule.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "schedule_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}/schedules/{schedule_id}",
+    "title": "获取日程详情",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/get_schedule.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "schedule_id"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/channels/{channel_id}/schedules/{schedule_id}",
+    "title": "修改日程",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/patch_schedule.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "schedule_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}/threads",
+    "title": "获取帖子列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/get_threads_list.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "子列表。     注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/channels/{channel_id}/threads",
+    "title": "发表帖子",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/put_thread.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "务ID。     注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/channels/{channel_id}/threads/{thread_id}",
+    "title": "删除帖子",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/delete_thread.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "个帖子。     注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "thread_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/channels/{channel_id}/threads/{thread_id}",
+    "title": "获取帖子详情",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/get_thread.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "子详情。     注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "channel_id",
+      "thread_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/dms/{guild_id}/messages",
+    "title": "频道私信",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/dms.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "send-message",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "使用本实验无害文本；主动消息需目标允许，被动消息需有效 msg_id/event_id 和剩余回复次数",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "送的私信。    注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/dms/{guild_id}/messages/{message_id}",
+    "title": "频道私信",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/dms.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "送的私信。    注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "message_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/gateway",
+    "title": "获取通用 WSS 接入点",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/gateway.get.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/openapi/wss/url_get.html"
+    ],
+    "scope": "base-query",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   2 QPM / 10 QPM burst       #  请求示例    获取通用WSS接入点      GET /gateway"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "GET",
+    "path": "/gateway/bot",
+    "title": "获取带分片 WSS 接入点",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/openapi/wss/shard_url_get.html"
+    ],
+    "scope": "base-query",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "GET",
+    "path": "/guilds/{guild_id}",
+    "title": "获取频道详情",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/guilds_guild_id.get.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       guild_id   string   是          #  请求示例    示例1      GET /g"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/guilds/{guild_id}/announces",
+    "title": "创建频道公告",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/announces/post_guild_announces.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/guilds/{guild_id}/announces/{message_id}",
+    "title": "删除频道公告",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/announces/delete_guild_announces.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "message_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/guilds/{guild_id}/api_permission",
+    "title": "获取机器人在频道可用权限列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/api_permissions/get_guild_api_permission.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/guilds/{guild_id}/api_permission/demand",
+    "title": "发送机器人在频道接口权限的授权链接",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/api_permissions/post_api_permission_demand.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/guilds/{guild_id}/channels",
+    "title": "获取子频道列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/guilds_guild_id_channels.get.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       guild_id   string   是          #  请求示例    示例1      GET /g"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/guilds/{guild_id}/channels",
+    "title": "创建子频道",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/guilds_guild_id_channels.post.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [
+      "在指定频道下创建子频道。需要管理员权限。   需要管理员权限。私域接口，创建成功后会触发 CHANNEL_CREATE 事件。    #  请求    #  基础信息      字段   值       HTTP URL   /guilds/{guild",
+      "hod   POST     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       guild_id   string   是          #  请求体      名称   类型   必填"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/guilds/{guild_id}/members",
+    "title": "获取频道成员列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/openapi/member/get_members.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/get_members.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "after 默认0；limit 1-400；用上一页最后user id续页，空列表结束",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "支持分页。    注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/guilds/{guild_id}/members/{user_id}",
+    "title": "删除频道成员",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/openapi/member/delete_member.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/delete_member.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "已知目标成员在当前应用场景的 ID；本接口不能凭 QQ 号或另一应用 OpenID 反查",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "员的成员     注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json",
+      "注：消息撤回时间范围仅支持固定的天数： 3 ， 7 ， 15 ， 30 。 特殊的时间范围： -1: 撤回全部消息 。默认值为 0 不撤回任何消息。    #  返回   成功返回 HTTP 状态码  204 。    #  错误码   详见 错"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "user_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/guilds/{guild_id}/members/{user_id}",
+    "title": "获取成员详情",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/openapi/member/get_member.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/get_member.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "已知目标成员在当前应用场景的 ID；本接口不能凭 QQ 号或另一应用 OpenID 反查"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "user_id"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/guilds/{guild_id}/members/{user_id}/mute",
+    "title": "频道指定成员禁言",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/patch_guild_member_mute.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "已知目标成员在当前应用场景的 ID；本接口不能凭 QQ 号或另一应用 OpenID 反查"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "user_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
+    "title": "删除频道身份组成员",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/delete_guild_member_role.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源",
+      "已知目标成员在当前应用场景的 ID；本接口不能凭 QQ 号或另一应用 OpenID 反查"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "user_id",
+      "role_id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
+    "title": "创建频道身份组成员",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/put_guild_member_role.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源",
+      "已知目标成员在当前应用场景的 ID；本接口不能凭 QQ 号或另一应用 OpenID 反查"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "user_id",
+      "role_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/guilds/{guild_id}/message/setting",
+    "title": "获取频道消息频率的设置详情",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/setting/message_setting.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/guilds/{guild_id}/mute",
+    "title": "频道批量成员禁言",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/patch_guild_mute_multi_member.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/patch_guild_mute.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/guilds/{guild_id}/roles",
+    "title": "获取频道身份组列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/get_guild_roles.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/guilds/{guild_id}/roles",
+    "title": "创建频道身份组",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/post_guild_role.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/guilds/{guild_id}/roles/{role_id}",
+    "title": "删除频道身份组",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/delete_guild_role.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "role_id"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/guilds/{guild_id}/roles/{role_id}",
+    "title": "修改频道身份组",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/patch_guild_role.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "role_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/guilds/{guild_id}/roles/{role_id}/members",
+    "title": "获取频道身份组成员列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/get_role_members.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "start_index 默认0；limit 1-400；next作为后续游标",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "支持分页。    注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "guild_id",
+      "role_id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/interactions/{interaction_id}",
+    "title": "互动事件响应",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/interactions_interaction_id.put.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/msg-btn.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/overview.html"
+    ],
+    "scope": "interaction-resource",
+    "sideEffect": "acknowledge-existing-interaction",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "平台实际下发且仍有效的 interaction_id；不能伪造",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "thod   PUT     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       interaction_id   string   是   互动事件 ID，从 INTERACTION_CREAT",
+      "0 指定用户可操作，1 仅管理者可操作，2 所有人可操作，3 指定身份组可操作（仅频道可用）     action.permission.specify_user_ids   array   否   有权限的用户 id 的列表     action.permission.specify_role_ids",
+      "有权限的身份组 id 的列表（仅频道可用）     action.data   string   是   操作相关的数据     action.reply   bool   否   指令按钮可用，指令是否带引用回复本消息，默认 false。支持版本 8983",
+      "int   否   本字段仅在指令按钮下有效，设置后后会忽略 action.enter 配置。 设置为 1 时 ，点击按钮自动唤起启手Q选图器，其他值暂无效果。 （仅支持手机端版本 8983+ 的单聊场景，桌面端不支持）     action.click_limit   int   否   【已弃用】可操作点击的次数，默认不限     action.at_bot_show_channel_list   bool   否   【已弃用】指令按钮可用，弹出子频道选择器，默认 false     action.unsupport_tips   string   是   客户端不支持本action的时候，弹出的toast文案      示例      {"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "interaction_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/users/@me",
+    "title": "获取机器人详情",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/openapi/user/me.html"
+    ],
+    "scope": "base-query",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [
+      "n_user_account 需特殊申请并配置后才会返回   这两个字段仅在单独拉取 member 信息时提供     #  请求    #  基础信息      字段   值       HTTP URL   /users/@me     HTTP Meth",
+      "od   GET     接口频率限制   50 QPS       #  请求示例    获取当前用户信息      GET /users/@me",
+      "跨应用统一用户 OpenID（需特殊申请）     union_user_account   string   跨应用统一用户账号（需特殊申请）       #  响应示例    获取当前用户信息成功       {"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "POST",
+    "path": "/users/@me/dms",
+    "title": "频道私信",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/dms.html"
+    ],
+    "scope": "qq-channel",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "机器人实际加入的频道/子频道及该应用获得的 ID；QQ 群 group_openid 不能替代 guild_id",
+      "仅私域频道机器人具备所述能力；不可推广到 QQ 群"
+    ],
+    "documentationConstraints": [
+      "送的私信。    注意    公域机器人暂不支持申请，仅私域机器人可用，选择私域机器人后默认开通。   注意: 开通后需要先将机器人从频道移除，然后重新添加，方可生效。      #  Content-Type     application/json"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "GET",
+    "path": "/users/@me/guilds",
+    "title": "获取机器人频道列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me_guilds.get.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/openapi/user/guilds.html"
+    ],
+    "scope": "base-query",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   50 QPS       #  查询参数      名称   类型   必填   描述       before   string   否   读取此 guild_id 之前的数据。设置时先反序再分页     af"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "POST",
+    "path": "/v2/generate_url_link",
+    "title": "生成分享链接",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html"
+    ],
+    "scope": "application-config",
+    "sideEffect": "create-bot-share-link",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   50 QPS       #  请求体      名称   类型   必填   描述       callback_data   string   否   回传给机器人后台的数据       #  请求示例"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/{group_id}/upload_part_finish",
+    "title": "群聊分片上传完成",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_id_upload_part_finish.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "upload-test-media",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "成功的 upload_prepare 与分片上传会话、上传结果"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   10 QPS       #  路径参数      名称   类型   必填   描述       group_id   string   是   群 OpenID       #  请求体      名称   类"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/{group_id}/upload_prepare",
+    "title": "群聊富媒体预上传",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_id_upload_prepare.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "upload-test-media",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "可访问的测试文件或实际测试文件字节；不上传用户私有文件"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   10 QPS       #  路径参数      名称   类型   必填   描述       group_id   string   是   群 OpenID       #  请求体      名称   类"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/{group_openid}/approval_join_request/{member_openid}",
+    "title": "入群申请审批",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_approval_join_request_member_openid.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "官方说明机器人需拥有群管理员身份"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   60 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID     member_openid   s"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid",
+      "member_openid"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/{group_openid}/batch_remove_members",
+    "title": "群成员批量移除",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_batch_remove_members.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "需平台内邀/接口白名单授权；11253 不能靠替换路径参数绕过"
+    ],
+    "documentationConstraints": [
+      "时加入黑名单。   该能力正在内邀接入中，敬请期待    #  请求    #  基础信息      字段   值       HTTP URL   /v2/groups/{group_openid}/batch_remove_members     HTT",
+      "hod   POST     接口频率限制   30 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID       #  请求体      名称",
+      "应用无接口访问权限   该接口仅白名单机器人可用，请联系平台运营申请权限           上次更新:   9/3/2026, 5:58:28 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/groups/{group_openid}/bot_state",
+    "title": "获取机器人群内状态",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_bot_state.get.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "需平台内邀/接口白名单授权；11253 不能靠替换路径参数绕过"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   30 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID       #  请求示例    获取机器",
+      "应用无接口访问权限   该接口仅白名单机器人可用，请联系平台运营申请权限           上次更新:   8/10/2026, 12:16:46 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/{group_openid}/files",
+    "title": "群聊富媒体上传",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "upload-test-media",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "可访问的测试文件或实际测试文件字节；不上传用户私有文件"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群 OpenID       #  请求体      名称"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/groups/{group_openid}/info",
+    "title": "获取群基本信息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_info.get.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "需平台内邀/接口白名单授权；11253 不能靠替换路径参数绕过"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   30 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID       #  请求示例    获取群信",
+      "应用无接口访问权限   该接口仅白名单机器人可用，请联系平台运营申请权限           上次更新:   8/10/2026, 12:16:46 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/groups/{group_openid}/join_request_list",
+    "title": "入群申请列表拉取",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_join_request_list.get.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "官方说明机器人需拥有群管理员身份"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   30 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID       #  请求体      名称"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/groups/{group_openid}/member_blacklist",
+    "title": "群黑名单查询",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_member_blacklist.get.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "需平台内邀/接口白名单授权；11253 不能靠替换路径参数绕过"
+    ],
+    "documentationConstraints": [
+      "表，支持分页。   该能力正在内邀接入中，敬请期待    #  请求    #  基础信息      字段   值       HTTP URL   /v2/groups/{group_openid}/member_blacklist     HTTP Me",
+      "thod   GET     接口频率限制   30 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID       #  请求体      名称",
+      "应用无接口访问权限   该接口仅白名单机器人可用，请联系平台运营申请权限           上次更新:   9/3/2026, 5:58:29 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/{group_openid}/member_blacklist",
+    "title": "群黑名单操作",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_member_blacklist.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "需平台内邀/接口白名单授权；11253 不能靠替换路径参数绕过"
+    ],
+    "documentationConstraints": [
+      "加入群黑名单。   该能力正在内邀接入中，敬请期待    #  请求    #  基础信息      字段   值       HTTP URL   /v2/groups/{group_openid}/member_blacklist     HTTP Me",
+      "hod   POST     接口频率限制   60 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID       #  请求体      名称",
+      "应用无接口访问权限   该接口仅白名单机器人可用，请联系平台运营申请权限           上次更新:   9/3/2026, 5:58:30 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/groups/{group_openid}/members",
+    "title": "获取群成员列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_members.get.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "cursor 可空；每页最多30，next_cursor为空结束",
+      "需平台内邀/接口白名单授权；11253 不能靠替换路径参数绕过"
+    ],
+    "documentationConstraints": [
+      "条，支持分页。   该能力正在内邀接入中，敬请期待    #  请求    #  基础信息      字段   值       HTTP URL   /v2/groups/{group_openid}/members     HTTP Method   GE",
+      "T     接口频率限制   60 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID       #  请求体      名称",
+      "应用无接口访问权限   该接口仅白名单机器人可用，请联系平台运营申请权限           上次更新:   9/3/2026, 5:57:51 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/groups/{group_openid}/members/{member_openid}",
+    "title": "获取群成员信息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_members_member_openid.get.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "已知目标成员在当前应用场景的 ID；本接口不能凭 QQ 号或另一应用 OpenID 反查",
+      "需平台内邀/接口白名单授权；11253 不能靠替换路径参数绕过"
+    ],
+    "documentationConstraints": [
+      "员的详细信息。   该能力正在内邀接入中，敬请期待    #  请求    #  基础信息      字段   值       HTTP URL   /v2/groups/{group_openid}/members/{member_openid}",
+      "thod   GET     接口频率限制   30 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID     member_openid   s",
+      "应用无接口访问权限   该接口仅白名单机器人可用，请联系平台运营申请权限           上次更新:   9/3/2026, 5:58:30 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid",
+      "member_openid"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/{group_openid}/messages",
+    "title": "发送群聊消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "send-message",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "使用本实验无害文本；主动消息需目标允许，被动消息需有效 msg_id/event_id 和剩余回复次数"
+    ],
+    "documentationConstraints": [
+      "数    被动消息有效时间  5 分钟 ，每个消息最多回复  5 次    主动消息频控规则",
+      "hod   POST     接口频率限制   100 QPS       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群 OpenID       #  请求体      名",
+      "E 等事件的 d.id 获取，5 分钟内有效     event_id   string   否   被动回复的事件 ID。从事件最外层的id获取。与 msg_id 二选一，支持事件：\"INTERACTION_CREATE\"、\"GROUP_ADD_ROBOT",
+      "按钮后直接自动发送 data，仅单聊可用，默认 false。支持版本 8983     reply   boolean   否   指令按钮可用，指令是否带引用回复本消息，默认 false。支持版本 8983     anchor   integer   否",
+      "本字段仅在指令按钮下有效，设置后后会忽略 action.enter 配置。 设置为 1 时 ，点击按钮自动唤起启手Q选图器，其他值暂无效果。 （仅支持手机端版本 8983+ 的单聊场景，桌面端不支持）     modal    Modal    否   用户点击二次确认操作          Permission       名称   类型   必填   描述       type   integer   否   0=指定用户, 1=管理员, 2=所有人     specify_user_ids   []string   否   有权限的用户 id 的列表     specify_role_ids   []string   否   有权限的身份组 id 的列表（仅频道可用）          Modal       名称   类型   必填   描述       content   string   否   二次确认的提示文本,如果不为空则会进行二次确认. 注意:最多40个字符, 不能有"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/v2/groups/{group_openid}/messages/{message_id}",
+    "title": "撤回群聊消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages_message_id.delete.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "息   撤回群消息。发送超过 2 分钟的消息不可撤回。",
+      "无响应体。    发送超出  2 分钟 的消息不可撤回。   机器人如果是群管理员，可以撤回机器人自己的消息以及普通群成员的消息，群成员的消息ID从群消息事件 GROUP_AT_MESSAGE_CREATE 或 GROUP_MESSAGE_CREATE 里，",
+      "d   DELETE     接口频率限制   10 QPS       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群 OpenID     message_id   str",
+      "时限   消息发送超过2分钟后不可撤回     50065001   消息撤回失败，请稍后重试   请稍后重试           上次更新:   8/12/2026, 8:40:14 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid",
+      "message_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/groups/{group_openid}/restrict_chat_setting",
+    "title": "查询群禁言状态",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.get.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "官方说明机器人需拥有群管理员身份"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   30 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID       #  请求示例    查询群内"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/{group_openid}/restrict_chat_setting",
+    "title": "设置群成员禁言",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "member-permission-or-moderation-change",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用回调或官方接口给出的 group_openid；不能跨应用照搬",
+      "官方说明机器人需拥有群管理员身份"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   60 QPM       #  路径参数      名称   类型   必填   描述       group_openid   string   是   群OpenID       #  请求体      名称"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "group_openid"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/groups/join_approval_strategy",
+    "title": "查询入群自动审批策略列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.get.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   60 QPM       #  请求体      名称   类型   必填   描述       cursor   string   否   分页游标，首次请求可不传或传空串     limit   integer"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/join_approval_strategy",
+    "title": "创建入群自动审批策略",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   60 QPM       #  请求体      名称   类型   必填   描述       group_openids   []string   否   group_openids 与 group_ids 二"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "DELETE",
+    "path": "/v2/groups/join_approval_strategy/{strategy_id}",
+    "title": "删除入群自动审批策略",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id.delete.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "d   DELETE     接口频率限制   60 QPM       #  路径参数      名称   类型   必填   描述       strategy_id   string   是   策略 ID       #  请求示例     DELETE"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "strategy_id"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/v2/groups/join_approval_strategy/{strategy_id}",
+    "title": "修改入群自动审批策略",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id.patch.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "od   PATCH     接口频率限制   60 QPM       #  路径参数      名称   类型   必填   描述       strategy_id   string   是   策略 ID       #  请求体      名称   类"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "strategy_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/join_approval_strategy/{strategy_id}/execute",
+    "title": "执行入群自动审批策略",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id_execute.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   60 QPM       #  路径参数      名称   类型   必填   描述       strategy_id   string   是   策略 ID       #  请求示例     POST /"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "strategy_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/groups/join_approval_strategy/{strategy_id}/whitelist_users",
+    "title": "修改入群自动审批策略的白名单号码",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id_whitelist_users.post.html"
+    ],
+    "scope": "qq-group",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   60 QPM       #  路径参数      名称   类型   必填   描述       strategy_id   string   是   策略 ID       #  请求体      名称   类"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "strategy_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/menu",
+    "title": "查询全局自定义菜单",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_menu.get.html"
+    ],
+    "scope": "application-config",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   30 QPM       #  请求示例    查询当前菜单      GET /v2/menu"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "PUT",
+    "path": "/v2/menu",
+    "title": "修改全局自定义菜单",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_menu.put.html"
+    ],
+    "scope": "application-config",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [
+      "修改自定义菜单。自定义菜单仅支持 C2C（单聊）场景，设置后对所有用户生效，不支持按用户维度区分    #  请求    #  基础信息      字段   值       HTTP URL   /v2/menu     HTTP Method   P",
+      "UT     接口频率限制   5 QPM       #  请求体      名称   类型   必填   描述       menu    Menu    否   菜单配置。传入后会覆盖原有的完整菜单配置          Menu",
+      "合法   menu.type 仅支持 switch/send_message/link/menu     40030016   必填字段缺失   检查必填字段是否全部正确传入     40030020   内容存在安全风险，请修改后重试   请检查菜单/面"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "GET",
+    "path": "/v2/panels",
+    "title": "查询指令面板列表",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels.get.html"
+    ],
+    "scope": "application-config",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "必填 query scope：c2c/group/channel/dm；可分别查询四场景"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   30 QPM       #  查询参数      名称   类型   必填   描述       scope   string   是   生效场景，可选值：c2c（单聊）、group（群聊）、channel（文",
+      "效场景不合法   scope 仅支持 c2c/group/channel/dm           上次更新:   8/13/2026, 1:20:14 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "POST",
+    "path": "/v2/panels",
+    "title": "创建指令面板",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels.post.html"
+    ],
+    "scope": "application-config",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token"
+    ],
+    "documentationConstraints": [
+      "channel 和 dm 场景仅支持全局配置（target_type=all）    一个机器人最多创建 20 个指令面板     #  请求    #  基础信息      字段   值       HTTP URL   /v2/panels     H",
+      "hod   POST     接口频率限制   10 QPM       #  请求体      名称   类型   必填   描述       scope   string   是   生效场景，可选值：c2c（单聊）、group（群聊）、channel（文字",
+      "channel 和 dm 场景仅支持全局配置（target_type 只能为 all）     target_type   string   否   作用范围，可选值：all（对该场景下所有用户/群生效）、specific（仅对指定用户/群生效）。 仅 c",
+      "效场景不合法   scope 仅支持 c2c/group/channel/dm     40030012   生效范围不合法   target_type 仅支持 all/specific；channel/dm 场景仅支持 all     40030013",
+      "anel_item.type 仅支持 command/link     40030016   必填字段缺失   检查必填字段是否全部正确传入     40030018   当前场景不支持此操作   检查 scope 是否支持当前操作     4003002"
+    ],
+    "manualReview": false,
+    "resourceParameters": []
+  },
+  {
+    "method": "DELETE",
+    "path": "/v2/panels/{panel_id}",
+    "title": "删除指令面板",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.delete.html"
+    ],
+    "scope": "application-config",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "d   DELETE     接口频率限制   10 QPM       #  路径参数      名称   类型   必填   描述       panel_id   string   是   面板 ID       #  请求示例    删除面板"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "panel_id"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/v2/panels/{panel_id}",
+    "title": "查询指令面板详情",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.get.html"
+    ],
+    "scope": "application-config",
+    "sideEffect": "read-only",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "thod   GET     接口频率限制   30 QPM       #  路径参数      名称   类型   必填   描述       panel_id   string   是   面板 ID       #  请求示例    查询面板详情"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "panel_id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/v2/panels/{panel_id}",
+    "title": "修改指令面板",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.put.html"
+    ],
+    "scope": "application-config",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "thod   PUT     接口频率限制   10 QPM       #  路径参数      名称   类型   必填   描述       panel_id   string   是   面板 ID       #  请求体      名称   类型",
+      "anel_item.type 仅支持 command/link     40030016   必填字段缺失   检查必填字段是否全部正确传入     40030018   当前场景不支持此操作   检查 scope 是否支持当前操作     4003002"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "panel_id"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/v2/panels/{panel_id}/target",
+    "title": "修改指令面板关联对象",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id_target.put.html"
+    ],
+    "scope": "application-config",
+    "sideEffect": "create-or-update-configuration-resource",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "thod   PUT     接口频率限制   60 QPM       #  路径参数      名称   类型   必填   描述       panel_id   string   是   面板 ID       #  请求体      名称   类型",
+      "操作类型不合法   op 仅支持 add/del     40030018   当前场景不支持此操作   检查 scope 是否支持当前操作     40030021   全局面板不支持添加指定关联对象   target_type=all 的面板不支持"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "panel_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/users/{user_id}/upload_part_finish",
+    "title": "单聊分片上传完成",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_id_upload_part_finish.post.html"
+    ],
+    "scope": "qq-c2c",
+    "sideEffect": "upload-test-media",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用对应的 user_openid；目标存在单聊关系和对应消息权限",
+      "成功的 upload_prepare 与分片上传会话、上传结果"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   10 QPS       #  路径参数      名称   类型   必填   描述       user_id   string   是   用户 OpenID       #  请求体      名称   类"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "user_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/users/{user_id}/upload_prepare",
+    "title": "单聊富媒体预上传",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_id_upload_prepare.post.html"
+    ],
+    "scope": "qq-c2c",
+    "sideEffect": "upload-test-media",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用对应的 user_openid；目标存在单聊关系和对应消息权限",
+      "可访问的测试文件或实际测试文件字节；不上传用户私有文件"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   10 QPS       #  路径参数      名称   类型   必填   描述       user_id   string   是   用户 OpenID       #  请求体      名称   类"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "user_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/users/{user_openid}/files",
+    "title": "单聊富媒体上传",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html",
+      "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/rich-media.html"
+    ],
+    "scope": "qq-c2c",
+    "sideEffect": "upload-test-media",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用对应的 user_openid；目标存在单聊关系和对应消息权限",
+      "可访问的测试文件或实际测试文件字节；不上传用户私有文件"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       user_openid   string   是   用户 OpenID       #  请求体      名称"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "user_openid"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/users/{user_openid}/messages",
+    "title": "发送单聊消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html"
+    ],
+    "scope": "qq-c2c",
+    "sideEffect": "send-message",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用对应的 user_openid；目标存在单聊关系和对应消息权限",
+      "使用本实验无害文本；主动消息需目标允许，被动消息需有效 msg_id/event_id 和剩余回复次数"
+    ],
+    "documentationConstraints": [
+      "。    被动消息有效时间  60 分钟 ，每个消息最多回复  4 次    主动消息频控规则:",
+      "hod   POST     接口频率限制   100 QPS，包括主动、被动等所有消息类型       #  路径参数      名称   类型   必填   描述       user_openid   string   是   用户 OpenID",
+      "E 等事件的 d.id 获取，5 分钟内有效     event_id   string   否   被动回复的事件 ID。从事件最外层的id获取。与 msg_id 二选一，支持事件：\"INTERACTION_CREATE\"、\"C2C_MSG_RECEIVE",
+      "按钮后直接自动发送 data，仅单聊可用，默认 false。支持版本 8983     reply   boolean   否   指令按钮可用，指令是否带引用回复本消息，默认 false。支持版本 8983     anchor   integer   否",
+      "本字段仅在指令按钮下有效，设置后后会忽略 action.enter 配置。 设置为 1 时 ，点击按钮自动唤起启手Q选图器，其他值暂无效果。 （仅支持手机端版本 8983+ 的单聊场景，桌面端不支持）     modal    Modal    否   用户点击二次确认操作          Permission       名称   类型   必填   描述       type   integer   否   0=指定用户, 1=管理员, 2=所有人     specify_user_ids   []string   否   有权限的用户 id 的列表     specify_role_ids   []string   否   有权限的身份组 id 的列表（仅频道可用）          Modal       名称   类型   必填   描述       content   string   否   二次确认的提示文本,如果不为空则会进行二次确认. 注意:最多40个字符, 不能有"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "user_openid"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/v2/users/{user_openid}/messages/{message_id}",
+    "title": "撤回单聊消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages_message_id.delete.html"
+    ],
+    "scope": "qq-c2c",
+    "sideEffect": "delete-or-recall",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用对应的 user_openid；目标存在单聊关系和对应消息权限",
+      "须先取得该应用可访问的真实资源 ID；删除/修改只能针对本实验新建的资源"
+    ],
+    "documentationConstraints": [
+      "送给当前用户的消息。发送超过 2 分钟的消息不可撤回。",
+      "无响应体。    发送超出  2 分钟 的消息不可撤回     #  请求    #  基础信息      字段   值       HTTP URL   /v2/users/{user_openid}/messages/{message_id}     H",
+      "d   DELETE     接口频率限制   10 QPS       #  路径参数      名称   类型   必填   描述       user_openid   string   是   用户 OpenID     message_id   str",
+      "时限   消息发送超过2分钟后不可撤回           上次更新:   7/22/2026, 6:23:09 PM"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "user_openid",
+      "message_id"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/v2/users/{user_openid}/stream_messages",
+    "title": "流式发送单聊消息",
+    "sources": [
+      "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_stream_messages.post.html"
+    ],
+    "scope": "qq-c2c",
+    "sideEffect": "send-message",
+    "prerequisites": [
+      "当前应用有效 QQBot access_token",
+      "该应用对应的 user_openid；目标存在单聊关系和对应消息权限"
+    ],
+    "documentationConstraints": [
+      "hod   POST     接口频率限制   50 QPS       #  路径参数      名称   类型   必填   描述       user_openid   string   是          #  请求体      名称   类型   必"
+    ],
+    "manualReview": false,
+    "resourceParameters": [
+      "user_openid"
+    ]
+  }
+]

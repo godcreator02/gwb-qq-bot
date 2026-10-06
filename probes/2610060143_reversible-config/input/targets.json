@@ -1,0 +1,4 @@
+[
+ {"label":"A","home":"default","appId":"<APP_ID_A>","group":"<GROUP_OPENID_A>","human":"<OPENID_OWNER_A>"},
+ {"label":"B","home":"qqbotb-2610052319","appId":"<APP_ID_B>","group":"<GROUP_OPENID_B>","human":"<OPENID_OWNER_B>"}
+]

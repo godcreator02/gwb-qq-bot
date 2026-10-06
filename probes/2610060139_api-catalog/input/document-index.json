@@ -1,0 +1,1148 @@
+[
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/channels_channel_id.delete.html",
+    "title": "删除子频道",
+    "sha256": "fc3482440b0ea72d2cc2c07e62f15ba2e1ef24484bb90aee66b22a9050cb125f",
+    "chars": 528
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/channels_channel_id.get.html",
+    "title": "获取子频道详情",
+    "sha256": "f0c81ccdef0e926b11654c22be7da787af98c64306aa597855e2a6bbecb32759",
+    "chars": 1401
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/channels_channel_id.patch.html",
+    "title": "修改子频道",
+    "sha256": "a6bb8049b3f235cb5dddaf715ff5ef76a6030b8c935ff83e5e9829961f2d0031",
+    "chars": 1733
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/gateway.get.html",
+    "title": "获取通用 WSS 接入点",
+    "sha256": "4e3787981f06f0b906bb3327a7edd6e377cb45616688e23b73a06b42fa6726bd",
+    "chars": 459
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/guilds_guild_id_channels.get.html",
+    "title": "获取子频道列表",
+    "sha256": "7b4dad06582d087216a194e0bfd6a6faaf26ea8ddcdfc04cd0b0da895c1379e5",
+    "chars": 1894
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/guilds_guild_id_channels.post.html",
+    "title": "创建子频道",
+    "sha256": "99330db90c58a2999c5a2906fc91ecbf8f93218dbac7cd0ddc78a5d2826ba6a4",
+    "chars": 2188
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/guilds_guild_id.get.html",
+    "title": "获取频道详情",
+    "sha256": "2ac89ef433e22c5fc0a64f1d93cfb18b7b3e7db363c83ed3c7dea5a697ba7004",
+    "chars": 1148
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/interactions_interaction_id.put.html",
+    "title": "互动事件响应",
+    "sha256": "78209b1a4ceba9489b3a4cb58499610d3b0e108f00e32f6e9343f10c5f8e8231",
+    "chars": 1402
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me_guilds.get.html",
+    "title": "获取机器人频道列表",
+    "sha256": "653e2e5e1dc6c8a44bfa9869112b00677da8eb953e1bb4882ebddcca20e985e7",
+    "chars": 2480
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html",
+    "title": "获取机器人详情",
+    "sha256": "9300099a93fbfd1032a7b7f30007eff372adbed1116fd17aadcab4683fc81435",
+    "chars": 1193
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html",
+    "title": "生成分享链接",
+    "sha256": "80edc461cab23b797bb5744253ed1c5f89af45ea62788e9ae0cea4597092b2aa",
+    "chars": 1129
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_id_upload_part_finish.post.html",
+    "title": "群聊分片上传完成",
+    "sha256": "8df24a2804badcbd42fa8c14e5183c5ec9803e0e592819798fce634b24f32240",
+    "chars": 1440
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_id_upload_prepare.post.html",
+    "title": "群聊富媒体预上传",
+    "sha256": "8b477a4b76748f24d56df46eeb69dc4f359fd0fab2f4edbda3e4257e3dfb3eb7",
+    "chars": 3054
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_approval_join_request_member_openid.post.html",
+    "title": "入群申请审批",
+    "sha256": "0934212efe090e33ca786a2da9739601303bc20f49acebc3ba7172aa1a0ba298",
+    "chars": 1573
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_batch_remove_members.post.html",
+    "title": "群成员批量移除",
+    "sha256": "234f61ed7804f3574399a6ff2913d1795ad6167faa0067dfe8e3b3a66a79b22a",
+    "chars": 1170
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_bot_state.get.html",
+    "title": "获取机器人群内状态",
+    "sha256": "2b37cfa7642d3a11b91be67970be2601c4865815bab271cab7ab98b9e5b2b578",
+    "chars": 1192
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html",
+    "title": "群聊富媒体上传",
+    "sha256": "de3754c5539a79c51160d6fac97a72315b646b4ec7b5e0cea85e9f44eebaca2a",
+    "chars": 2755
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_info.get.html",
+    "title": "获取群基本信息",
+    "sha256": "f3b61c6d06228d8c86faf1ad62d0e4d5d193aded6622e27d6512fbc5b009addf",
+    "chars": 1161
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_join_request_list.get.html",
+    "title": "入群申请列表拉取",
+    "sha256": "1f110ed10cf7722638d1c21eb76cff9a5fd15f31b699786ab8277b6f28f8fbf7",
+    "chars": 2544
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_member_blacklist.get.html",
+    "title": "群黑名单查询",
+    "sha256": "a1de9a7da138494e6ed548af91463390c87311a9e2b6822f4bd8e73c98a20334",
+    "chars": 1472
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_member_blacklist.post.html",
+    "title": "群黑名单操作",
+    "sha256": "f90a638c6c3fc129e3f393afc3377854adfd499e1cb88dc1c89d2a0044e23c8d",
+    "chars": 1257
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_members_member_openid.get.html",
+    "title": "获取群成员信息",
+    "sha256": "a4cd875702551e06b6052c4bf80ad72006d6fbe5f7e3246f9a21b83c2ce85c2e",
+    "chars": 1276
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_members.get.html",
+    "title": "获取群成员列表",
+    "sha256": "c012fe079b653c760d3999855a27b872c53fe77996e84593369984eb2d619a5a",
+    "chars": 2010
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages_message_id.delete.html",
+    "title": "撤回群聊消息",
+    "sha256": "1dcf58f76e45c52ddf658b2ef8f5058e1046de7c568367d0e72d64aa864aae1f",
+    "chars": 1062
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html",
+    "title": "发送群聊消息",
+    "sha256": "3a6a9a7b33c95997e8a47187cdcc51067c6ba3d8a94cc8943bbcf870b93f63e5",
+    "chars": 7737
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.get.html",
+    "title": "查询群禁言状态",
+    "sha256": "21f14bc1603a59e983482dc77fc8d269e61431c595f2e8b8d109122d9ef16f59",
+    "chars": 3084
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.post.html",
+    "title": "设置群成员禁言",
+    "sha256": "8690262af88627204eee94af7d42d454153084662070c382ae3e362fed04cb4e",
+    "chars": 1199
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id_execute.post.html",
+    "title": "执行入群自动审批策略",
+    "sha256": "6f949b57dc2ac09bc2bb8c852d6b715e26bde474106e717827c5bee0a2426b84",
+    "chars": 576
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id_whitelist_users.post.html",
+    "title": "修改入群自动审批策略的白名单号码",
+    "sha256": "7825a9f7416c0a6c44a72df56ac9ca026f316b2c99f24d397e6b6765e4cc05b0",
+    "chars": 1117
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id.delete.html",
+    "title": "删除入群自动审批策略",
+    "sha256": "97d6f3da49541c4ea6c8ac581d67d2407bf18544e17cdfe42c303b74a009d626",
+    "chars": 527
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id.patch.html",
+    "title": "修改入群自动审批策略",
+    "sha256": "999a4091c134baeafb3a2d7ddd975c547bf15c0adcede888cba52c960e795c5b",
+    "chars": 1331
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.get.html",
+    "title": "查询入群自动审批策略列表",
+    "sha256": "325711c9073c8c7f4aff50af54bba7ec5c694288f297bfc8049b4f7a4b62e33c",
+    "chars": 2607
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.post.html",
+    "title": "创建入群自动审批策略",
+    "sha256": "224040e20257106f09c3d6ec78be3557f3621cbf52b19a4abd3436052b03168a",
+    "chars": 1258
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_menu.get.html",
+    "title": "查询全局自定义菜单",
+    "sha256": "c5f7fcf7dc641e1e857fdc53c13317569d4fb44925a4c2ccc6020fe44e4e215a",
+    "chars": 1815
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_menu.put.html",
+    "title": "修改全局自定义菜单",
+    "sha256": "92c8484d6e46989a2e21020231c071fb103fda1d27a031f6f78dc427ff6ea196",
+    "chars": 2634
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id_target.put.html",
+    "title": "修改指令面板关联对象",
+    "sha256": "2785d76162e24eefc0bf51da7b8f72c2c30f7ca0dca2d032ffa8eb4cccb02f0e",
+    "chars": 1193
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.delete.html",
+    "title": "删除指令面板",
+    "sha256": "7ec305a392c1361aa251fbaece42622619ad23a77910be20e3fc3ed23e05e1e8",
+    "chars": 568
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.get.html",
+    "title": "查询指令面板详情",
+    "sha256": "47a98d7d23b402fd5b3f09b3aca28f53ba7ef81fae2546da41f12f21cefd2e65",
+    "chars": 2247
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.put.html",
+    "title": "修改指令面板",
+    "sha256": "5b90c76cc6c72caac5075dc1c5396323d4a4cfa3a3d2a12af1385c29c1501f24",
+    "chars": 1984
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels.get.html",
+    "title": "查询指令面板列表",
+    "sha256": "be0a1b8b51d60610970ec9426fd669d503f005af4df43e51fd5b3e2635f15232",
+    "chars": 2535
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels.post.html",
+    "title": "创建指令面板",
+    "sha256": "a97bc3d2e0c9dc310487305da9717a7b3425f83edd5c4e4ce9546f719e022fe9",
+    "chars": 3207
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_id_upload_part_finish.post.html",
+    "title": "单聊分片上传完成",
+    "sha256": "008bbda47c09a2e9f1784898b4f04db2885514a410c88cfc1b8b8313d3263fa5",
+    "chars": 1383
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_id_upload_prepare.post.html",
+    "title": "单聊富媒体预上传",
+    "sha256": "1be240886126b5e1fb40d0f37c72e30d4ff45a5557390d40b5d2e7b726b5b5af",
+    "chars": 2969
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html",
+    "title": "单聊富媒体上传",
+    "sha256": "c4cc2024a1fda50c5650b8ab6fd7d62c65414b9af014c9ee547df35453ad7fc7",
+    "chars": 2694
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages_message_id.delete.html",
+    "title": "撤回单聊消息",
+    "sha256": "0434a85507c90f01d528b54af894f8196947de79bf7b121f661fce52c2e56571",
+    "chars": 891
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html",
+    "title": "发送单聊消息",
+    "sha256": "2d3d1ece581e2da8d3fbb9d839fa563a38767a6afe11677154992895a6c98a7c",
+    "chars": 7960
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_stream_messages.post.html",
+    "title": "流式发送单聊消息",
+    "sha256": "571c66f6d9eaa734dcfdfa576a81bfca9207f94ad40e9c2c86e4c252de056802",
+    "chars": 3350
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html",
+    "title": "单聊消息事件",
+    "sha256": "08fec3d0d2118475b593a94d71e79d4ff3a273d71691e1e5f9a54201d824e394",
+    "chars": 5452
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_msg_receive.html",
+    "title": "单聊消息接收开启",
+    "sha256": "fbc25bd1e5c2bae9c400183552c0feaa261a4ea8688a80b9d6b060d4d06b0962",
+    "chars": 549
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_msg_reject.html",
+    "title": "单聊消息接收关闭",
+    "sha256": "4bc1f276cdf6ea408f7947c02e8baccaeb1511fdb46438a0af24da33eb1c2698",
+    "chars": 546
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/channel_create.html",
+    "title": "子频道创建",
+    "sha256": "888b033856179f9a00da6341f52c3acd14b9962dcaf170059fb6d6931210df4c",
+    "chars": 738
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/channel_delete.html",
+    "title": "子频道删除",
+    "sha256": "f7376edec4aec20f947b85ab0144511e0d805759a434959a524b147ec07617d5",
+    "chars": 743
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/channel_update.html",
+    "title": "子频道更新",
+    "sha256": "b00b157047abb8806c3b70ed86f24ad0738964f367a6fe19c21a035da9655474",
+    "chars": 743
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_add.html",
+    "title": "用户添加好友",
+    "sha256": "4517e7292b930ebd9ff99c10d251cf92964a24fa8599b72924783b3962352b49",
+    "chars": 1323
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_del.html",
+    "title": "用户删除好友",
+    "sha256": "8ed4dacbdccb4e4be7d1a2ae0fa204688a827e77d0d096166bb9f7272e1786a8",
+    "chars": 604
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_add_robot.html",
+    "title": "机器人加入群聊",
+    "sha256": "b8cd3f0386604bf6781959cf412844cec7daacbffab8a518afabfe8797305cab",
+    "chars": 611
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html",
+    "title": "群@机器人消息",
+    "sha256": "0bb90965614f1ae78811a8060bc7c171b2e7aad0aaa48f99a9d8539d9155eb6f",
+    "chars": 5469
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_del_robot.html",
+    "title": "机器人退出群聊",
+    "sha256": "760e99d379a95fc9661486cf495628cd133390b0c16f42c62a2b826cf4997d5f",
+    "chars": 612
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_join_request.html",
+    "title": "用户申请加群事件",
+    "sha256": "469f57389d41d8f6980d74d861aa7c04503ef702d03dde98a100380cdbd7d6e6",
+    "chars": 3041
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_add.html",
+    "title": "群成员加入",
+    "sha256": "8bef983e4acd6d05fc787bc2e22cf8125d905ea2f60dbe6d722b890ac97e5d91",
+    "chars": 704
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_remove.html",
+    "title": "群成员退出",
+    "sha256": "0537dffe5bafce7ab666f0567c03ffe155b6d383a3fe1123d4de4cc6cca1b5be",
+    "chars": 702
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html",
+    "title": "群消息（全量模式）",
+    "sha256": "d732c0ac07e20a6d70f878fa34c0be4286e2adda086f4c29a364d9c4fe45eaf9",
+    "chars": 5396
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_msg_receive.html",
+    "title": "群聊消息接收开启",
+    "sha256": "1dfaf676bb7b68ee51f09eeadfca9a3e71f25579d9dd2f17e96a6e0f813fe53a",
+    "chars": 616
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_msg_reject.html",
+    "title": "群聊消息接收关闭",
+    "sha256": "a527f5652a9f614cd434fc5d93ebcc5dfb6efd02ed6279917de558fc1fd8ef3b",
+    "chars": 613
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/guild_create.html",
+    "title": "频道创建",
+    "sha256": "158fe9621c53fd13182c7dbe205f54a110480108e0e733a211764b8c4a584eda",
+    "chars": 920
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/guild_delete.html",
+    "title": "频道解散",
+    "sha256": "47e80fddc0fbd0d875e1c5b3e713148f65be831f59ccc80a12d01ad6d86f6137",
+    "chars": 826
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/guild_update.html",
+    "title": "频道更新",
+    "sha256": "9a7d2d9565485bf28077551e988bbc3c954931e403707b8abdd87af796cb1725",
+    "chars": 823
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html",
+    "title": "互动事件",
+    "sha256": "1fc8aa23fdd3b754f5eea39e8c9381da66a69e117268aaea805e21480fec04e4",
+    "chars": 4037
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/subscribe_message_status.html",
+    "title": "订阅消息授权状态变更",
+    "sha256": "f60ac79fca6756526763613fb2462f23a8b4b258be88d5d030b81db1f2cb489b",
+    "chars": 1310
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/autogen/index.html",
+    "title": "接口文档索引",
+    "sha256": "d4757e91a4e19d3001c5d002d1df508913025a830598cb3fc3b6c308d0adcd66",
+    "chars": 3616
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/changelog.html",
+    "title": "变更记录",
+    "sha256": "67fea3b507cd0418d425f6eea8cd08a53188f1ac395f339782af3ea0a9574766",
+    "chars": 811
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html",
+    "title": "获取访问凭证",
+    "sha256": "fa9eb15edcfc4e61493ea1b1a0457fc88f047cb93401209a77f5de994a837396",
+    "chars": 2375
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/api-call-guide.html",
+    "title": "API 调用指南",
+    "sha256": "0021bbb7395be0c2096828689c7e3a164abcc54bb711037e4f09a985fb618bb8",
+    "chars": 9482
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/error-trace/index.html",
+    "title": "错误与调试",
+    "sha256": "e5655ea97f18b6a9bc7aef2da287d828f25a450612123b99246d4d4c68b6ccb7",
+    "chars": 205
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/error-trace/websocket.html",
+    "title": "WebSocket",
+    "sha256": "a4a6e437aa032684c9e8a40e8adb2603b775af9847a62d40ac8fd86461a0f581",
+    "chars": 810
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/payload.html",
+    "title": "通用数据结构",
+    "sha256": "5bc34da62573819640785bd82b54105ef2d66471008a946698b236918c23054d",
+    "chars": 4618
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/webhook.html",
+    "title": "Webhook 方式",
+    "sha256": "83cb9a657effff0e36e262ce312e423de756240b92451fd7a8efb431259f8baa",
+    "chars": 3029
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html",
+    "title": "WebSocket 方式",
+    "sha256": "8d2a499874f5d1c92cdf9d895456ff66a23a7e75be1ef9eff1a76ba2e4702aa8",
+    "chars": 4239
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/getting-started.html",
+    "title": "启动接入",
+    "sha256": "b831e375f993a1fdf97679a60bf88423a4533fdda20122a60baab0f69fcbcc47",
+    "chars": 656
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/api-use.html",
+    "title": "接口调用与鉴权",
+    "sha256": "dad189007ad6a1bfbd8755140f2c94fbcda7a17b84bb6290ea6f71f24e677d14",
+    "chars": 1504
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html",
+    "title": "事件订阅与通知",
+    "sha256": "9c9b5b8540114bec66efc829bbdce1b0891d4ad916964b4a87e79c51c0b63fb9",
+    "chars": 10979
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/index.html",
+    "title": "接口通信基础框架",
+    "sha256": "d43b79eab4e01a7e7021d5c7af288198e1f5914cd95d601db3eeafce0eb724dc",
+    "chars": 123
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/opcode.html",
+    "title": "opcode",
+    "sha256": "4b035b674be171b1d7dd135d97e3a909dd99554acf30fb16f0e779e8edb0d45f",
+    "chars": 709
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/reference.html",
+    "title": "使用 Websocket 接入",
+    "sha256": "2de9d3caa0c2c3d258cb3f74529f2e3b9ecfae99f3e4c053f938af4d2dec07b8",
+    "chars": 2824
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/sign.html",
+    "title": "安全和授权",
+    "sha256": "025602690d54c2d274228099324498e4394de7a2dfff2029f5aab55159dbdfd5",
+    "chars": 3004
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/gateway/error/data/model.html",
+    "title": "业务报错返回的数据信息(Data)",
+    "sha256": "cd749b447865bab3ac696633d7e2462376e163295257343f0afec778e17162b4",
+    "chars": 175
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/gateway/error/error.html",
+    "title": "websocket 错误",
+    "sha256": "f4dd5fb465730af4329a77c031188aae5c6503ee9947968c4221d8843565e6c0",
+    "chars": 810
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/index.html",
+    "title": "启动接入",
+    "sha256": "eb1419db54f2a8776ad27e5483bd8978f94ab2609d9902851cabaf88b2700c53",
+    "chars": 669
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html",
+    "title": "表情对象",
+    "sha256": "ee365648182b21699cec2d7b4a5ae3ce053da10160057da01348bad0dde9e42a",
+    "chars": 3486
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/error/data/model.html",
+    "title": "业务报错返回的数据信息(Data)",
+    "sha256": "cd749b447865bab3ac696633d7e2462376e163295257343f0afec778e17162b4",
+    "chars": 175
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/error/error.html",
+    "title": "错误与调试",
+    "sha256": "fde99357f2f3333ddcfc0307684784796a7ff55413e992e0be4d7bf077b635c4",
+    "chars": 8896
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/member/delete_member.html",
+    "title": "删除频道成员",
+    "sha256": "2cc5456350627619c39ddd80fe5d0d3ce4523de2be40d16170c5e135348f8b99",
+    "chars": 834
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/member/get_member.html",
+    "title": "获取成员详情",
+    "sha256": "f19fe9f02c96242d8afc8afbe164539a311b1eb731c9ca729d2d65c5762c49a2",
+    "chars": 822
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/member/get_members.html",
+    "title": "获取频道成员列表",
+    "sha256": "0552237976a154959517349d144874aaba9e403f026d26c16ffa05076d346356",
+    "chars": 1968
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/member/model.html",
+    "title": "成员对象(Member)",
+    "sha256": "95a7e1ac694eb2cbc79878a182c891eb5aea983ab4f007d5f7ffe0b32f8fc895",
+    "chars": 492
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/reaction/model.html",
+    "title": "表情表态对象",
+    "sha256": "066cad117211938b047f73de3a980c6f30233c2da1740dec627c9997afebb442",
+    "chars": 475
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/user/guilds.html",
+    "title": "获取用户频道列表",
+    "sha256": "2b5139e3c5a58f719210fedd48acc0cec3685cfba624adb7babe494813cc8603",
+    "chars": 1035
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/user/me.html",
+    "title": "获取用户详情",
+    "sha256": "554d98a8489b8c24f12aea7cad15267561510323b730ae49decb0c0e3a479cc4",
+    "chars": 555
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/user/model.html",
+    "title": "用户对象(User)",
+    "sha256": "e8bbe3ceb5ae753f333ff97fbea78ab8380553eae5d9f2a4d29de95f3cc46678",
+    "chars": 526
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/wss/shard_url_get.html",
+    "title": "获取带分片 WSS 接入点",
+    "sha256": "18e672aa9f833540040e88b68fb87dcd519126e7bce8907510ec18788f32d3cd",
+    "chars": 939
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/openapi/wss/url_get.html",
+    "title": "获取通用 WSS 接入点",
+    "sha256": "28fa42c7a4eae3d1631aac91f112fd657575e683172b478edc6bb3fae1ff1df9",
+    "chars": 356
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/api_permissions/get_guild_api_permission.html",
+    "title": "获取机器人在频道可用权限列表",
+    "sha256": "9a6fb2e86d4908521d00453bc4e360ce49b8faa3d4e33777b243c902149018d8",
+    "chars": 891
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/api_permissions/index.html",
+    "title": "频道模块",
+    "sha256": "972bbef59add0738fc38da5aae05b881c495e55601b6fd7f91fee36ecf5edb47",
+    "chars": 57
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/api_permissions/model.html",
+    "title": "接口权限对象",
+    "sha256": "d71931652adeb790c9d1e992f50088e6e45a7b7e9c88d88e155a4f50298f98c8",
+    "chars": 756
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/api_permissions/post_api_permission_demand.html",
+    "title": "发送机器人在频道接口权限的授权链接",
+    "sha256": "dc591effacc82275a7efeb9c64c71b72d6ae07f1760da5334e1c1d24cb74f999",
+    "chars": 1180
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/announces/delete_channel_announces.html",
+    "title": "删除子频道公告（2022年3月15日后废弃）",
+    "sha256": "a69d14654a32e328007f29a2726c7c05573a11f35c8f9c721a72c32702af8b52",
+    "chars": 540
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/announces/delete_guild_announces.html",
+    "title": "删除频道公告",
+    "sha256": "4c8ea5b3ad9c8f2cf5b4221654308c99aa81cbe1deae67df8e757034acd33825",
+    "chars": 530
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/announces/model.html",
+    "title": "公告对象(Announces)",
+    "sha256": "59992a69a1e12357c1610d71ad1b9a37b3401b984fb0cda988561a5f922be34a",
+    "chars": 460
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/announces/post_channel_announces.html",
+    "title": "创建子频道公告（2022年3月15日后废弃）",
+    "sha256": "53d38bccfb89e29e17b7a2130e0b54f506fde789b2901249b6c250b47a2ef036",
+    "chars": 636
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/announces/post_guild_announces.html",
+    "title": "创建频道公告",
+    "sha256": "04f97799d7be0196bf85f6f603014a412e320231f24ed34a55e083edfec21fc9",
+    "chars": 1990
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/audio/audio_control.html",
+    "title": "音频控制",
+    "sha256": "7fa7dfc831f6f4bcf4f40cb5cb899cb3226d9ae3afc17ff758a2f91d3f54514f",
+    "chars": 604
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/audio/delete_mic.html",
+    "title": "机器人下麦",
+    "sha256": "fd0e891efc6578432107861c3e8f0bbfbf2b23209833866d3bd1061b1e939c03",
+    "chars": 500
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/audio/model.html",
+    "title": "语音对象",
+    "sha256": "1a795d0598c928e4f0e921bc80729dbc21db168350dec1350ad2ed14923db325",
+    "chars": 574
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/audio/put_mic.html",
+    "title": "机器人上麦",
+    "sha256": "49b9caab392140597a5745a057ca10507a685cc21247518e55959e3aa5174805",
+    "chars": 495
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/delete_thread.html",
+    "title": "删除帖子",
+    "sha256": "cf1b0755e0e315fa897c052678296a7cdba5c38dd5223c78a2c1bf57153cc97c",
+    "chars": 435
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/forum.html",
+    "title": "论坛事件对象(ForumEvent)",
+    "sha256": "d664ff90866b58e15359ee0df51e251808218ccf60f594e60680180b0315f3b8",
+    "chars": 3947
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/get_thread.html",
+    "title": "获取帖子详情",
+    "sha256": "db11d2392c8d7fdda1c28397e9042ccbc7163ffe6be6b8ae145eec24de2d52ad",
+    "chars": 1145
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/get_threads_list.html",
+    "title": "获取帖子列表",
+    "sha256": "616edcd6e3ee928e4bbc8b81d4c6a925b49c54ab9758b2a10c3ba32f9c6903cf",
+    "chars": 1871
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/model.html",
+    "title": "论坛对象(forum)",
+    "sha256": "61c56957df2ff870b8d3798a12506be51d8460106076a8fbe209249e13235a67",
+    "chars": 5147
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/open_forum.html",
+    "title": "开放论坛事件对象(OpenForumEvent)",
+    "sha256": "eb3d8a514567d3d9701555195ee17fe1b6383f8e4b8701341885606422b533af",
+    "chars": 992
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/forum/put_thread.html",
+    "title": "发表帖子",
+    "sha256": "d9823e14fe5b558c7997a300e841a725e939b4139a3ee79d5c1fd6f9674655d9",
+    "chars": 1241
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/index.html",
+    "title": "频道模块",
+    "sha256": "972bbef59add0738fc38da5aae05b881c495e55601b6fd7f91fee36ecf5edb47",
+    "chars": 57
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/pins/delete_pins_message.html",
+    "title": "删除精华消息",
+    "sha256": "e4b4855f1e43d189d0c2a6e85e348b405fee90351d1536ff1799a9f8aed92a7b",
+    "chars": 484
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/pins/get_pins_message.html",
+    "title": "获取精华消息",
+    "sha256": "005c0f88cc69d47d4f58b559c101c84dd30c798a97a6459ec5f65f6f249b68b1",
+    "chars": 501
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/pins/model.html",
+    "title": "精华消息对象(PinsMessage)",
+    "sha256": "8d7f63d85e405b8980b32f799209f57acdc85f7b6930f085149636725edea3af",
+    "chars": 222
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/pins/put_pins_message.html",
+    "title": "添加精华消息",
+    "sha256": "c7617a8d23d51521e5a5ffbfa781dc63e9b8a688701d449d43d9cabc2eb765b2",
+    "chars": 675
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/delete_schedule.html",
+    "title": "删除日程",
+    "sha256": "3b7704e783e57c2332fe51c879f44deab281e5617dc20d9762a0a74668e354db",
+    "chars": 489
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/get_schedule.html",
+    "title": "获取日程详情",
+    "sha256": "cf2d6ecb25147a5569ee33009e829ca2baad0dc9bedfc21d4884fadaf9b0bc42",
+    "chars": 974
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/get_schedules.html",
+    "title": "获取频道日程列表",
+    "sha256": "defae13b34ea79d657ee8c8e7d7f84818892e2dead0fe86f6ddd71d6cd5c37ce",
+    "chars": 1146
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/model.html",
+    "title": "日程对象(Schedule)",
+    "sha256": "9125c57ccec1c0a12724546428f5243506bcb2db8f07d9787bdadcdb5dd4e18d",
+    "chars": 555
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/patch_schedule.html",
+    "title": "修改日程",
+    "sha256": "36525efcd4bd36e684cae9b7ac386a8f40ce816c8cc1bdd17c4743c96f738838",
+    "chars": 1312
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/content/schedule/post_schedule.html",
+    "title": "创建日程",
+    "sha256": "d9aaf0faefb917d11ff64d8f02289fe80be7d70474ee277ad25253ea1f9817cf",
+    "chars": 1346
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/index.html",
+    "title": "频道模块",
+    "sha256": "972bbef59add0738fc38da5aae05b881c495e55601b6fd7f91fee36ecf5edb47",
+    "chars": 57
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/manage/channel/model.html",
+    "title": "子频道对象(Channel)",
+    "sha256": "310b85ae3d2354ede5a36916c11fb327d66a963ce604f250966ad2a3099faf7b",
+    "chars": 1824
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/manage/guild/model.html",
+    "title": "频道对象(Guild)",
+    "sha256": "a70c45f2a1896cb9b1579f80ef2c06d1a4d14b9f54f2833e06360f0b71c1ccdf",
+    "chars": 409
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/manage/index.html",
+    "title": "频道模块",
+    "sha256": "972bbef59add0738fc38da5aae05b881c495e55601b6fd7f91fee36ecf5edb47",
+    "chars": 57
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/manage/user/model.html",
+    "title": "用户对象(User)",
+    "sha256": "e8bbe3ceb5ae753f333ff97fbea78ab8380553eae5d9f2a4d29de95f3cc46678",
+    "chars": 526
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/dms.html",
+    "title": "频道私信",
+    "sha256": "22f8c1d719525144bd0fd6d641ead60f9c6fba41fc90aebf4cb5da6fd324ba0b",
+    "chars": 1855
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/event.html",
+    "title": "频道消息事件",
+    "sha256": "6a41cbd5c14a236c4b1b1dcbf4e13e392eef9e14abe5db8775c54b997dffda97",
+    "chars": 3222
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/format.html",
+    "title": "内嵌格式",
+    "sha256": "f88c6421c6a20d7a76ed8baafb91d11cc2013346d88afe58672d9c1d2bc879a7",
+    "chars": 1469
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/recall.html",
+    "title": "撤回子频道消息",
+    "sha256": "22cf9ab3693661681cc8187917a34bd26a99de0897a55dec196174fa37b30a0d",
+    "chars": 665
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/message/send.html",
+    "title": "发送子频道消息",
+    "sha256": "66a5233ddddbdba572b1d353b8040c90aa7126380c28fbc7571f469478c5e957",
+    "chars": 3782
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/miniapp/index.html",
+    "title": "频道模块",
+    "sha256": "972bbef59add0738fc38da5aae05b881c495e55601b6fd7f91fee36ecf5edb47",
+    "chars": 57
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/miniapp/interface.html",
+    "title": "获取频道和当前人信息",
+    "sha256": "aef3c01b6ebc86353ebbfb292c82bee6f1d44aac86194e67ac191055d4935bc0",
+    "chars": 1834
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/miniapp/opendata.html",
+    "title": "开放数据域加密",
+    "sha256": "1527abfbaf29d95e77ff9bfa45d11e587da3a0530cba7861f36b30a34e7516d9",
+    "chars": 391
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/channel_permissions/get_channel_permissions.html",
+    "title": "获取子频道用户权限",
+    "sha256": "385cb437c1369648c8faa2b097dbcb56c9c6256314025b8b6d862dfafee72a8d",
+    "chars": 664
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/channel_permissions/get_channel_roles_permissions.html",
+    "title": "获取子频道身份组权限",
+    "sha256": "ad434e71f256ef75bae08f6889bd4642b4c0aea94aafc53e5de3720367addbdf",
+    "chars": 650
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/channel_permissions/model.html",
+    "title": "子频道权限对象(ChannelPermissions)",
+    "sha256": "de3198395ada2c1a8b5fb1f194f087c9e7f85e5c3c6381ae65e2bb82580ee8c4",
+    "chars": 626
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/channel_permissions/put_channel_permissions.html",
+    "title": "修改子频道用户权限",
+    "sha256": "83e46e4b926f7ab6a36281daf9a74476aafb0cca365178e09d2a83207419b07b",
+    "chars": 770
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/channel_permissions/put_channel_roles_permissions.html",
+    "title": "修改子频道身份组权限",
+    "sha256": "28b2cec6941adccbc8a4ae7768d57d79af0daa20717351b1d428b2b636ce7f2a",
+    "chars": 773
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/delete_guild_member_role.html",
+    "title": "删除频道身份组成员",
+    "sha256": "e91c392948e42464eb1c470c64197b80b726451a4d4c5532ea98c73f754b1565",
+    "chars": 676
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/delete_guild_role.html",
+    "title": "删除频道身份组",
+    "sha256": "5d4225ba5d383f9875c7cdd15b87389dbdff238666ab09dedf11d9d20fa52216",
+    "chars": 480
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/get_guild_roles.html",
+    "title": "获取频道身份组列表",
+    "sha256": "f08ad241e0784cbf24b132fbad3dadee876b3078267b04cdcd4a8026f2234b41",
+    "chars": 1108
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/index.html",
+    "title": "频道模块",
+    "sha256": "972bbef59add0738fc38da5aae05b881c495e55601b6fd7f91fee36ecf5edb47",
+    "chars": 57
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/patch_guild_role.html",
+    "title": "修改频道身份组",
+    "sha256": "f2b49f31ca7cac9fbc6f38cecfe3cb56b34046c880e030e582c31aa0cae117e3",
+    "chars": 1177
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/post_guild_role.html",
+    "title": "创建频道身份组",
+    "sha256": "043c4c542c5400ea9897c49007c40cdd425094112fc5d832c21f6a962572655c",
+    "chars": 1075
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role-group/put_guild_member_role.html",
+    "title": "创建频道身份组成员",
+    "sha256": "51e34cd13cf7129b94f8d3185c61ea7ca930c05c0750b18ffc33d5ace66a28fe",
+    "chars": 692
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/audio_or_live_channel_member.html",
+    "title": "音视频/直播子频道成员进出事件",
+    "sha256": "6572ba9a51cb4cce14d0439bfdf42a40d3a0c24467def4bcf5756f22780aa2cb",
+    "chars": 735
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/get_online_nums.html",
+    "title": "获取子频道在线成员数",
+    "sha256": "f95975511326a3096aecd4ed6abb4b4eb70c67fecd13b45f85b76058e1a39247",
+    "chars": 527
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/guild_member.html",
+    "title": "频道成员事件",
+    "sha256": "e5df0759d9988b864299e317fd48c054aad5af7a7186c1f075c524ba26e80af7",
+    "chars": 1982
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/index.html",
+    "title": "频道模块",
+    "sha256": "972bbef59add0738fc38da5aae05b881c495e55601b6fd7f91fee36ecf5edb47",
+    "chars": 57
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/delete_member.html",
+    "title": "删除频道成员",
+    "sha256": "8b98949ce77d5745430dcbcc1a48b987d2c9fb1e96b27a94df60041c8c9635e0",
+    "chars": 920
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/get_member.html",
+    "title": "获取频道成员详情",
+    "sha256": "c2bf52c784ec57564ffdaf309588f0510b80fb21c1fdd42e90cb72b702d14c5e",
+    "chars": 913
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/get_members.html",
+    "title": "获取频道成员列表",
+    "sha256": "7ce42f8cae8b70612ee73328a1f71936ee40ff155aa5d7102210905131f04b11",
+    "chars": 2061
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/get_role_members.html",
+    "title": "获取频道身份组成员列表",
+    "sha256": "4556d0c8f0f4e888070f13e7a9a6ff2ed68743b6998595156032455348a03a9a",
+    "chars": 1235
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/model.html",
+    "title": "成员对象(Member)",
+    "sha256": "95a7e1ac694eb2cbc79878a182c891eb5aea983ab4f007d5f7ffe0b32f8fc895",
+    "chars": 492
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/role/member/role_model.html",
+    "title": "频道身份组对象(Role)",
+    "sha256": "4aa1b88c0c96954ca926d77a0399c3fc9e571335bb3ca4ec92c57eea53915064",
+    "chars": 411
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/index.html",
+    "title": "频道模块",
+    "sha256": "972bbef59add0738fc38da5aae05b881c495e55601b6fd7f91fee36ecf5edb47",
+    "chars": 57
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/patch_guild_member_mute.html",
+    "title": "频道指定成员禁言",
+    "sha256": "260210384de719f0bb18591f19c764f2395f467063298b40498caebc50aa17ca",
+    "chars": 843
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/patch_guild_mute_multi_member.html",
+    "title": "频道批量成员禁言",
+    "sha256": "78dad601d3812ba0d98af01a242ef72173aec65a3d86973c9031cb244a34dfff",
+    "chars": 1088
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/patch_guild_mute.html",
+    "title": "频道全员禁言",
+    "sha256": "987de58548ffedcd8d6b7d0f3d6e88bff249f96dc5cc3bdcaa771b669e6f90c8",
+    "chars": 812
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/setting/message_setting.html",
+    "title": "获取频道消息频率的设置详情",
+    "sha256": "ffdf6b5c77c20775c2ce4746909ae78a3d111986e9e04aa90f0aa0f5f548e954",
+    "chars": 644
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/speak/setting/model.html",
+    "title": "频道消息频率设置对象 (MessageSetting)",
+    "sha256": "8d5f72f79066659fd2674bb8c8e63c29d87323c33390fc42d000e9d46d42e2e1",
+    "chars": 305
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/group/index.html",
+    "title": "群组模块",
+    "sha256": "e4d0f550261db7e526e504f2158ab2af1349c6a7b95badbccff9115d1419fe86",
+    "chars": 96
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/group/manage/index.html",
+    "title": "群管理",
+    "sha256": "7fcc8ae76aa9473a9ba5f48f1916335549953da02109a021c40d5d4bde42b4e1",
+    "chars": 56
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/menu-panel/index.html",
+    "title": "自定义菜单与指令面板",
+    "sha256": "67076a174face843e3f05bbcedb3aba66ec7e5eabaf326a1b779d74ae7174986",
+    "chars": 454
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/index.html",
+    "title": "消息相关",
+    "sha256": "e9b4d4e246b5d06f1f11c69917e6238f1c22caa82e330a62ad0d53b70da8016c",
+    "chars": 57
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/overview.html",
+    "title": "消息收发概述",
+    "sha256": "b400c7f988e4f4b931d9b544799249c058922f91eeece21973127c97936022b4",
+    "chars": 2631
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/rich-media.html",
+    "title": "富媒体消息概述",
+    "sha256": "4baf4c1c4664e0cd58e482ab612e7bb6a9bb5cba85d37e91b5f5acf753bac57d",
+    "chars": 2474
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/template/model.html",
+    "title": "消息对象(Message)",
+    "sha256": "0d02f3a088be7247948e1f5fdf6fe1ffae6d7e5fa04a75acbc7a3b5f79abd49b",
+    "chars": 2763
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/emoji.html",
+    "title": "表情表态",
+    "sha256": "750f73393504adc8b52c770757745e90afcf3d4dc685807ad5049995a7b2c7c9",
+    "chars": 2967
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/msg-btn.html",
+    "title": "消息按钮",
+    "sha256": "451943e5c80130c09e9c9ff56fdc2bef3c96abfe03b5e660fec806e400cb152d",
+    "chars": 4991
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/overview.html",
+    "title": "消息交互概述",
+    "sha256": "916679786ba7c17aecc102eefbf6e3cca506b27b2cf163abce231a060b14e75d",
+    "chars": 1850
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/text-chain.html",
+    "title": "文本交互",
+    "sha256": "79433ba25d497c5ca97e0303619167738dfe853501a024b559c8161ccee8c083",
+    "chars": 1293
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/type/ark.html",
+    "title": "结构化卡片消息",
+    "sha256": "e8b0e6d590de137ae4eebca9c9735a66c4616b51192dd1a11d9e394d3433020c",
+    "chars": 6811
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/type/embed.html",
+    "title": "Embed 消息",
+    "sha256": "19236c51bce5da35d2081a1391f6010e375653c66dc668443790c9828b86e8a4",
+    "chars": 1917
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/type/markdown.html",
+    "title": "Markdown 消息",
+    "sha256": "a0d0aaf935ebf7b6c6bffd0f31b8e8a83233bde1e39c6b03b780f7af6f4b4b61",
+    "chars": 2813
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/type/overview.html",
+    "title": "消息类型",
+    "sha256": "fff1090555d99eec83b37bf4d7c43131bbd4cd695742ece50275f49a9b6b51cf",
+    "chars": 1169
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/user/index.html",
+    "title": "用户模块",
+    "sha256": "681b7f5f6b9f978a7374c24b8fd24c6fc7f92043de1bc213f0461ad52e4d5b42",
+    "chars": 124
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/user/manage/event.html",
+    "title": "事件",
+    "sha256": "92ef93ee808a27a9b69b4b0228e8a165f1511a36860a84c8c6548258d8e19c5c",
+    "chars": 1925
+  },
+  {
+    "url": "https://bot.q.qq.com/wiki/develop/api-v2/server-inter/user/manage/index.html",
+    "title": "用户管理",
+    "sha256": "f32b69c30faa88a1990a2e827baf1883b3433aef8e84e398dc8fd4c18f6fc186",
+    "chars": 57
+  }
+]

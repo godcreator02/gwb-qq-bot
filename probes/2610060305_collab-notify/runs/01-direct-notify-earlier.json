@@ -1,0 +1,20 @@
+{
+  "args": {
+    "id": "collab-notify-probe-1791226539923",
+    "text": "联调通知（模拟 MR，不是真实待办）：协作站事件已通过 GWB 命令送到 QQ；同一通知将去重。"
+  },
+  "first": {
+    "ok": true,
+    "data": {
+      "delivered": true,
+      "duplicate": false
+    }
+  },
+  "second": {
+    "ok": true,
+    "data": {
+      "delivered": true,
+      "duplicate": true
+    }
+  }
+}

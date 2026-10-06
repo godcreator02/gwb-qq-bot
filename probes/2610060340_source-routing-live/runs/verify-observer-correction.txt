@@ -1,0 +1,4 @@
+2026-10-06 03:44 第一次 verify 观察器断言失败，未改生产代码。
+AssertionError: ['online','ready','connected'].includes(status.data.gateway.state??status.data.gateway)
+已保存的真实回报 status.data.gateway 为 "open"；对应 qq-gateway.ts GatewayState 是 stopped | connecting | open。
+观察器改为严格断言 gateway === 'open'，并使后续验证失败随运行数据保存。

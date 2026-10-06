@@ -1,0 +1,22 @@
+{
+  "baselineCommits": {
+    "qq-bot": "98c25f5d44b31e8802d3ba035fe4e3354e1288f7",
+    "zcode": "4ecbe6b938bf8463fdd9c6dd0095421332af5c34",
+    "collab": "023d6f1ac1b52736640c9c2ba53a01a626c01eef"
+  },
+  "finalInstalled": {
+    "qq-bot": "0.1.4-dev.20261006030232",
+    "zcode": "0.2.6-dev.20261006030223",
+    "collab": "0.21.6-dev.20261006030243"
+  },
+  "liveTaskRunInstalled": {
+    "qq-bot": "0.1.4-dev.20261006024459",
+    "zcode": "0.2.6-dev.20261006024434"
+  },
+  "note": "Uncommitted feature implementation; copied source SHA256 fixes the tested object. Final task logic matches live test packages; collab includes later fail-closed storage handling.",
+  "sourceHashes": {
+    "qq-bridge.ts": "814dc6027d13d45ecb489da99bc8eaeefcf28a1fe5c2819c2ee7d59f9f883121",
+    "zcode-reports.ts": "9474e2c69a5cd68c2e9e32eedd89f47293dd8ec88bda74fbec348eda85c3519d",
+    "collab-notifications.ts": "873e659b886e6a63119320d264316cb1e7cb700dacac75197567e6221730c0fd"
+  }
+}

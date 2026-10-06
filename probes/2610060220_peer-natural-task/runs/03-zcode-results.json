@@ -1,0 +1,23 @@
+{
+  "A": {
+    "taskId": "sess_a0200f7e-f1d7-4ce9-aec9-76d72db5a947",
+    "status": "completed",
+    "roundIsOver": true,
+    "replies": [
+      "自然语言互派验证-B到A成功"
+    ],
+    "fileChanges": [],
+    "pendingPermissions": []
+  },
+  "B": {
+    "taskId": "sess_5f007465-2ae2-414e-ba41-fb2581d71eff",
+    "status": "completed",
+    "roundIsOver": true,
+    "replies": [
+      "自然语言互派验证-A到B成功"
+    ],
+    "fileChanges": [],
+    "pendingPermissions": []
+  },
+  "source": "通过各自 home 的 zcode.status 实际读取；仅保留本实验验收字段"
+}

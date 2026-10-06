@@ -24,12 +24,57 @@ afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals()
 function setup() {
   const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() }
   const events = { onMessage: vi.fn(), onState: vi.fn() }
-  const rest = { getAccessToken: vi.fn(async () => 'fake'), fetchGatewayUrl: vi.fn(async () => 'wss://test.invalid') }
+  const rest = { getAccessToken: vi.fn(async () => 'fake'), fetchGatewayUrl: vi.fn(async () => 'wss://test.invalid'), fetchGroupSelfId: vi.fn(async () => 'self') }
   const gateway = new QqGateway(rest as unknown as QqRestClient, log, events)
   return { gateway, rest, log, events }
 }
 
 describe('QQ 网关生命周期与群事件', () => {
+  it('仅 @ 事件的机器人正文仍带显示前缀时，按 READY 自己的名字去掉', async () => {
+    const { gateway, events } = setup()
+    gateway.start(); await flush()
+    const socket = Socket.instances[0]!
+    socket.receive(hello); socket.receive({ ...ready, d: { session_id: 'session', user: { username: 'zcode2号' } } })
+    socket.receive({ op: 0, t: 'GROUP_AT_MESSAGE_CREATE', d: { id: 'peer-at', group_openid: 'group', author: { member_openid: 'peer', bot: true }, content: '[@zcode2号] 只回复收到' } })
+    expect(events.onMessage).toHaveBeenCalledWith(expect.objectContaining({ content: '只回复收到', senderIsBot: true }))
+    gateway.stop()
+  })
+  it('全量群消息只派发 mentions 中确实有自己的消息，剥掉平台显示前缀', async () => {
+    const { gateway, events, rest } = setup()
+    gateway.start(); await flush()
+    const socket = Socket.instances[0]!
+    socket.receive(hello); socket.receive(ready)
+    const raw = { id: 'full', content: '[@本机器人] /任务 只回复收到', group_openid: 'group', author: { member_openid: 'peer', bot: true } }
+    socket.receive({ op: 0, t: 'GROUP_MESSAGE_CREATE', d: raw })
+    socket.receive({ op: 0, t: 'GROUP_MESSAGE_CREATE', d: { ...raw, mentions: [{ member_openid: 'other', username: '别人' }] } })
+    await flush()
+    expect(events.onMessage).not.toHaveBeenCalled()
+    socket.receive({ op: 0, t: 'GROUP_MESSAGE_CREATE', d: { ...raw, mentions: [{ member_openid: 'self', username: '本机器人' }] } })
+    await flush()
+    expect(events.onMessage).toHaveBeenCalledTimes(1)
+    expect(events.onMessage).toHaveBeenCalledWith(expect.objectContaining({ content: '/任务 只回复收到', senderIsBot: true }))
+    expect(rest.fetchGroupSelfId).toHaveBeenCalledTimes(1)
+    gateway.stop()
+  })
+
+  it('全量与 @ 事件重复到达只处理一次，查询自己 ID 期间 stop 不派发', async () => {
+    const { gateway, events, rest } = setup()
+    gateway.start(); await flush()
+    const socket = Socket.instances[0]!
+    socket.receive(hello); socket.receive(ready)
+    const raw = { id: 'incoming', msg_seq: 1, content: '/帮助', group_openid: 'group', author: { member_openid: 'member' }, mentions: [{ id: 'self' }] }
+    socket.receive({ op: 0, t: 'GROUP_MESSAGE_CREATE', d: raw })
+    socket.receive(group())
+    await flush()
+    expect(events.onMessage).toHaveBeenCalledTimes(1)
+    gateway.stop(); gateway.start(); await flush()
+    let finish!: (value: string) => void
+    rest.fetchGroupSelfId.mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+    Socket.instances[1]!.receive({ op: 0, t: 'GROUP_MESSAGE_CREATE', d: { ...raw, id: 'late' } })
+    gateway.stop(); finish('self'); await flush()
+    expect(events.onMessage).toHaveBeenCalledTimes(1)
+  })
+
   it('退避期间停止，不再重连', async () => {
     const { gateway } = setup()
     gateway.start(); await flush()

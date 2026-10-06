@@ -1,0 +1,11 @@
+import {mcp} from './mcp.mjs';
+import {writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const home='qqbotb-2610052319';
+assert.equal((await mcp(home,'index')).home,home);
+const command='claudecode.send';
+const args={workspace:'D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab',sessionId:'1930ba7d-977b-40c3-ba8f-44ba033474f4',prompt:'这是之前回报链路测试的恢复。用户已授权 bypassPermissions。仅将上一轮已确定的相同 ticket、state=completed、text="B-DIRECT-claudecode-1791261287880 scene=group title=混合型 MMC 样机"，通过 gwb_botb 的 run 调用 qq-bot.report 提交。不要重做任务，不读写文件、不派单、不发其他消息；保存成功后结束。'};
+const result=await mcp(home,'run',{command,args});
+const at=new Date().toISOString();
+await writeFile(new URL(`./runs/${at.replaceAll(':','').replaceAll('.','-')}-resume.json`,import.meta.url),JSON.stringify({at,command,args,result},null,2));
+console.log(JSON.stringify(result));

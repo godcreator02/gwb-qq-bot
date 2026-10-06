@@ -1,0 +1,29 @@
+---
+born-at: 2026-10-06T02:18
+type: evidence
+parent: [2026-10-05-gwb-qq-bot-root]
+label: 互相提及
+domain: QQ开放平台
+---
+
+## 背景
+
+成员列表无权限，直接交换两端自身 ID 的 @ 无效。用户提出开启全部消息，从回调识别目标；取得有效 ID 后再退回仅 @，日常仍直接说任务，不增加 `/任务` 前缀。
+
+## 结论与边界
+
+全量模式可以投递机器人之间的消息。A 发普通文本后，B 的 GROUP_MESSAGE_CREATE.author 提供 A 在 B 应用下的成员 ID，反方向同理。使用这两份 ID 发 Markdown @，双方收到明确包含自身 mentions 的全量事件。
+
+改回 only_mention 后，使用同样双向 ID，双方都收到 GROUP_AT_MESSAGE_CREATE；无 @ 普通消息没有投递。因此不必长期保持全部监听，也不必申请成员列表权限才能完成这对已发现机器人的互相提及。ID 应按调用应用和群保存；这里只证明模式切换和连续消息中的复用，不承诺退群重加等关系变化后的永久稳定。
+
+仅 @ 回调中机器人发来的正文实际保留 `[@机器人名字]`，与“前缀已移除”的文档描述不完全一致；按 READY 的自身名称剥除。全量模式只信结构化 mentions，不靠正文昵称决定是否执行。发送者仍须通过白名单。自然语言直接派单，自动群回复带 `【机器人回执】`，机器人收到回执不继续派单。
+
+两个传输实验只测 QQ 回调，没有以 HTTP 200 冒充 ZCode 执行成功。随后在两端安装 0.1.4-dev.20261006021903，按各自应用保存已验证的对方白名单 ID，完成第三个自然语言端到端实验：A 到 B 与 B 到 A 均只派一轮 ZCode，分别回复指定成功文本，无文件改动，两端 resultDelivered=true。自动确认及结果被对端识别为回执并忽略；完成后观察至少 60 秒没有新增轮次。插件新增路由、重复事件、停止期间异步请求、白名单和回执防循环检查，构建及 39 项测试通过。
+
+## 依据
+
+- probes/2610060211_all-message-peer/：全量模式双向发现 ID、真实 @ 与 mentions 原始回执，独立输入及脚本。
+- probes/2610060215_only-mention-peer/：模式切换后的双向 @ 与无 @ 对照；input/peer-ids.json 保存两份映射的作用域及取得时间。
+- probes/2610060220_peer-natural-task/：已安装插件的双向自然语言派单、ZCode 实际结果、结果送达与稳定观察回执；verify.mjs 可离线复核。
+- plugins/qq-bot/tests/qq-gateway.test.ts 与 bridge-bot-routing.test.ts：实际事件形状、自然语言派单及自动回执边界。
+- [全量群消息事件](https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html)、[群 @ 事件](https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html)。

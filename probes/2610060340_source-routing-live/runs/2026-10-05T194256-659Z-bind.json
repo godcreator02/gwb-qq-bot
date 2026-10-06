@@ -1,0 +1,1384 @@
+{
+  "at": "2026-10-05T19:42:56.660Z",
+  "mode": "bind",
+  "node": "v24.14.1",
+  "scriptSha256": "b3ff7212f41418be126cb6f6c1cf6b5d33f3a17ce11ea033391edc2b25c4f858",
+  "results": [
+    {
+      "home": "default",
+      "appId": "<APP_ID_A>",
+      "status": {
+        "ok": true,
+        "data": {
+          "gateway": "open",
+          "sandbox": false,
+          "appIdConfigured": true,
+          "appSecretSet": true,
+          "defaultWorkspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+          "allowedOpenidCount": 2,
+          "sessions": [],
+          "conversations": [],
+          "sources": [
+            {
+              "home": "default",
+              "appId": "<APP_ID_A>",
+              "scene": "group",
+              "target": "<GROUP_OPENID_A>",
+              "id": "79c36d88deb4ba38343c442ea92fe823a8aaa7876374facbdd1575d9531d33cd",
+              "lastSeen": "2026-10-05T18:49:44.711Z",
+              "lastSender": "<OPENID_MEMBER_2>",
+              "generation": 0,
+              "binding": null
+            }
+          ],
+          "queuedTasks": 0,
+          "unresolvedTasks": [],
+          "pendingResults": 0,
+          "legacyTaskCount": 1,
+          "recentRejected": []
+        }
+      },
+      "projects": {
+        "ok": true,
+        "data": {
+          "watchError": null,
+          "gitea": {
+            "login": "godcreator",
+            "baseUrl": "https://git.tianshen02.online:28377",
+            "error": null
+          },
+          "push": {
+            "state": "connected",
+            "url": "https://ntfy.tianshen02.online:28377",
+            "topics": [
+              "collab-chb-dab-sst",
+              "collab-engineering-knowledge",
+              "collab-hybrid-mmc"
+            ],
+            "error": null
+          },
+          "projects": [
+            {
+              "repo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+              "summary": {
+                "repo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+                "title": "混合型 MMC 样机",
+                "person": "godcreator",
+                "name": "godcreator",
+                "branch": "main",
+                "uncommitted": 0,
+                "uncommittedSite": 0,
+                "conflicts": [],
+                "ahead": 0,
+                "behind": 0,
+                "messages": {
+                  "problems": 0,
+                  "repos": 4,
+                  "forMe": 5
+                },
+                "otherBranches": [],
+                "extraWorktrees": [],
+                "openPulls": [],
+                "giteaUrl": "https://git.tianshen02.online:28377/hybrid-mmc"
+              },
+              "error": null,
+              "site": {
+                "url": "http://127.0.0.1:4333/",
+                "running": true,
+                "error": null
+              },
+              "trackError": null,
+              "sync": {
+                "at": "2026-10-05T19:03:32.896Z",
+                "outcome": "up-to-date"
+              }
+            },
+            {
+              "repo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\chb-dab-sst\\collab",
+              "summary": {
+                "repo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\chb-dab-sst\\collab",
+                "title": "CHB+DAB SST 样机",
+                "person": "godcreator",
+                "name": "godcreator",
+                "branch": "main",
+                "uncommitted": 0,
+                "uncommittedSite": 0,
+                "conflicts": [],
+                "ahead": 0,
+                "behind": 0,
+                "messages": {
+                  "problems": 0,
+                  "repos": 1,
+                  "forMe": 0
+                },
+                "otherBranches": [],
+                "extraWorktrees": [],
+                "openPulls": [],
+                "giteaUrl": "https://git.tianshen02.online:28377/chb-dab-sst"
+              },
+              "error": null,
+              "site": {
+                "url": "http://127.0.0.1:4332/",
+                "running": true,
+                "error": null
+              },
+              "trackError": null,
+              "sync": {
+                "at": "2026-10-05T19:03:32.887Z",
+                "outcome": "up-to-date"
+              }
+            },
+            {
+              "repo": "D:\\unitfolders\\6pp51-engineering-knowledge\\engineering-knowledge\\collab",
+              "summary": {
+                "repo": "D:\\unitfolders\\6pp51-engineering-knowledge\\engineering-knowledge\\collab",
+                "title": "通用工程知识分享",
+                "person": "godcreator",
+                "name": "godcreator",
+                "branch": "main",
+                "uncommitted": 0,
+                "uncommittedSite": 0,
+                "conflicts": [],
+                "ahead": 0,
+                "behind": 0,
+                "messages": {
+                  "problems": 0,
+                  "repos": 0,
+                  "forMe": 0
+                },
+                "otherBranches": [],
+                "extraWorktrees": [],
+                "openPulls": [],
+                "giteaUrl": "https://git.tianshen02.online:28377/engineering-knowledge"
+              },
+              "error": null,
+              "site": {
+                "url": "http://127.0.0.1:4320/",
+                "running": true,
+                "error": null
+              },
+              "trackError": null,
+              "sync": {
+                "at": "2026-10-05T19:03:32.768Z",
+                "outcome": "up-to-date"
+              }
+            }
+          ]
+        }
+      },
+      "packages": {
+        "ok": true,
+        "data": [
+          {
+            "pkg": "@cordisjs/plugin-timer",
+            "spec": "1.1.3",
+            "installed": true,
+            "entries": [
+              {
+                "id": "plugin-timer",
+                "entryId": "home:plugin-timer",
+                "pkg": "@cordisjs/plugin-timer",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@god-private/gwb-cgm-alert",
+            "spec": "^0.4.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "cgm-alert",
+                "entryId": "home:cgm-alert",
+                "pkg": "@god-private/gwb-cgm-alert",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-agent-hooks-skills",
+            "spec": "^0.1.11",
+            "installed": true,
+            "entries": [
+              {
+                "id": "agent-hooks-skills",
+                "entryId": "home:agent-hooks-skills",
+                "pkg": "@godcreator/gwb-agent-hooks-skills",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-baseui",
+            "spec": "^0.1.27",
+            "installed": true,
+            "entries": [
+              {
+                "id": "baseui",
+                "entryId": "home:baseui",
+                "pkg": "@godcreator/gwb-baseui",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-bn-comment",
+            "spec": "^0.8.3",
+            "installed": true,
+            "entries": [
+              {
+                "id": "bn-comment",
+                "entryId": "home:bn-comment",
+                "pkg": "@godcreator/gwb-bn-comment",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-bn-core",
+            "spec": "^0.25.6",
+            "installed": true,
+            "entries": [
+              {
+                "id": "bn-core",
+                "entryId": "home:bn-core",
+                "pkg": "@godcreator/gwb-bn-core",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-bn-journal",
+            "spec": "^0.3.7",
+            "installed": true,
+            "entries": [
+              {
+                "id": "bn-journal",
+                "entryId": "home:bn-journal",
+                "pkg": "@godcreator/gwb-bn-journal",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-bn-query",
+            "spec": "^0.7.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "bn-query",
+                "entryId": "home:bn-query",
+                "pkg": "@godcreator/gwb-bn-query",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-bn-single",
+            "spec": "^0.5.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "bn-single",
+                "entryId": "home:bn-single",
+                "pkg": "@godcreator/gwb-bn-single",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-bn-tags",
+            "spec": "^0.1.1",
+            "installed": true,
+            "entries": [
+              {
+                "id": "bn-tags",
+                "entryId": "home:bn-tags",
+                "pkg": "@godcreator/gwb-bn-tags",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-collab",
+            "spec": "file:C:/Users/godamericatb14/AppData/Roaming/gwb-kernel/homes/qqbotb-2610052319/dev-packs/godcreator-gwb-collab-0.21.6-dev.20261006030243.tgz",
+            "installed": true,
+            "entries": [
+              {
+                "id": "collab",
+                "entryId": "home:collab",
+                "pkg": "@godcreator/gwb-collab",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-commands",
+            "spec": "0.6.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "commands",
+                "entryId": "home:commands",
+                "pkg": "@godcreator/gwb-commands",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-data",
+            "spec": "0.1.12",
+            "installed": true,
+            "entries": [
+              {
+                "id": "data",
+                "entryId": "home:data",
+                "pkg": "@godcreator/gwb-data",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-deepseek",
+            "spec": "^0.1.9",
+            "installed": true,
+            "entries": [
+              {
+                "id": "deepseek",
+                "entryId": "home:deepseek",
+                "pkg": "@godcreator/gwb-deepseek",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-devkit",
+            "spec": "0.26.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "devkit",
+                "entryId": "home:devkit",
+                "pkg": "@godcreator/gwb-devkit",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-docfirst-workflow",
+            "spec": "^0.10.4",
+            "installed": true,
+            "entries": [
+              {
+                "id": "docfirst-workflow",
+                "entryId": "home:docfirst-workflow",
+                "pkg": "@godcreator/gwb-docfirst-workflow",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-gitea",
+            "spec": "^0.1.15",
+            "installed": true,
+            "entries": [
+              {
+                "id": "gitea",
+                "entryId": "home:gitea",
+                "pkg": "@godcreator/gwb-gitea",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-lceda",
+            "spec": "0.1.7",
+            "installed": true,
+            "entries": [
+              {
+                "id": "lceda",
+                "entryId": "home:lceda",
+                "pkg": "@godcreator/gwb-lceda",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-mcp",
+            "spec": "^0.12.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "mcp",
+                "entryId": "home:mcp",
+                "pkg": "@godcreator/gwb-mcp",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-mineru",
+            "spec": "^0.6.7",
+            "installed": true,
+            "entries": [
+              {
+                "id": "mineru",
+                "entryId": "home:mineru",
+                "pkg": "@godcreator/gwb-mineru",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-node-cli",
+            "spec": "0.5.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "node-cli",
+                "entryId": "home:node-cli",
+                "pkg": "@godcreator/gwb-node-cli",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-paper-library",
+            "spec": "^0.2.1",
+            "installed": true,
+            "entries": [
+              {
+                "id": "paper-library",
+                "entryId": "home:paper-library",
+                "pkg": "@godcreator/gwb-paper-library",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-plecs",
+            "spec": "^0.1.2",
+            "installed": true,
+            "entries": [
+              {
+                "id": "plecs",
+                "entryId": "home:plecs",
+                "pkg": "@godcreator/gwb-plecs",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-plugin-manager",
+            "spec": "^0.15.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "plugin-manager",
+                "entryId": "home:plugin-manager",
+                "pkg": "@godcreator/gwb-plugin-manager",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-py-cli",
+            "spec": "0.4.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "py-cli",
+                "entryId": "home:py-cli",
+                "pkg": "@godcreator/gwb-py-cli",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-qq-bot",
+            "spec": "file:C:\\Users\\godamericatb14\\AppData\\Roaming\\gwb-kernel\\homes\\qqbotb-2610052319\\dev-packs\\godcreator-gwb-qq-bot-0.2.1-dev.20261006034218.tgz",
+            "installed": true,
+            "entries": [
+              {
+                "id": "qq-bot",
+                "entryId": "home:qq-bot",
+                "pkg": "@godcreator/gwb-qq-bot",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-settings",
+            "spec": "0.4.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "settings",
+                "entryId": "home:settings",
+                "pkg": "@godcreator/gwb-settings",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-shell",
+            "spec": "0.15.10",
+            "installed": true,
+            "entries": [
+              {
+                "id": "shell",
+                "entryId": "home:shell",
+                "pkg": "@godcreator/gwb-shell",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-skills",
+            "spec": "0.4.13",
+            "installed": true,
+            "entries": [
+              {
+                "id": "skills",
+                "entryId": "home:skills",
+                "pkg": "@godcreator/gwb-skills",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-sources",
+            "spec": "0.2.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "sources",
+                "entryId": "home:sources",
+                "pkg": "@godcreator/gwb-sources",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-theme",
+            "spec": "0.3.19",
+            "installed": true,
+            "entries": [
+              {
+                "id": "theme",
+                "entryId": "home:theme",
+                "pkg": "@godcreator/gwb-theme",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-unit-folder",
+            "spec": "^0.7.20",
+            "installed": true,
+            "entries": [
+              {
+                "id": "unit-folder",
+                "entryId": "home:unit-folder",
+                "pkg": "@godcreator/gwb-unit-folder",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-vscode",
+            "spec": "^0.1.5",
+            "installed": true,
+            "entries": [
+              {
+                "id": "vscode",
+                "entryId": "home:vscode",
+                "pkg": "@godcreator/gwb-vscode",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-windows-backup",
+            "spec": "0.4.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "windows-backup",
+                "entryId": "home:windows-backup",
+                "pkg": "@godcreator/gwb-windows-backup",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-zcode",
+            "spec": "file:C:/Users/godamericatb14/AppData/Roaming/gwb-kernel/homes/qqbotb-2610052319/dev-packs/godcreator-gwb-zcode-0.2.6-dev.20261006030223.tgz",
+            "installed": true,
+            "entries": [
+              {
+                "id": "zcode",
+                "entryId": "home:zcode",
+                "pkg": "@godcreator/gwb-zcode",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          }
+        ]
+      },
+      "ledger": {
+        "version": 2,
+        "sources": [
+          {
+            "home": "default",
+            "appId": "<APP_ID_A>",
+            "scene": "group",
+            "target": "<GROUP_OPENID_A>",
+            "id": "79c36d88deb4ba38343c442ea92fe823a8aaa7876374facbdd1575d9531d33cd",
+            "lastSeen": "2026-10-05T18:49:44.711Z",
+            "lastSender": "<OPENID_MEMBER_2>",
+            "generation": 0,
+            "binding": null
+          }
+        ],
+        "conversations": [],
+        "jobs": [
+          {
+            "id": "359d4613-6a01-46cd-8dd6-619e612a3287",
+            "openid": "<OPENID_MEMBER_2>",
+            "sourceId": "79c36d88deb4ba38343c442ea92fe823a8aaa7876374facbdd1575d9531d33cd",
+            "conversationId": null,
+            "taskId": "sess_af7ea2fa-987a-4a63-a331-d6d10e732949",
+            "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+            "round": 1,
+            "route": {
+              "appId": "<APP_ID_A>",
+              "scene": "group",
+              "target": "<GROUP_OPENID_A>",
+              "trigger": {
+                "msgId": "ROBOT1.0_sqTKd0.Ho5xKe9k92RMKN.ZKIp4td2gAlH.Ybwqc687ZHOdO8GszeLh.9B5EqwFcwefJWcOzX0np0HCp6NW8WtZzwKYx67Ysu.gB31axVgANIqrVm3QhC6-bhktADRFg",
+                "receivedAt": 1791226184711,
+                "repliesSent": 2
+              }
+            },
+            "source": {
+              "home": "default",
+              "appId": "<APP_ID_A>",
+              "scene": "group",
+              "target": "<GROUP_OPENID_A>",
+              "senderOpenid": "<OPENID_MEMBER_2>",
+              "senderIsBot": false,
+              "projectRepo": null,
+              "title": "旧任务来源",
+              "journalLibrary": ""
+            },
+            "prompt": null,
+            "reportServer": "",
+            "state": "completed",
+            "text": "主动回报验证-B-1791226183569成功",
+            "delivery": "delivered"
+          }
+        ],
+        "seen": [
+          "[\"79c36d88deb4ba38343c442ea92fe823a8aaa7876374facbdd1575d9531d33cd\",\"ROBOT1.0_sqTKd0.Ho5xKe9k92RMKN.ZKIp4td2gAlH.Ybwqc687ZHOdO8GszeLh.9B5EqwFcwefJWcOzX0np0HCp6NW8WtZzwKYx67Ysu.gB31axVgANIqrVm3QhC6-bhktADRFg\"]"
+        ],
+        "notices": [],
+        "legacySessions": [
+          {
+            "openid": "<OPENID_MEMBER_2>",
+            "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+            "taskId": "sess_af7ea2fa-987a-4a63-a331-d6d10e732949",
+            "roundIndex": 1,
+            "latest": "359d4613-6a01-46cd-8dd6-619e612a3287"
+          }
+        ]
+      },
+      "backupVersion": 1,
+      "backupJobIds": [
+        "359d4613-6a01-46cd-8dd6-619e612a3287"
+      ],
+      "bind": {
+        "ok": true,
+        "data": {
+          "home": "default",
+          "appId": "<APP_ID_A>",
+          "scene": "group",
+          "target": "<GROUP_OPENID_A>",
+          "id": "79c36d88deb4ba38343c442ea92fe823a8aaa7876374facbdd1575d9531d33cd",
+          "lastSeen": "2026-10-05T18:49:44.711Z",
+          "lastSender": "<OPENID_MEMBER_2>",
+          "generation": 1,
+          "binding": {
+            "kind": "project",
+            "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+            "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+            "title": "混合型 MMC 样机",
+            "journalLibrary": ""
+          }
+        }
+      },
+      "after": {
+        "ok": true,
+        "data": [
+          {
+            "home": "default",
+            "appId": "<APP_ID_A>",
+            "scene": "group",
+            "target": "<GROUP_OPENID_A>",
+            "id": "79c36d88deb4ba38343c442ea92fe823a8aaa7876374facbdd1575d9531d33cd",
+            "lastSeen": "2026-10-05T18:49:44.711Z",
+            "lastSender": "<OPENID_MEMBER_2>",
+            "generation": 1,
+            "binding": {
+              "kind": "project",
+              "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+              "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+              "title": "混合型 MMC 样机",
+              "journalLibrary": ""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "home": "qqbotb-2610052319",
+      "appId": "<APP_ID_B>",
+      "status": {
+        "ok": true,
+        "data": {
+          "gateway": "open",
+          "sandbox": false,
+          "appIdConfigured": true,
+          "appSecretSet": true,
+          "defaultWorkspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+          "allowedOpenidCount": 2,
+          "sessions": [],
+          "conversations": [],
+          "sources": [
+            {
+              "home": "qqbotb-2610052319",
+              "appId": "<APP_ID_B>",
+              "scene": "group",
+              "target": "<GROUP_OPENID_B>",
+              "id": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+              "lastSeen": "2026-10-05T18:52:45.857Z",
+              "lastSender": "<OPENID_MEMBER_1>",
+              "generation": 1,
+              "binding": {
+                "kind": "project",
+                "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+                "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+                "title": "混合型 MMC 样机",
+                "journalLibrary": ""
+              }
+            }
+          ],
+          "queuedTasks": 0,
+          "unresolvedTasks": [],
+          "pendingResults": 0,
+          "legacyTaskCount": 2,
+          "recentRejected": []
+        }
+      },
+      "projects": {
+        "ok": true,
+        "data": {
+          "watchError": null,
+          "gitea": {
+            "login": "godcreator",
+            "baseUrl": "https://git.tianshen02.online:28377",
+            "error": null
+          },
+          "push": {
+            "state": "connected",
+            "url": "https://ntfy.tianshen02.online:28377",
+            "topics": [
+              "collab-hybrid-mmc"
+            ],
+            "error": null
+          },
+          "projects": [
+            {
+              "repo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+              "summary": {
+                "repo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+                "title": "混合型 MMC 样机",
+                "person": "godcreator",
+                "name": "godcreator",
+                "branch": "main",
+                "uncommitted": 0,
+                "uncommittedSite": 0,
+                "conflicts": [],
+                "ahead": 0,
+                "behind": 0,
+                "messages": {
+                  "problems": 0,
+                  "repos": 4,
+                  "forMe": 5
+                },
+                "otherBranches": [],
+                "extraWorktrees": [],
+                "openPulls": [],
+                "giteaUrl": "https://git.tianshen02.online:28377/hybrid-mmc"
+              },
+              "error": null,
+              "site": {
+                "url": "http://127.0.0.1:4334/",
+                "running": true,
+                "error": null
+              },
+              "trackError": null,
+              "sync": {
+                "at": "2026-10-05T19:41:54.170Z",
+                "outcome": "up-to-date"
+              }
+            }
+          ]
+        }
+      },
+      "packages": {
+        "ok": true,
+        "data": [
+          {
+            "pkg": "@cordisjs/plugin-timer",
+            "spec": "^1.1.3",
+            "installed": true,
+            "entries": [
+              {
+                "id": "plugin-timer",
+                "entryId": "home:plugin-timer",
+                "pkg": "@cordisjs/plugin-timer",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-baseui",
+            "spec": "^0.1.27",
+            "installed": true,
+            "entries": [
+              {
+                "id": "baseui",
+                "entryId": "home:baseui",
+                "pkg": "@godcreator/gwb-baseui",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-bn-core",
+            "spec": "0.25.6",
+            "installed": true,
+            "entries": [
+              {
+                "id": "bn-core",
+                "entryId": "home:bn-core",
+                "pkg": "@godcreator/gwb-bn-core",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-bn-journal",
+            "spec": "0.3.7",
+            "installed": true,
+            "entries": [
+              {
+                "id": "bn-journal",
+                "entryId": "home:bn-journal",
+                "pkg": "@godcreator/gwb-bn-journal",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-bn-single",
+            "spec": "0.5.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "bn-single",
+                "entryId": "home:bn-single",
+                "pkg": "@godcreator/gwb-bn-single",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-collab",
+            "spec": "file:./dev-packs/godcreator-gwb-collab-0.21.6-dev.20261006030243.tgz",
+            "installed": true,
+            "entries": [
+              {
+                "id": "collab",
+                "entryId": "home:collab",
+                "pkg": "@godcreator/gwb-collab",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-commands",
+            "spec": "^0.6.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "commands",
+                "entryId": "home:commands",
+                "pkg": "@godcreator/gwb-commands",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-data",
+            "spec": "^0.1.12",
+            "installed": true,
+            "entries": [
+              {
+                "id": "data",
+                "entryId": "home:data",
+                "pkg": "@godcreator/gwb-data",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-gitea",
+            "spec": "0.1.14",
+            "installed": true,
+            "entries": [
+              {
+                "id": "gitea",
+                "entryId": "home:gitea",
+                "pkg": "@godcreator/gwb-gitea",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": [
+              {
+                "pkg": "@godcreator/gwb-settings",
+                "range": "^0.3.5",
+                "installed": "0.4.0"
+              }
+            ]
+          },
+          {
+            "pkg": "@godcreator/gwb-mcp",
+            "spec": "^0.12.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "mcp",
+                "entryId": "home:mcp",
+                "pkg": "@godcreator/gwb-mcp",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-plugin-manager",
+            "spec": "^0.15.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "plugin-manager",
+                "entryId": "home:plugin-manager",
+                "pkg": "@godcreator/gwb-plugin-manager",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-qq-bot",
+            "spec": "file:./dev-packs/godcreator-gwb-qq-bot-0.2.1-dev.20261006034218.tgz",
+            "installed": true,
+            "entries": [
+              {
+                "id": "qq-bot",
+                "entryId": "home:qq-bot",
+                "pkg": "@godcreator/gwb-qq-bot",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-settings",
+            "spec": "^0.4.0",
+            "installed": true,
+            "entries": [
+              {
+                "id": "settings",
+                "entryId": "home:settings",
+                "pkg": "@godcreator/gwb-settings",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-shell",
+            "spec": "^0.15.10",
+            "installed": true,
+            "entries": [
+              {
+                "id": "shell",
+                "entryId": "home:shell",
+                "pkg": "@godcreator/gwb-shell",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-skills",
+            "spec": "^0.4.13",
+            "installed": true,
+            "entries": [
+              {
+                "id": "skills",
+                "entryId": "home:skills",
+                "pkg": "@godcreator/gwb-skills",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          },
+          {
+            "pkg": "@godcreator/gwb-zcode",
+            "spec": "file:./dev-packs/godcreator-gwb-zcode-0.2.6-dev.20261006030223.tgz",
+            "installed": true,
+            "entries": [
+              {
+                "id": "zcode",
+                "entryId": "home:zcode",
+                "pkg": "@godcreator/gwb-zcode",
+                "disabled": false,
+                "active": true,
+                "group": false
+              }
+            ],
+            "unmetPeers": []
+          }
+        ]
+      },
+      "ledger": {
+        "version": 2,
+        "sources": [
+          {
+            "home": "qqbotb-2610052319",
+            "appId": "<APP_ID_B>",
+            "scene": "group",
+            "target": "<GROUP_OPENID_B>",
+            "id": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+            "lastSeen": "2026-10-05T18:52:45.857Z",
+            "lastSender": "<OPENID_MEMBER_1>",
+            "generation": 1,
+            "binding": {
+              "kind": "project",
+              "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+              "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+              "title": "混合型 MMC 样机",
+              "journalLibrary": ""
+            }
+          }
+        ],
+        "conversations": [],
+        "jobs": [
+          {
+            "id": "2d52b0c6-b407-42d4-8727-a4567bc22aa4",
+            "openid": "<OPENID_MEMBER_1>",
+            "sourceId": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+            "conversationId": null,
+            "taskId": "sess_68b9e69f-2a9c-4d5d-955b-59848961f951",
+            "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+            "round": 1,
+            "route": {
+              "appId": "<APP_ID_B>",
+              "scene": "group",
+              "target": "<GROUP_OPENID_B>",
+              "trigger": {
+                "msgId": "ROBOT1.0_calQ8LI45UkpyBBD2rJKKxLoSFpCLem9F1V.y7zO7fhq6o-XQgdAO-JoqwKuucKB2o4D3gPz.ZV1N6AQy3dZpck3C8T.AhrxZ13DfoDF0.wNIqrVm3QhC6-bhktADRFg",
+                "receivedAt": 1791226129336,
+                "repliesSent": 2
+              }
+            },
+            "source": {
+              "home": "qqbotb-2610052319",
+              "appId": "<APP_ID_B>",
+              "scene": "group",
+              "target": "<GROUP_OPENID_B>",
+              "senderOpenid": "<OPENID_MEMBER_1>",
+              "senderIsBot": false,
+              "projectRepo": null,
+              "title": "旧任务来源",
+              "journalLibrary": ""
+            },
+            "prompt": null,
+            "reportServer": "",
+            "state": "completed",
+            "text": "主动回报验证-A-1791226128108成功",
+            "delivery": "delivered"
+          },
+          {
+            "id": "f9d242c6-a7ce-4d2d-a357-5ebf63f3182a",
+            "openid": "<OPENID_MEMBER_1>",
+            "sourceId": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+            "conversationId": null,
+            "taskId": "sess_68b9e69f-2a9c-4d5d-955b-59848961f951",
+            "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+            "round": 2,
+            "route": {
+              "appId": "<APP_ID_B>",
+              "scene": "group",
+              "target": "<GROUP_OPENID_B>",
+              "trigger": {
+                "msgId": "ROBOT1.0_calQ8LI45UkpyBBD2rJKK0xjR.RvYgkwHjfquP0fq8MdUI1ul9Y73XaXBp5umJUgIutGkJXim-jTHKPA9UrcKDLr7Bqs.RjKlHr-dU7uk9ANIqrVm3QhC6-bhktADRFg",
+                "receivedAt": 1791226365857,
+                "repliesSent": 2
+              }
+            },
+            "source": {
+              "home": "qqbotb-2610052319",
+              "appId": "<APP_ID_B>",
+              "scene": "group",
+              "target": "<GROUP_OPENID_B>",
+              "senderOpenid": "<OPENID_MEMBER_1>",
+              "senderIsBot": false,
+              "projectRepo": null,
+              "title": "旧任务来源",
+              "journalLibrary": ""
+            },
+            "prompt": null,
+            "reportServer": "",
+            "state": "completed",
+            "text": "已保存到 notes 库 2026-10-06 当日日志：快速记录验证-A-1791226364475；新建块 id 20261006025317-pgs0rlx",
+            "delivery": "delivered"
+          }
+        ],
+        "seen": [
+          "[\"a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813\",\"ROBOT1.0_calQ8LI45UkpyBBD2rJKKxLoSFpCLem9F1V.y7zO7fhq6o-XQgdAO-JoqwKuucKB2o4D3gPz.ZV1N6AQy3dZpck3C8T.AhrxZ13DfoDF0.wNIqrVm3QhC6-bhktADRFg\"]",
+          "[\"a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813\",\"ROBOT1.0_calQ8LI45UkpyBBD2rJKK0xjR.RvYgkwHjfquP0fq8MdUI1ul9Y73XaXBp5umJUgIutGkJXim-jTHKPA9UrcKDLr7Bqs.RjKlHr-dU7uk9ANIqrVm3QhC6-bhktADRFg\"]"
+        ],
+        "notices": [
+          {
+            "id": "collab-notify-probe-1791226539923",
+            "appId": "<APP_ID_B>",
+            "target": "<OPENID_OWNER_B>",
+            "text": "联调通知（模拟 MR，不是真实待办）：协作站事件已通过 GWB 命令送到 QQ；同一通知将去重。",
+            "state": "delivered"
+          },
+          {
+            "id": "collab-0bd4b881a8ea3663d955e134-1",
+            "appId": "<APP_ID_B>",
+            "target": "<OPENID_OWNER_B>",
+            "text": "协作站 simulated-collab-1791226931231\n联调模拟仓 MR #1：模拟 MR：验证协作站到 QQ 的通知，无需处理（本机联调）",
+            "state": "delivered"
+          }
+        ],
+        "legacySessions": [
+          {
+            "openid": "<OPENID_MEMBER_1>",
+            "workspace": "D:\\unitfolders\\evew5-gwbapps\\gwb-qq-bot",
+            "taskId": "sess_68b9e69f-2a9c-4d5d-955b-59848961f951",
+            "roundIndex": 2,
+            "latest": "f9d242c6-a7ce-4d2d-a357-5ebf63f3182a"
+          }
+        ]
+      },
+      "backupVersion": 1,
+      "backupJobIds": [
+        "2d52b0c6-b407-42d4-8727-a4567bc22aa4",
+        "f9d242c6-a7ce-4d2d-a357-5ebf63f3182a"
+      ],
+      "bind": {
+        "ok": true,
+        "data": {
+          "home": "qqbotb-2610052319",
+          "appId": "<APP_ID_B>",
+          "scene": "group",
+          "target": "<GROUP_OPENID_B>",
+          "id": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+          "lastSeen": "2026-10-05T18:52:45.857Z",
+          "lastSender": "<OPENID_MEMBER_1>",
+          "generation": 1,
+          "binding": {
+            "kind": "project",
+            "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+            "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+            "title": "混合型 MMC 样机",
+            "journalLibrary": ""
+          }
+        }
+      },
+      "after": {
+        "ok": true,
+        "data": [
+          {
+            "home": "qqbotb-2610052319",
+            "appId": "<APP_ID_B>",
+            "scene": "group",
+            "target": "<GROUP_OPENID_B>",
+            "id": "a73a77237b37f5c3e4b5389f1aa1ee5208f391a1bcbe5ca4e496683a14a76813",
+            "lastSeen": "2026-10-05T18:52:45.857Z",
+            "lastSender": "<OPENID_MEMBER_1>",
+            "generation": 1,
+            "binding": {
+              "kind": "project",
+              "workspace": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+              "projectRepo": "D:\\unitfolders\\b2o8l-sst-mmc-2026\\hybrid-mmc\\collab",
+              "title": "混合型 MMC 样机",
+              "journalLibrary": ""
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
