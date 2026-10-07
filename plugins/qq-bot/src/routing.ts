@@ -12,15 +12,9 @@ const COMMAND_NAMES: Record<BotCommand, string> = {
   'fresh-session': COMMAND_FRESH_SESSION,
 }
 
-/** 群 @ 消息里 @ 机器人的占位（<@!数字> 或 <@数字>），出现在开头，派任务前剥掉 */
-const MENTION_PLACEHOLDER = /^\s*(?:<@!?\d+>\s*)+/
-
-/**
- * 归一入站文本：剥 @ 占位、去首尾空白、统一换行。
- * 只剥占位格式，文本里手打的 @ 原样保留——那是任务内容的一部分
- */
+/** 归一入站文本：统一换行、去首尾空白 */
 export function normalizeIncoming(content: string): string {
-  return content.replace(MENTION_PLACEHOLDER, '').replace(/\r\n/g, '\n').trim()
+  return content.replace(/\r\n/g, '\n').trim()
 }
 
 /**

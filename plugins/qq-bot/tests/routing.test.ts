@@ -2,13 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { matchCommand, normalizeIncoming, splitForSend, tailExcerpt } from '../src/routing.js'
 
 describe('normalizeIncoming', () => {
-  it('剥掉群消息开头的 @ 占位', () => {
-    expect(normalizeIncoming('<@!1234567890> 帮我看看这个仓的测试为什么挂')).toBe('帮我看看这个仓的测试为什么挂')
-    expect(normalizeIncoming('<@1234567890>/状态')).toBe('/状态')
+  it('统一换行、去首尾空白', () => {
+    expect(normalizeIncoming('  帮我看看\r\n这个仓的测试为什么挂  ')).toBe('帮我看看\n这个仓的测试为什么挂')
   })
 
-  it('占位后没有内容时得到空串', () => {
-    expect(normalizeIncoming('<@!1234567890>   ')).toBe('')
+  it('只有空白时得到空串', () => {
+    expect(normalizeIncoming('   ')).toBe('')
     expect(normalizeIncoming('')).toBe('')
   })
 

@@ -38,7 +38,7 @@ function readStringList(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
 }
 
-/** 服务 gwbQqBot 的提供方：QQ 官方机器人通道，私聊与群 @ 的任务交给绑定的执行端，agent 做完调 qq-bot.report */
+/** 服务 gwbQqBot 的提供方：QQ 官方机器人的私聊通道，私聊里的任务交给绑定的执行端，agent 做完调 qq-bot.report */
 export default class GwbQqBot extends Service implements GwbQqBotApi {
   static inject = ['gwbCommands', 'gwbSettings', 'gwbData']
 
@@ -60,7 +60,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
     this.gateway = new QqGateway(this.rest, log, {
       onMessage: (message) => {
         if (this.rounds === null) return
-        void this.rounds.handleIncoming(message).catch((error: unknown) => log.error(`QQ ${message.scene} 消息处理失败：${String(error)}`))
+        void this.rounds.handleIncoming(message).catch((error: unknown) => log.error(`QQ 私聊消息处理失败：${String(error)}`))
       },
       onState: (state, detail) => log.info(`QQ 网关状态：${state}${detail === undefined ? '' : `（${detail}）`}`),
     })
@@ -100,6 +100,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
     const table = new ChatTable({ read: () => ctx.gwbData.readDoc(`chats-${appId}`), write: (value) => ctx.gwbData.writeDoc(`chats-${appId}`, value) })
     await table.settle()
     if (this.disposed) return false
+    if (table.droppedGroups > 0) ctx.logger(PLUGIN_NAME).info(`聊天表从第 1 版换成第 2 版：不再处理群聊，去掉了 ${table.droppedGroups} 个群聊，下次写盘生效`)
     this.rounds = new Rounds({
       home: path.basename(ctx.gwbKernel.dataDir),
       table,
@@ -108,7 +109,6 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
       ownerOpenid: () => readString(this.setting('owner-openid')),
       defaultWorkspace: () => readString(this.setting('default-workspace')),
       sendC2c: (openid, content, msgId, msgSeq, quote) => this.rest.sendC2c(openid, { content, msgId, msgSeq, quote }),
-      sendGroup: (group, content, msgId, msgSeq, quote) => this.rest.sendGroup(group, { content, msgId, msgSeq, quote }),
       log: ctx.logger(PLUGIN_NAME),
     })
     this.gateway.start()
@@ -130,7 +130,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
 
     commands.register(
       { name: 'qq-bot.status', description: '读 QQ 通道状态：连接、各个聊天的绑定、在做的任务、排队与没送达的结果', effect: 'read',
-        usage: '无参数。回 { gateway, appIdConfigured, appSecretSet, sandbox, executors, chats: [{ id, scene, target, lastSeen, lastSender, binding, bindingFromDefault, round, queued, undelivered }], recentRejected }。chats 的 id 给 qq-bot.bind；聊天在机器人收到它的第一条消息后才出现；binding 为空且 bindingFromDefault 为 false 的聊天派不了任务' },
+        usage: '无参数。回 { gateway, appIdConfigured, appSecretSet, sandbox, executors, chats: [{ id, target, lastSeen, lastSender, binding, bindingFromDefault, round, queued, undelivered }], recentRejected }。只处理私聊，群里 @ 机器人不处理；chats 的 id 给 qq-bot.bind；聊天在机器人收到它的第一条私聊消息后才出现；binding 为空且 bindingFromDefault 为 false 的聊天派不了任务' },
       async () => {
         const rounds = this.rounds
         const chats = rounds === null ? [] : await rounds.summary()
@@ -149,8 +149,8 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
       },
     )
     commands.register(
-      { name: 'qq-bot.bind', description: '把一个聊天（私聊或群）绑定到工作区与执行端', effect: 'write',
-        usage: '{ chat: string, workspace: string, title: string, agent?: "zcode" | "claudecode", collab?: boolean }。chat 是 qq-bot.status 里聊天的 id；workspace 是已存在目录的绝对路径；title 是回执里叫它的名字；agent 缺省 zcode，必须是装着的执行端；collab 为 true 表示这是协作站的协作仓，提示词里会写明改动经 collab.submit 提交（绑群前先用 collab.projects 查项目的协作仓路径与名字）。这个聊天还有在做或排队的任务时拒绝。改绑后下一轮用新会话。回这个聊天的记录' },
+      { name: 'qq-bot.bind', description: '把一个私聊绑定到工作区与执行端', effect: 'write',
+        usage: '{ chat: string, workspace: string, title: string, agent?: "zcode" | "claudecode", collab?: boolean }。chat 是 qq-bot.status 里私聊的 id；workspace 是已存在目录的绝对路径；title 是回执里叫它的名字；agent 缺省 zcode，必须是装着的执行端；collab 为 true 表示 workspace 是协作站的协作仓，提示词里会写明改动经 collab.submit 提交（先用 collab.projects 查协作仓路径与项目名）。这个聊天还有在做或排队的任务时拒绝。改绑后下一轮用新会话。回这个聊天的记录' },
       async (raw) => ({ ok: true, data: await this.requireRounds().bind(raw) }),
     )
     commands.register(
@@ -159,7 +159,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
     )
     commands.register(
       { name: 'qq-bot.report', description: '执行任务的 agent 做完后提交这一轮的结果，qq-bot 发回原聊天', effect: 'external',
-        usage: '{ round: string, text: string }。round 是任务说明里给的本轮编号；text 是给手机看的结果，1–2000 字，超了报错、缩短后用同一个编号再交。回 { recorded: true, duplicate }：recorded 表示已经记下，发回 QQ 在后台做（群聊过了 5 分钟的被动回复窗口就等人发 /状态 取）。调用超时就用同样的参数再调一次；同一轮交不同的内容会被拒绝' },
+        usage: '{ round: string, text: string }。round 是任务说明里给的本轮编号；text 是给手机看的结果，1–2000 字，超了报错、缩短后用同一个编号再交。回 { recorded: true, duplicate }：recorded 表示已经记下，发回 QQ 在后台做（发不出去就记下，等人发 /状态 补发）。调用超时就用同样的参数再调一次；同一轮交不同的内容会被拒绝' },
       async (raw) => ({ ok: true, data: await this.requireRounds().report(raw) }),
     )
     commands.register(

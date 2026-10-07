@@ -1,5 +1,5 @@
-/** 聊天表：每个私聊或群一行，连同主人通知的去重与近期消息 id，按 AppID 整份存成一份文档 */
-import { isRecord, type MessageScene } from './qq-protocol.js'
+/** 聊天表：每个私聊一行，连同主人通知的去重与近期消息 id，按 AppID 整份存成一份文档 */
+import { isRecord } from './qq-protocol.js'
 
 /** 触发这一轮的那条消息：被动回复要带它的 msgId，窗口从收到时算；已用的被动回复次数记在 Book.replies */
 export interface Trigger {
@@ -36,10 +36,9 @@ export interface QueuedMessage {
 }
 
 export interface Chat {
-  /** `<scene>:<target>` */
+  /** `c2c:<target>` */
   id: string
-  scene: MessageScene
-  /** 私聊是对方 openid，群是 group_openid */
+  /** 对方的 openid */
   target: string
   lastSeen: string
   lastSender: string
@@ -62,7 +61,7 @@ export interface Notice {
 }
 
 export interface Book {
-  version: 1
+  version: 2
   chats: Chat[]
   notices: Notice[]
   /** 近期处理过的 `<chatId>|<msgId>`，网关重推时不重复派单 */
@@ -74,31 +73,56 @@ export interface Book {
 const SEEN_LIMIT = 2000
 const REPLIES_LIMIT = 500
 
-export const chatIdOf = (scene: MessageScene, target: string): string => `${scene}:${target}`
+export const chatIdOf = (target: string): string => `c2c:${target}`
 
-/** 系统边界：账本从磁盘读回，形状不对直接报错，不按缺省值往下跑 */
-export function loadBook(raw: unknown): Book {
-  if (raw === undefined) return { version: 1, chats: [], notices: [], seen: [], replies: {} }
-  if (!isRecord(raw) || raw['version'] !== 1 || !Array.isArray(raw['chats']) || !Array.isArray(raw['notices']) || !Array.isArray(raw['seen']) || !isRecord(raw['replies'])) {
-    throw new Error('QQ 聊天表格式不对（version 1 的 chats / notices / seen / replies），停止处理')
+const emptyBook = (): Book => ({ version: 2, chats: [], notices: [], seen: [], replies: {} })
+
+function requireChatShape(chat: unknown): asserts chat is Record<string, unknown> {
+  if (!isRecord(chat) || typeof chat['id'] !== 'string' || typeof chat['target'] !== 'string' || !Array.isArray(chat['queue']) || !Array.isArray(chat['undelivered'])
+    || !chat['undelivered'].every((result) => isRecord(result) && typeof result['text'] === 'string' && typeof result['quote'] === 'string')) {
+    throw new Error('QQ 聊天表里有一行形状不对，停止处理')
   }
-  for (const chat of raw['chats']) {
-    if (!isRecord(chat) || typeof chat['id'] !== 'string' || (chat['scene'] !== 'c2c' && chat['scene'] !== 'group') || typeof chat['target'] !== 'string' || !Array.isArray(chat['queue']) || !Array.isArray(chat['undelivered'])
-      || !chat['undelivered'].every((result) => isRecord(result) && typeof result['text'] === 'string' && typeof result['quote'] === 'string')) {
-      throw new Error('QQ 聊天表里有一行形状不对，停止处理')
+}
+
+/**
+ * 系统边界：账本从磁盘读回，形状不对直接报错，不按缺省值往下跑。
+ * 第 1 版还有群聊：读到时去掉群聊那几行、私聊去掉 scene 字段，换成第 2 版，droppedGroups 是去掉了几个群聊；下次写盘就是第 2 版
+ */
+export function loadBook(raw: unknown): { book: Book; droppedGroups: number } {
+  if (raw === undefined) return { book: emptyBook(), droppedGroups: 0 }
+  if (!isRecord(raw) || (raw['version'] !== 1 && raw['version'] !== 2) || !Array.isArray(raw['chats']) || !Array.isArray(raw['notices']) || !Array.isArray(raw['seen']) || !isRecord(raw['replies'])) {
+    throw new Error('QQ 聊天表格式不对（version 1 或 2 的 chats / notices / seen / replies），停止处理')
+  }
+  if (raw['version'] === 2) {
+    for (const chat of raw['chats']) {
+      requireChatShape(chat)
+      if ('scene' in chat) throw new Error('QQ 聊天表第 2 版里有一行还带着 scene，停止处理')
     }
+    return { book: raw as unknown as Book, droppedGroups: 0 }
   }
-  return raw as unknown as Book
+  const chats: unknown[] = []
+  let droppedGroups = 0
+  for (const chat of raw['chats']) {
+    requireChatShape(chat)
+    if (chat['scene'] === 'group') { droppedGroups += 1; continue }
+    if (chat['scene'] !== 'c2c') throw new Error('QQ 聊天表第 1 版里有一行的 scene 既不是 c2c 也不是 group，停止处理')
+    const c2c: Record<string, unknown> = { ...chat }
+    delete c2c['scene']
+    chats.push(c2c)
+  }
+  return { book: { ...(raw as unknown as Book), version: 2, chats: chats as Chat[] }, droppedGroups }
 }
 
 /** 聊天表的读写都经同一条串行队列；写盘失败记下来，之后的操作一律报这个错 */
 export class ChatTable {
-  book: Book = { version: 1, chats: [], notices: [], seen: [], replies: {} }
+  book: Book = emptyBook()
+  /** 读到第 1 版时去掉的群聊个数，装配处记一行日志 */
+  droppedGroups = 0
   private queue: Promise<unknown>
   private storageError: unknown
 
   constructor(private readonly store: { read(): Promise<unknown>; write(value: unknown): Promise<void> }) {
-    this.queue = store.read().then((raw) => { this.book = loadBook(raw) }).catch((error: unknown) => { this.storageError = error })
+    this.queue = store.read().then((raw) => { ({ book: this.book, droppedGroups: this.droppedGroups } = loadBook(raw)) }).catch((error: unknown) => { this.storageError = error })
   }
 
   serial<T>(run: () => Promise<T>): Promise<T> {
@@ -124,19 +148,20 @@ export class ChatTable {
 
   require(id: string): Chat {
     const chat = this.find(id)
-    if (chat === undefined) throw new Error(`没有聊天 ${id}：先在那个私聊或群里给机器人发一条 /帮助，再用 qq-bot.status 查它的 id`)
+    if (chat === undefined) throw new Error(`没有聊天 ${id}：先在那个私聊里给机器人发一条 /帮助，再用 qq-bot.status 查它的 id`)
     return chat
   }
 
-  observe(scene: MessageScene, target: string, sender: string): Chat {
-    const id = chatIdOf(scene, target)
+  /** 收到 openid 发来的私聊：没有这个聊天就建一行 */
+  observe(openid: string): Chat {
+    const id = chatIdOf(openid)
     let chat = this.find(id)
     if (chat === undefined) {
-      chat = { id, scene, target, lastSeen: '', lastSender: '', binding: null, session: null, round: null, queue: [], lastClosed: null, undelivered: [] }
+      chat = { id, target: openid, lastSeen: '', lastSender: '', binding: null, session: null, round: null, queue: [], lastClosed: null, undelivered: [] }
       this.book.chats.push(chat)
     }
     chat.lastSeen = new Date().toISOString()
-    chat.lastSender = sender
+    chat.lastSender = openid
     return chat
   }
 

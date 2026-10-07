@@ -1,8 +1,9 @@
 # gwb-qq-bot
 
-`@godcreator/gwb-qq-bot` —— gwb 插件：QQ 官方机器人当通道。插件常驻连 QQ 开放平台的 WebSocket 网关，
-收私聊与群 @ 消息，把任务交给这个聊天绑定的执行端（ZCode 或 Claude Code），agent 做完调 `qq-bot.report`，结果发回原聊天。
-按发言者 openid 白名单决定谁能派任务，按聊天绑定决定在哪个目录、交给哪个执行端。服务 `gwbQqBot` 给别的插件主动私聊主人。
+`@godcreator/gwb-qq-bot` —— gwb 插件：QQ 官方机器人当私聊通道。插件常驻连 QQ 开放平台的 WebSocket 网关，
+收私聊消息，把任务交给这个私聊绑定的执行端（ZCode 或 Claude Code），agent 做完调 `qq-bot.report`，结果发回原私聊。
+按发言者 openid 白名单决定谁能派任务，按私聊绑定决定在哪个目录、交给哪个执行端。服务 `gwbQqBot` 给别的插件主动私聊主人。
+每个人在自己的 home 里配自己的机器人，不处理群聊。
 配置步骤、QQ 那头的指令、官方接口的限制，都在随包说明书 `plugins/qq-bot/skills/qq-bot/SKILL.md`。
 
 仓是 pnpm workspace：**仓根是一个不发布的 private 包，自己没有代码**（`pnpm build` / `pnpm check`
@@ -15,7 +16,7 @@
 - `src/qq-gateway.ts`：WebSocket 网关（Identify / Resume、心跳、退避重连、事件去重）
 - `src/routing.ts`：入站文本归一与指令识别、出站长文本分段与末尾摘录
 - `src/reply-window.ts`：被动窗口与次数的选路
-- `src/chats.ts`：聊天表（每个聊天一行）与写盘
+- `src/chats.ts`：聊天表（每个私聊一行）、第 1 版换成第 2 版与写盘
 - `src/rounds.ts`：一轮从头到尾：排队、派出、回报、懒检查、投递、绑定、主人通知
 - `src/executors/`：执行端适配层，ZCode 与 Claude Code 各一份实现
 - `src/index.ts`：服务 `gwbQqBot`、设置、命令、连接生命周期

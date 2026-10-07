@@ -7,20 +7,21 @@ description: 仓根 AGENTS.md 的正本
 
 这份 AGENTS.md 由 `docs-site/content/docs/outputs/agents.mdx` 生成：改那份正本，再运行 `pnpm doc:render`。
 
-gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`）：QQ 官方机器人通道——收私聊与群 @ 消息，交给聊天绑定的执行端（经 inject 的 `gwbZcode` / `gwbClaudecode`），
-agent 做完调 `qq-bot.report` 发回原聊天；服务 `gwbQqBot` 给别的插件主动私聊主人。
+gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`）：QQ 官方机器人的私聊通道——收私聊消息，交给这个私聊绑定的执行端（经 inject 的 `gwbZcode` / `gwbClaudecode`），
+agent 做完调 `qq-bot.report` 发回原私聊；服务 `gwbQqBot` 给别的插件主动私聊主人。每个人在自己的 home 里配自己的机器人，不处理群聊。
 
 ## 硬约束
 
-- 白名单外的消息一律静默拒绝（记日志与 recentRejected），绝不回消息；机器人发来的消息一律不处理
+- 只处理私聊：群事件只记事件类型，不进任务、不回消息
+- 白名单外的消息一律静默拒绝（记日志与 recentRejected），绝不回消息
 - 同一个聊天一次只跑一轮，后来的消息排在这个聊天自己的队列；不管跨聊天、跨工作区的占用
 - 回报只认本轮编号，不当凭证；没有后台轮询，执行端只在人发 /状态 或这一轮没回报又来新消息时问一次
 - 派单失败把原话告诉人、这一轮作废；不留需要人手工解除的中间状态，不自动重发
 - 执行端适配层（`src/executors/`）是本插件私有的，接口按 qq-bot 要的定；执行端经 cordis 服务 inject，不按名字调命令
-- 不依赖协作站：群绑定的协作仓路径与名字由绑的人填，依赖只朝协作站 → qq-bot 一个方向（反过来写 peer 会成环、发版被拒）
+- 不依赖协作站：私聊绑协作仓时路径与名字由绑的人填，依赖只朝协作站 → qq-bot 一个方向（反过来写 peer 会成环、发版被拒）
 - 官方接口的回执在入口校验形状，不对就报错或丢弃，不猜字段：`expires_in` 官方回数字字符串、两种都收，是核对过的契约不是兜底
 - access token 与 AppSecret 不进日志、不进命令回执
-- 群聊过被动窗口不硬推，记进没送达等 /状态；单聊只在被动失败时用主动消息
+- 结果先发被动回复，被动发不出去或过了窗口只改发一次主动消息，再不行记进没送达等 /状态
 - 协议字段名、事件位值集中在 `src/qq-protocol.ts`；接口报错先对官方文档核对再改，改了同步插件页钉码
 - 服务、命令名、参数与回执形状是契约：改了同一个提交里改正本 `content/docs/outputs/skills/qq-bot.mdx` 并 render，按 gwb-release 判断升哪一位
 

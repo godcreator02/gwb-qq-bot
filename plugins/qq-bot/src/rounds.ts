@@ -7,7 +7,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Binding, Chat, ChatTable, Round, Trigger } from './chats.js'
 import type { ExecutorTable } from './executors/executor.js'
-import { isRecord, type IncomingMessage, type MessageScene, type QqLog } from './qq-protocol.js'
+import { isRecord, type IncomingMessage, type QqLog } from './qq-protocol.js'
 import type { SendOutcome } from './qq-rest.js'
 import { chooseReplyRoute } from './reply-window.js'
 import { matchCommand, normalizeIncoming, splitForSend, tailExcerpt } from './routing.js'
@@ -21,7 +21,6 @@ export interface RoundsDeps {
   ownerOpenid(): string
   defaultWorkspace(): string
   sendC2c(openid: string, content: string, msgId: string | undefined, msgSeq: number | undefined, quote: string | undefined): Promise<SendOutcome>
-  sendGroup(groupOpenid: string, content: string, msgId: string | undefined, msgSeq: number | undefined, quote: string | undefined): Promise<SendOutcome>
   log: QqLog
 }
 
@@ -38,8 +37,6 @@ const HELP_TEXT = [
   '· /新会话 下一条起换一个新会话',
   '· 没绑定工作区的聊天，请在 GWB 用 qq-bot.bind 绑定',
 ].join('\n')
-
-type Target = Pick<Chat, 'scene' | 'target'>
 
 function newRoundId(): string {
   return `r-${randomBytes(6).toString('hex')}`
@@ -59,7 +56,7 @@ function onlyKeys(raw: unknown, command: string, keys: string[]): Record<string,
 }
 
 export class Rounds {
-  readonly recentRejected: { openid: string; scene: MessageScene; at: string; excerpt: string }[] = []
+  readonly recentRejected: { openid: string; at: string; excerpt: string }[] = []
   private readonly workers = new Set<Promise<unknown>>()
   private closing = false
 
@@ -71,7 +68,7 @@ export class Rounds {
   bindingOf(chat: Chat): Binding | null {
     if (chat.binding !== null) return chat.binding
     const workspace = this.deps.defaultWorkspace()
-    if (chat.scene === 'c2c' && chat.target === this.deps.ownerOpenid() && workspace !== '') return { workspace, agent: 'zcode', title: '个人空间', collab: false }
+    if (chat.target === this.deps.ownerOpenid() && workspace !== '') return { workspace, agent: 'zcode', title: '个人空间', collab: false }
     return null
   }
 
@@ -80,18 +77,16 @@ export class Rounds {
   async handleIncoming(message: IncomingMessage): Promise<void> {
     if (this.closing) return
     if (!this.deps.allowedOpenids().includes(message.senderOpenid)) {
-      this.recentRejected.push({ openid: message.senderOpenid, scene: message.scene, at: new Date().toISOString(), excerpt: message.content.slice(0, 40) })
+      this.recentRejected.push({ openid: message.senderOpenid, at: new Date().toISOString(), excerpt: message.content.slice(0, 40) })
       if (this.recentRejected.length > REJECTED_LIMIT) this.recentRejected.shift()
-      this.deps.log.info(`拒绝白名单外的 ${message.scene} 消息，openid=${message.senderOpenid}`)
+      this.deps.log.info(`拒绝白名单外的私聊消息，openid=${message.senderOpenid}`)
       return
     }
-    // bot 互派推后设计：机器人发来的消息一律不处理，也就不会两个机器人互相触发
-    if (message.senderIsBot === true) return
     const text = normalizeIncoming(message.content)
     if (text === '') return
     const trigger: Trigger = { msgId: message.msgId, receivedAt: Date.now() }
     const intake = await this.table.serial(async () => {
-      const chat = this.table.observe(message.scene, message.replyTarget, message.senderOpenid)
+      const chat = this.table.observe(message.senderOpenid)
       if (!this.table.firstSeen(chat.id, message.msgId)) { await this.table.save(); return null }
       const command = matchCommand(text)
       if (command === null && this.bindingOf(chat) !== null) chat.queue.push({ prompt: text, sender: message.senderOpenid, trigger })
@@ -99,7 +94,7 @@ export class Rounds {
       return { chatId: chat.id, command, bound: this.bindingOf(chat) !== null }
     })
     if (intake === null) return
-    const target = { scene: message.scene, target: message.replyTarget }
+    const target = message.senderOpenid
     if (intake.command === 'help') { await this.reply(target, trigger, HELP_TEXT); return }
     if (intake.command === 'status') { await this.status(intake.chatId, target, trigger); return }
     if (intake.command === 'fresh-session') { await this.freshSession(intake.chatId, target, trigger); return }
@@ -149,12 +144,12 @@ export class Rounds {
       const next = chat.queue.shift()
       if (next === undefined) return null
       const binding = this.bindingOf(chat)
-      if (binding === null) { await this.table.save(); return { target: chat as Target, trigger: next.trigger, unbound: true as const } }
+      if (binding === null) { await this.table.save(); return { target: chat.target, trigger: next.trigger, unbound: true as const } }
       const session = chat.session !== null && chat.session.agent === binding.agent ? chat.session.id : null
       const round: Round = { id: newRoundId(), prompt: next.prompt, sender: next.sender, agent: binding.agent, workspace: binding.workspace, session: null, trigger: next.trigger }
       chat.round = round
       await this.table.save()
-      return { target: { scene: chat.scene, target: chat.target } as Target, trigger: next.trigger, round: structuredClone(round), session, binding }
+      return { target: chat.target, trigger: next.trigger, round: structuredClone(round), session, binding }
     })
     if (started === null) return
     if ('unbound' in started) { await this.reply(started.target, started.trigger, '这个聊天的绑定已经解除，这条没有派出。'); return }
@@ -162,7 +157,7 @@ export class Rounds {
     let sessionId: string
     try {
       const executor = this.deps.executors.get(round.agent)
-      sessionId = await executor.start({ workspace: round.workspace, session, prompt: this.fullPrompt(target, binding, round) })
+      sessionId = await executor.start({ workspace: round.workspace, session, prompt: this.fullPrompt(binding, round) })
     } catch (error) {
       // 不留「不确定」的中间状态：原话告诉人，可能已经发出去了的，原话里会写，人去执行端看
       await this.table.serial(async () => {
@@ -183,13 +178,12 @@ export class Rounds {
     await this.reply(target, trigger, `已接收，交给 ${title} 在「${binding.title}」里做，做完回你。`)
   }
 
-  private fullPrompt(target: Target, binding: Binding, round: Round): string {
-    const where = target.scene === 'c2c' ? 'QQ 私聊' : `QQ 群「${binding.title}」`
+  private fullPrompt(binding: Binding, round: Round): string {
     const lines = [
       round.prompt,
       '',
       '[QQ 任务来源]',
-      `这条任务来自${where}，发言人 openid ${round.sender}。在工作区 ${binding.workspace} 里做，不要扩大到别的项目。`,
+      `这条任务来自 QQ 私聊，发言人 openid ${round.sender}。在工作区 ${binding.workspace} 里做，不要扩大到别的项目。`,
     ]
     if (binding.collab) lines.push(`这是协作站的协作仓：对协作仓的改动一律经连到 gwb home「${this.deps.home}」的 MCP 服务调 collab.submit 提交，不手写 git。`)
     lines.push(
@@ -210,7 +204,7 @@ export class Rounds {
       chat.round = null
       chat.lastClosed = { id: roundId, text }
       await this.table.save()
-      return { target: { scene: chat.scene, target: chat.target } as Target, trigger }
+      return { target: chat.target, trigger }
     })
     if (closed === null) return
     await this.deliver(chatId, closed.target, closed.trigger, text)
@@ -238,7 +232,7 @@ export class Rounds {
 
   // ───── 聊天里的指令 ─────
 
-  private async status(chatId: string, target: Target, trigger: Trigger): Promise<void> {
+  private async status(chatId: string, target: string, trigger: Trigger): Promise<void> {
     const pending = await this.table.serial(async () => {
       const chat = this.table.require(chatId)
       const results = chat.undelivered.splice(0)
@@ -263,7 +257,7 @@ export class Rounds {
     await this.reply(target, trigger, `还在做，排队 ${pending.queued} 条。最新的回答末尾：\n${tailExcerpt(checked.reply, PROGRESS_TAIL_CHARS)}`)
   }
 
-  private async freshSession(chatId: string, target: Target, trigger: Trigger): Promise<void> {
+  private async freshSession(chatId: string, target: string, trigger: Trigger): Promise<void> {
     await this.table.serial(async () => {
       this.table.require(chatId).session = null
       await this.table.save()
@@ -343,29 +337,25 @@ export class Rounds {
   // ───── 发消息 ─────
 
   /**
-   * 按回复窗口发一段话（长的分段），每段都引用 quote 那条消息（缺省是触发消息）；都发出去回 true。
-   * 被动回复用掉的次数先记进聊天表再发，msg_seq 不会重复
+   * 按回复窗口给 target（对方 openid）发一段话（长的分段），每段都引用 quote 那条消息（缺省是触发消息）；都发出去回 true。
+   * 被动回复用掉的次数先记进聊天表再发，msg_seq 不会重复；被动发不出去改发主动消息
    */
-  private async reply(target: Target, trigger: Trigger, text: string, quote = trigger.msgId): Promise<boolean> {
+  private async reply(target: string, trigger: Trigger, text: string, quote = trigger.msgId): Promise<boolean> {
     for (const segment of splitForSend(text, SEGMENT_CHARS)) {
       const route = await this.table.serial(async () => {
-        const chosen = chooseReplyRoute(target.scene, { ...trigger, repliesSent: this.table.repliesUsed(trigger.msgId) }, Date.now())
+        const chosen = chooseReplyRoute({ ...trigger, repliesSent: this.table.repliesUsed(trigger.msgId) }, Date.now())
         if (chosen.kind === 'passive') { this.table.takeReply(trigger.msgId); await this.table.save() }
         return chosen
       })
-      if (route.kind === 'none') return false
-      if (route.kind === 'passive') {
-        if (await this.send(target, segment, route.msgId, route.msgSeq, quote)) continue
-        if (target.scene === 'group') return false
-      }
+      if (route.kind === 'passive' && (await this.send(target, segment, route.msgId, route.msgSeq, quote))) continue
       if (!(await this.send(target, segment, undefined, undefined, quote))) return false
     }
     return true
   }
 
-  private async send(target: Target, content: string, msgId: string | undefined, msgSeq: number | undefined, quote: string | undefined): Promise<boolean> {
+  private async send(target: string, content: string, msgId: string | undefined, msgSeq: number | undefined, quote: string | undefined): Promise<boolean> {
     try {
-      const outcome = target.scene === 'c2c' ? await this.deps.sendC2c(target.target, content, msgId, msgSeq, quote) : await this.deps.sendGroup(target.target, content, msgId, msgSeq, quote)
+      const outcome = await this.deps.sendC2c(target, content, msgId, msgSeq, quote)
       return outcome.ok
     } catch (error) {
       this.deps.log.warn(`发 QQ 消息失败：${String(error)}`)
@@ -374,7 +364,7 @@ export class Rounds {
   }
 
   /** 投递一段结果，引用 quote 那条消息；没发出去就连同 quote 记进这个聊天的未送达，等人发 /状态 */
-  private async deliver(chatId: string, target: Target, trigger: Trigger, text: string, quote = trigger.msgId): Promise<void> {
+  private async deliver(chatId: string, target: string, trigger: Trigger, text: string, quote = trigger.msgId): Promise<void> {
     if (await this.reply(target, trigger, text, quote)) return
     await this.table.serial(async () => {
       this.table.require(chatId).undelivered.push({ text, quote })
@@ -386,7 +376,6 @@ export class Rounds {
   async summary() {
     return this.table.serial(async () => this.table.book.chats.map((chat) => ({
       id: chat.id,
-      scene: chat.scene,
       target: chat.target,
       lastSeen: chat.lastSeen,
       lastSender: chat.lastSender,
