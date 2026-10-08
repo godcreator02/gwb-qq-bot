@@ -62,7 +62,7 @@ full: true
 
 执行端没接着用交给它的会话、交回了另一个会话号，就算开了新会话，轮数从 1 数起。回执开头写组名，第二行是「会话 a1b2 · 第 3 轮」（会话号的末 4 位、这个会话的第几轮），手机上看得出是接着做还是新开的：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="273-278" hash="84d2e9084e82" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="273-276" hash="9a1d9ac5281c" blob="34552a9a6bf9" */}
 
 旧会话不能从 QQ 回去接着做：它们在 ZCode 或 Claude Code 里还看得到，要接着做就在电脑上接。
 
@@ -76,15 +76,15 @@ full: true
 **提示词**：任务原文后面附三段：来源（QQ 私聊、发言人、任务组的称呼与工作区）、组的要求（组或绑定写了 `instructions` 才有，原样附上）、本轮回报说明。
 回报说明写的是 home 名，不写 MCP 服务名：每个 gwb MCP 服务的说明里都写着它连的是哪个 home，agent 照着选，两个 home 各自派出的任务不会报到另一个 home：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="280-295" hash="e6b1a3e4b0bb" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="279-294" hash="e6b1a3e4b0bb" blob="34552a9a6bf9" */}
 
 **回报**：本轮编号只用来对上是哪一轮，不当凭证，在所有私聊的所有组里找。同一轮同一段话重交回 `duplicate`，已经结束的轮次交来不同的话拒绝，超过 2000 字拒绝；回执先交回，发回 QQ 与开下一轮在后台做，agent 不用等自己的回报发完：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="318-334" hash="d13e5c2bbbbe" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="317-333" hash="d13e5c2bbbbe" blob="34552a9a6bf9" */}
 
 **收尾**：结果开头写「【组名 · 第 N 轮】」，引用派出这一轮的那条消息；被动、主动都发不出去，连同要引用的消息 id 和组名记进这个私聊的没送达，等人发 `/状态` 补发。收尾后接着开这一组排队的下一条：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="297-314" hash="140bfa501f7f" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="296-313" hash="140bfa501f7f" blob="34552a9a6bf9" */}
 
 **懒检查**：没有后台轮询。这一组这一轮还没回报，而人发了 `/状态` 或又往这一组发了一条消息时，才经适配层的 `check` 问一次执行端；做完了却没回报，就按「执行端这一轮已经结束，没有收到回报」收尾，附上最后的回答末尾 600 字，再开下一轮：
 
@@ -98,7 +98,7 @@ full: true
 
 {/* ref file="../plugins/qq-bot/src/api.ts" lines="43-57" hash="440c98fbc26b" blob="aa8532784480" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="364-374" hash="a19f40dfca01" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="363-373" hash="a19f40dfca01" blob="34552a9a6bf9" */}
 
 ## 服务的两个注册方法
 
@@ -128,11 +128,11 @@ full: true
 私聊在机器人收到它的第一条消息后才出现在 `qq-bot.status` 里，`bind` 用那里的 `id`（`c2c:<openid>`）。参数只收列出的键，多给、少给、空串都直接报错。
 绑定、改绑、解绑只看默认组：默认组还有在做或排队的任务时拒绝，别的组不受影响；改绑后默认组下一条开新会话：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="451-462" hash="f34ab6cbb5f7" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="450-461" hash="f34ab6cbb5f7" blob="34552a9a6bf9" */}
 
 删任务组在它任何私聊里还有在做或排队的任务时拒绝，删掉后各私聊里这一组的状态一起删：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="481-499" hash="c1c4f8a0fcc9" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="485-503" hash="c1c4f8a0fcc9" blob="34552a9a6bf9" */}
 
 ## 执行端适配层
 

@@ -21,7 +21,7 @@ agent 做完调 `qq-bot.report` 发回原私聊；服务 `gwbQqBot` 给别的插
 - 回报只认本轮编号，不当凭证；没有后台轮询，执行端只在人发 /状态 或这一组这一轮没回报又来新消息时问一次
 - 派任务失败把原话告诉人、这一轮作废；不留需要人手工解除的中间状态，不自动重发
 - 执行端适配层（`src/dispatch/executors/`）是本插件私有的，接口按 qq-bot 要的定；执行端经 cordis 服务 inject，不按名字调命令
-- 不依赖协作站：协作站经 `gwbQqBot.registerTaskGroup` 注册自己的任务组，依赖只朝协作站 → qq-bot 一个方向（反过来写 peer 会成环、发版被拒）；qq-bot 里不写和协作站有关的代码
+- 不依赖协作站：协作站经 `gwbQqBot.registerTaskGroup` 注册自己的任务组，依赖只朝协作站 → qq-bot 一个方向（反过来写 peer 会成环、发版被拒）；qq-bot 里不写和协作站有关的代码，只有一处例外：聊天表从第 2 版迁移时，把旧的协作仓绑定（`collab: true`）换成提示词附加段（`src/storage/chat-table.ts` 的 `COLLAB_INSTRUCTIONS`）
 - 官方接口的回执在入口校验形状，不对就报错或丢弃，不猜字段：`expires_in` 官方回数字字符串、两种都收，这是照官方文档核对过的，不是放宽校验
 - access token 与 AppSecret 不进日志、不进命令回执
 - 结果先发被动回复，被动发不出去或过了窗口只改发一次主动消息，再不行记进没送达等 /状态

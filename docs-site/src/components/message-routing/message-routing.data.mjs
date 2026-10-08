@@ -78,9 +78,9 @@ export const checks = [
  * @type {{ id: string, label: string, message: string, path: [string, string][], result: string, reply: string, text: string }[]}
  */
 /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="161-176" hash="1ab1cc4757c9" blob="52997d98cc3c" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="273-278" hash="84d2e9084e82" blob="52997d98cc3c" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="273-276" hash="9a1d9ac5281c" blob="34552a9a6bf9" */
 /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="114-116" hash="bc908f85b40a" blob="52997d98cc3c" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="428-428" hash="d4edb62861b5" blob="52997d98cc3c" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="427-427" hash="d4edb62861b5" blob="34552a9a6bf9" */
 /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="50-54" hash="ccfeea48248d" blob="4ba17a7cf705" */
 /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="61-61" hash="5e8ed20c9310" blob="4ba17a7cf705" */
 export const cases = [
@@ -162,7 +162,7 @@ export const cases = [
     message: '/帮助',
     path: [['slash', '是'], ['reserved', '/帮助']],
     result: 'help',
-    reply: 'QQ → 本机 agent。直接发的文字进默认组（「个人空间」，交给 zcode）；……\n保留指令：……\n任务组（发「命令 任务」）：\n/mmc — 混合型 MMC 样机\n直接命令：\n/血糖 — 查最近的血糖',
+    reply: 'QQ → 本机 agent。直接发的文字进默认组（「个人空间」，交给 ZCode）；……\n保留指令：……\n任务组（发「命令 任务」）：\n/mmc — 混合型 MMC 样机\n直接命令：\n/血糖 — 查最近的血糖',
     text: '内容按此刻注册的现算：保留命令、全部任务组、全部直接命令。插件卸掉了，它注册的命令下一次就不在列表里。',
   },
   {

@@ -172,10 +172,21 @@ describe('入站与分发', () => {
     registry.registerCommand({ command: '/血糖', description: '查最近的血糖', handle: async () => '5.6' }, { plugin: undefined, storedGroupCommands: [] })
     await rounds.handleIncoming(c2c('/帮助'))
     const help = lastContent(sent)
-    expect(help).toContain('直接发的文字进默认组（「个人空间」，交给 zcode）')
+    expect(help).toContain('直接发的文字进默认组（「个人空间」，交给 ZCode）')
     expect(help).toContain('/论文 — 学位论文')
     expect(help).toContain('/mmc — 混合型 MMC 样机')
     expect(help).toContain('/血糖 — 查最近的血糖')
+  })
+
+  it('/帮助 里默认组的执行端写显示名，没装的写 id 并注明没装', async () => {
+    const { rounds, sent, deps } = setup()
+    await rounds.handleIncoming(c2c('/帮助', ALICE))
+    await rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: '混合型 MMC 样机', agent: 'claudecode' })
+    await rounds.handleIncoming(c2c('/帮助', ALICE))
+    expect(lastContent(sent)).toContain('直接发的文字进默认组（「混合型 MMC 样机」，交给 Claude Code）')
+    deps.executors.register({ ...deps.executors.get('claudecode') })()
+    await rounds.handleIncoming(c2c('/帮助', ALICE))
+    expect(lastContent(sent)).toContain('直接发的文字进默认组（「混合型 MMC 样机」，交给 claudecode（没装））')
   })
 
   it('以 / 开头却不是任何命令：回「没有指令」并附上帮助列表，不派出', async () => {

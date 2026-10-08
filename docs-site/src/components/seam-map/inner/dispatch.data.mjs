@@ -219,7 +219,7 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '两个执行端的形状不同，翻译只在这一层：会话号是 taskId 或 sessionId；ZCode 的回答里混着工具调用记录，只取末尾 600 字。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="518-525" hash="dd9baa90ed01" blob="52997d98cc3c" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="522-529" hash="dd9baa90ed01" blob="34552a9a6bf9" */
     {
       n: 9,
       name: '收发',

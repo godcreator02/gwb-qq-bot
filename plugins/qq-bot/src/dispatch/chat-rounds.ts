@@ -271,8 +271,7 @@ export class ChatRounds {
   }
 
   private receipt(group: ResolvedGroup, agent: string, sessionId: string, turn: number, choice: SessionChoice): string {
-    const title = this.deps.executors.has(agent) ? this.deps.executors.get(agent).title : agent
-    const lines = [`【${group.label}】已接收，交给 ${title} 在「${group.title}」里做，做完回你。`, `会话 ${sessionId.slice(-4)} · 第 ${turn} 轮`]
+    const lines = [`【${group.label}】已接收，交给 ${this.executorLabel(agent)} 在「${group.title}」里做，做完回你。`, `会话 ${sessionId.slice(-4)} · 第 ${turn} 轮`]
     if (choice.kind === 'idle') lines.push(`已开新会话（空闲超过 ${choice.idleHours} 小时）`)
     return lines.join('\n')
   }
@@ -342,7 +341,7 @@ export class ChatRounds {
   /** /帮助 的内容按此刻注册的现算 */
   private helpText(chat: Chat): string {
     const binding = this.bindingOf(chat)
-    const defaultGroup = binding === null ? '这个私聊还没绑定工作区，请在 GWB 用 qq-bot.bind 绑定' : `「${binding.title}」，交给 ${binding.agent}`
+    const defaultGroup = binding === null ? '这个私聊还没绑定工作区，请在 GWB 用 qq-bot.bind 绑定' : `「${binding.title}」，交给 ${this.executorLabel(binding.agent)}`
     const groups = [
       ...this.table.book.groups.map((group) => `${group.command} — ${group.title}`),
       ...this.deps.registry.allGroups().map(({ definition }) => `${definition.command} — ${definition.title}`),
@@ -463,6 +462,11 @@ export class ChatRounds {
 
   private requireInstalled(agent: string): void {
     if (!this.deps.executors.has(agent)) throw new Error(`执行端 ${agent} 没装，现在装着的：${this.deps.executors.ids().join('、') || '没有'}`)
+  }
+
+  /** 给人看的执行端名：装着的写适配层的 title，没装的写 id 并注明没装 */
+  private executorLabel(agent: string): string {
+    return this.deps.executors.has(agent) ? this.deps.executors.get(agent).title : `${agent}（没装）`
   }
 
   // ───── 命令登记的任务组 ─────
