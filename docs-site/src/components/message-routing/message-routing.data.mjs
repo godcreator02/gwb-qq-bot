@@ -1,5 +1,5 @@
 /**
- * 「一条消息分到哪」的全部讲解数据：画面（message-routing.tsx）与机读规则（message-routing.ai.mjs）都只读这一份。
+ * 「一条消息分到哪」的全部讲解数据：画面（message-routing.tsx）只读这一份。
  * 五道检查照 routing.ts 里 routeMessage 的顺序排，前一道能下结论就不往下走；回给手机的话照 chat-rounds.ts 与 routing.ts 里的原文。
  * 例子里假设：主人私聊没绑定、用设置里的默认工作区（称呼「个人空间」）；用命令登记了任务组 /mmc（「混合型 MMC 样机」，交给 Claude Code）；
  * 有插件注册了直接命令 /血糖；/论文 既被命令登记过，又被一个插件注册了。

@@ -1,7 +1,7 @@
 'use client';
 /**
  * 「注册跟着两边的启停走」：分步看协作站的作用域、qq-bot 的服务对象与注册表、手机私聊三块怎么一起变。
- * 讲解文字与数据都在 registration-life.data.mjs；机读版由 registration-life.ai.mjs 读同一份数据生成。
+ * 讲解文字与数据都在 registration-life.data.mjs；它放在说明书 qq-bot-plugin-api 的正本里，生成物里的那段结论在 registration-life.ai.mjs。
  * 协作站固定紫色、qq-bot 固定蓝色、手机固定灰色。
  */
 import { Pane, Pill, Stepper } from '@godcreator/docfirst-explainer';

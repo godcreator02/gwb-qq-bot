@@ -1,7 +1,7 @@
 'use client';
 /**
  * 接缝图。不带属性画全局图（入口页用）；带 module 属性画那一块内部的接缝图（模块页用）。
- * 画法在讲解组件包的 SeamDiagram；每张图的内容在 *.data.mjs，坐标在 *.layout.ts；机读版由 seam-map.ai.mjs 读同一份内容生成。
+ * 画法在讲解组件包的 SeamDiagram；每张图的内容在 *.data.mjs，坐标在 *.layout.ts。
  */
 import { SeamDiagram } from '@godcreator/docfirst-explainer';
 import type { SeamLayout } from '@godcreator/docfirst-explainer';

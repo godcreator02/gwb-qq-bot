@@ -26,7 +26,7 @@ agent 做完调 `qq-bot.report` 发回原私聊；服务 `gwbQqBot` 给别的插
 - access token 与 AppSecret 不进日志、不进命令回执
 - 结果先发被动回复，被动发不出去或过了窗口只改发一次主动消息，再不行记进没送达等 /状态
 - 协议字段名、事件位值集中在 `src/qq/qq-protocol.ts`；接口报错先对下面的官方文档核对再改，改了在同一个提交里处理文档站 `content/docs/qq/` 的钉码
-- 服务、命令名、参数与回执形状是契约：改了同一个提交里改正本 `content/docs/outputs/skills/qq-bot.mdx` 并 render，按 gwb-release 判断升哪一位
+- 服务、命令名、参数与回执形状是契约：改了同一个提交里改说明书正本（命令在 `content/docs/outputs/skills/qq-bot.mdx`，服务 `gwbQqBot` 在 `content/docs/outputs/skills/qq-bot-plugin-api.mdx`）并 render，按 gwb-release 判断升哪一位
 
 ## QQ 官方文档
 

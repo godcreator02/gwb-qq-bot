@@ -1,6 +1,7 @@
 /**
  * 核对组件名册两边：docfirst.config.mjs 里的机读规则表 vs src/components/registry.ts 里的 React 名单。
- * 少一边都不行：机读规则表没有 → 生成机读版时直接报错；React 表没有 → 站渲染报 Expected component。
+ * 机读规则只给生成正本里用到的组件写，所以 React 名单可以比机读规则表多；
+ * 反过来不行：机读规则表里有、React 名单里没有的，是写错了名字或删了组件忘了删规则。
  * registry.ts 只有可擦除的类型，Node 直接运行。
  */
 import { pathToFileURL } from 'node:url'
@@ -12,12 +13,9 @@ const { componentNames } = await import(pathToFileURL(resolve('src/components/re
 const ai = new Set(Object.keys(config.components ?? {}))
 const react = new Set(componentNames)
 const onlyAi = [...ai].filter((n) => !react.has(n))
-const onlyReact = [...react].filter((n) => !ai.has(n))
 
 console.log(`机读规则表：${[...ai].join('、')}`)
 console.log(`React 表：${[...react].join('、')}`)
 if (onlyAi.length > 0) console.log(`✖ 只有机读规则、没有 React 组件：${onlyAi.join('、')}`)
-if (onlyReact.length > 0) console.log(`✖ 只有 React 组件、没有机读规则：${onlyReact.join('、')}`)
-const ok = onlyAi.length === 0 && onlyReact.length === 0
-console.log(ok ? '✔ 组件名册两边一致' : '✖ 组件名册两边不一致')
-process.exit(ok ? 0 : 1)
+console.log(onlyAi.length === 0 ? '✔ 机读规则表里的组件都在 React 表里' : '✖ 组件名册两边对不上')
+process.exit(onlyAi.length === 0 ? 0 : 1)

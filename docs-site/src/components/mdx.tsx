@@ -1,7 +1,7 @@
 /**
  * 名册里给人看的那一半：docfirst.config.mjs 里声明机读规则表，这里给 React 表。
  * 表的类型由 registry.ts 的名单限定：少一个编译不过，多一个也编译不过。
- * 跟机读规则表是否一致，由 scripts/verify-roster.mjs 两边核对。
+ * 机读规则表里的组件是否都在这里，由 scripts/verify-roster.mjs 核对。
  * 先放 fumadocs 的默认表，再把 pre 换成 @godcreator/docfirst-workflow/fumadocs 里会画状态点的 DocfirstPre。
  */
 import defaultMdxComponents from 'fumadocs-ui/mdx';

@@ -1,7 +1,7 @@
 ---
 title: qq-bot 说明书（SKILL 正本）
 name: qq-bot
-description: 配置 QQ 机器人、绑定私聊、登记任务组、给插件注册任务组或直接命令、查任务状态、诊断消息没回应时读；QQ 派来的任务做完怎么回报也在这里。
+description: 配置 QQ 机器人、绑定私聊、登记任务组、查任务状态、诊断消息没回应时读；QQ 派来的任务做完怎么回报也在这里。写插件要用 qq-bot 读 qq-bot-plugin-api。
 ---
 
 # QQ 机器人 → 本机 agent
@@ -64,18 +64,7 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 
 ### 插件注册任务组与直接命令
 
-inject `gwbQqBot`，类型从本包 `dist/index.d.ts` 取，注册包在 `ctx.effect` 里：
-
-```ts
-ctx.effect(() => ctx.gwbQqBot.registerTaskGroup({ command: '/mmc', title: '混合型 MMC 样机', workspace: 'D:\\…\\hybrid-mmc', agent: 'claudecode', instructions: '…' }))
-ctx.effect(() => ctx.gwbQqBot.registerCommand({ command: '/血糖', description: '查最近的血糖', handle: async ({ text, senderOpenid }) => '…' }))
-```
-
-- 命令名不合规则、重名、`workspace` 不是已存在目录的绝对路径都抛异常；不检查执行端装没装，派任务时没装就把原因回给私聊
-- 注册之前要先校验收到的命令名（比如让人起的命令），调 `ctx.gwbQqBot.commandNameProblem(command)`：不合规则回原因，合规回 `null`，不查重名；不自己抄一份规则
-- QQ 没连上时也能注册
-- 注册、撤掉的命令自动同步进手机私聊的「/」指令面板（停下 2 秒后同步一次），不用另外调
-- 直接命令不排队、不开会话：`handle` 交回的文字按被动回复发回，抛错时回「指令 /xxx 出错：原话」
+写在插件代码里，经服务 `gwbQqBot`，不用命令：读说明书 `qq-bot-plugin-api`。
 
 ## QQ 里的指令
 
@@ -109,4 +98,4 @@ ctx.effect(() => ctx.gwbQqBot.registerCommand({ command: '/血糖', description:
 
 ## 主人通知
 
-`qq-bot.notify {"id":"…","text":"…"}` 主动私聊 `owner-openid`，正文最多 600 字，同一个 id 只发一次，发不出去不重发；回执 `delivered` 为 true 才是发出去了。别的插件 inject 服务 `gwbQqBot` 调 `notify`。
+`qq-bot.notify {"id":"…","text":"…"}` 主动私聊 `owner-openid`，正文最多 600 字，同一个 id 只发一次，发不出去不重发；回执 `delivered` 为 true 才是发出去了。插件里经服务 `gwbQqBot` 调 `notify`，见说明书 `qq-bot-plugin-api`。

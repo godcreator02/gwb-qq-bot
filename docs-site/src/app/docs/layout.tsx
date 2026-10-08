@@ -1,11 +1,11 @@
 /**
  * 各个区合成一棵侧栏树：每个区一个 root: true 的根节点（侧栏分区），URL 仍按区分前缀，路由各用各的 loader。
  * base-ui 版的 Root 只有一个 fallback 槽，多棵树切换不稳定，所以用根节点分区。
- * 轨迹卡页（src/app/(trajectory-cards)/trajectory/layout.tsx）、src/app/future/layout.tsx 与 src/app/for-plugins/layout.tsx
+ * 轨迹卡页（src/app/(trajectory-cards)/trajectory/layout.tsx）与 src/app/future/layout.tsx
  * 直接用这一份，各区的页共用同一个侧栏；
  * 整页星轨盘在另一个路由组里，不用侧栏。
  */
-import { source, sourceForPlugins, sourceFuture, sourceTrajectory } from '@/lib/source';
+import { source, sourceFuture, sourceTrajectory } from '@/lib/source';
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout.shared';
 import type { Node, Root } from 'fumadocs-core/page-tree';
@@ -25,7 +25,6 @@ export default function Layout({ children }: { children: ReactNode }) {
     name: 'gwb-qq-bot',
     children: [
       zone('docs', '现状', source.getPageTree()),
-      zone('for-plugins', '给插件作者', sourceForPlugins.getPageTree()),
       zone('trajectory', '轨迹', sourceTrajectory.getPageTree()),
       zone('future', '未来', sourceFuture.getPageTree()),
     ],

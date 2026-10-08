@@ -2,7 +2,7 @@
 /**
  * 「一条消息分到哪」：选一种情况，左边是手机上发的那条（第一段标出来）和机器人回的话，右边是五道检查，
  * 高亮它依次经过的检查、每一道的回答和最后落在哪个结论上。讲解文字与数据都在 message-routing.data.mjs，
- * 情况胶囊与每种情况的说明由 CasePicker 显示；机读版由 message-routing.ai.mjs 读同一份数据生成。
+ * 情况胶囊与每种情况的说明由 CasePicker 显示。
  */
 import { CasePicker, Pane, Pill } from '@godcreator/docfirst-explainer';
 import type { Tone } from '@godcreator/docfirst-explainer';

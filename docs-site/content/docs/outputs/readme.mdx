@@ -9,7 +9,7 @@ description: 仓根 README.md 的正本
 收私聊消息，按斜杠命令分到任务组，交给组的执行端（ZCode 或 Claude Code），agent 做完调 `qq-bot.report`，结果发回原私聊。
 按发言者 openid 白名单决定谁能派任务，按任务组决定在哪个目录、交给哪个执行端。服务 `gwbQqBot` 给别的插件主动私聊主人、注册任务组与直接命令。
 每个人在自己的 home 里配自己的机器人，不处理群聊。
-配置步骤、QQ 里的指令、官方接口的限制，都在随包说明书 `plugins/qq-bot/skills/qq-bot/SKILL.md`。
+配置步骤、QQ 里的指令、官方接口的限制，都在随包说明书 `plugins/qq-bot/skills/qq-bot/SKILL.md`；别的插件怎么经服务 `gwbQqBot` 用它，在 `plugins/qq-bot/skills/qq-bot-plugin-api/SKILL.md`。
 
 仓是 pnpm workspace：**仓根是一个不发布的 private 包，自己没有代码**（`pnpm build` / `pnpm check`
 都递归到各成员包），插件放在 `plugins/qq-bot/`。包发到插件包 `package.json` 里 `publishConfig.registry` 写的源，装进 home。

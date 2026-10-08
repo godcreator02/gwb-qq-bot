@@ -1,5 +1,5 @@
 /**
- * 「注册跟着两边的启停走」的全部讲解数据：画面（registration-life.tsx）与机读规则（registration-life.ai.mjs）都只读这一份。
+ * 「注册跟着两边的启停走」的全部讲解数据：画面（registration-life.tsx）读这一份；生成物里只写结论，在 registration-life.ai.mjs。
  * 例子是协作站给一个项目注册任务组 /mmc；协作站用 ctx.inject(['gwbQqBot'], …) 可有可无地接服务，注册写在那个作用域的 effect 里。
  */
 
