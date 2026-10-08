@@ -22,7 +22,7 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 ## 配置（设置的 qq-bot 分区）
 
 1. 在 QQ 开放平台（q.qq.com）创建机器人，拿 AppID 与 AppSecret；新版后台在「开发设置 → 开发体验号码」添加自己的 QQ
-2. 填 `app-id`、`app-secret`（secret 走凭据保管，不经会话）；`sandbox` 保持 false（true 只兼容旧沙箱接口）
+2. 填 `app-id`、`app-secret`（secret 由凭据保管，不经会话）；`sandbox` 保持 false（true 只兼容旧沙箱接口）
 3. `default-workspace` 填主人私聊默认组的工作区（绝对路径）；`idle-hours` 是任务组空闲多少小时后下一条开新会话，缺省 6
 4. 调 `qq-bot.reconnect` 连接
 5. 手机 QQ 给机器人发一条私聊 → `qq-bot.status` 的 `recentRejected` 里出现你的 openid → 填进 `allowed-openids`，同一个填进 `owner-openid`（openid 每个机器人各不相同，不是 QQ 号；白名单改了即时生效）
@@ -71,6 +71,7 @@ ctx.effect(() => ctx.gwbQqBot.registerCommand({ command: '/血糖', description:
 ```
 
 - 命令名不合规则、重名、`workspace` 不是已存在目录的绝对路径都抛异常；不检查执行端装没装，派任务时没装就把原因回给私聊
+- 注册之前要先校验收到的命令名（比如让人起的命令），调 `ctx.gwbQqBot.commandNameProblem(command)`：不合规则回原因，合规回 `null`，不查重名；不自己抄一份规则
 - QQ 没连上时也能注册
 - 直接命令不排队、不开会话：`handle` 交回的文字按被动回复发回，抛错时回「指令 /xxx 出错：原话」
 

@@ -26,7 +26,7 @@ full: true
 命令登记的组存在聊天表、不放进设置：设置项只支持字符串、数字、布尔与字符串列表，存不下一个组的几个字段，见[组登记存聊天表](/trajectory/2026-10-08-own-groups-in-chat-table)。
 一个组的定义（命令登记与插件注册同一个形状；默认组没有命令，其余字段来自绑定）：
 
-{/* ref file="../plugins/qq-bot/src/api.ts" lines="25-41" hash="1c084a0898e7" blob="aa8532784480" */}
+{/* ref file="../plugins/qq-bot/src/api.ts" lines="30-46" hash="1c084a0898e7" blob="57a540937d16" */}
 
 派任务时按组名找定义：默认组按这个私聊的绑定算，别的组先找命令登记的、再找插件注册的；两处都有同一个命令就是重名，派不出去；派到一半组被撤掉了，这条回「已经撤掉」、不派出：
 
@@ -42,6 +42,10 @@ full: true
 {/* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="4-10" hash="caa7229e4233" blob="4ba17a7cf705" */}
 
 {/* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="72-81" hash="c35789eb79e8" blob="4ba17a7cf705" */}
+
+规则只有这一份：两个注册方法校验命令名调它，服务方法 `commandNameProblem` 也原样转给它。下游插件要在注册之前先校验收到的命令名（比如人给项目起的 QQ 命令），就调这个服务方法，不自己抄一份规则。它是服务方法、包里不导出这个函数，见[命令名规则做成服务方法](/trajectory/2026-10-08-command-name-rule-as-service-method)：
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="144-146" hash="d78a97ecf1fc" blob="030d7ded07d1" */}
 
 命令以工作台里注册的为准，`/帮助` 按此刻注册的现算；QQ 的「/」面板只能在管理端手动配置，qq-bot 不同步它，见[不同步「/」面板](/trajectory/2026-10-08-qq-command-panel-not-synced)。
 
@@ -96,7 +100,7 @@ full: true
 
 插件注册命令名、一句说明和一个处理函数。处理函数拿到命令后面的正文和发消息的人的 openid，交回一段文字，按被动回复发回；不进队列、不开会话、不派给 agent。处理函数抛错时回「指令 /xxx 出错：原话」：
 
-{/* ref file="../plugins/qq-bot/src/api.ts" lines="43-57" hash="440c98fbc26b" blob="aa8532784480" */}
+{/* ref file="../plugins/qq-bot/src/api.ts" lines="48-62" hash="440c98fbc26b" blob="57a540937d16" */}
 
 {/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="363-373" hash="a19f40dfca01" blob="34552a9a6bf9" */}
 
@@ -110,9 +114,9 @@ full: true
 
 注册方的插件包名从调用方的上下文里取，`qq-bot.group.list` 里标出来；取不到就不写。插件在聊天表读回之前注册了和命令登记的组同名的命令时，注册当下查不出重名：连上时日志记一行，派到这个命令的消息回重名、不派出：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="143-147" hash="546b78ce018c" blob="3a0b4b162ed1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="148-152" hash="546b78ce018c" blob="030d7ded07d1" */}
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="121-121" hash="38256210d620" blob="3a0b4b162ed1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="122-122" hash="38256210d620" blob="030d7ded07d1" */}
 
 ## 命令
 
@@ -140,7 +144,7 @@ qq-bot 自己定两件事：`start` 开一轮、交回会话号；`check` 问一
 
 {/* ref file="../plugins/qq-bot/src/dispatch/executors/executor.ts" lines="5-17" hash="9a1b60d04dec" blob="2914407123d2" */}
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="84-85" hash="a61a9dfa9f35" blob="3a0b4b162ed1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="85-86" hash="a61a9dfa9f35" blob="030d7ded07d1" */}
 
 ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来（只取回答末尾 600 字，ZCode 的回答里混着工具调用记录）；Claude Code 那份翻译 `sessionId`、`status`、`text`：
 

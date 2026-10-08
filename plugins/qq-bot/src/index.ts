@@ -13,6 +13,7 @@ import { PluginCommandRegistry, type RegistrationContext } from './dispatch/comm
 import { claudecodeExecutor } from './dispatch/executors/claudecode.js'
 import { ExecutorTable } from './dispatch/executors/executor.js'
 import { zcodeExecutor } from './dispatch/executors/zcode.js'
+import { commandNameProblem } from './dispatch/routing.js'
 import { QqGateway } from './qq/qq-gateway.js'
 import { QqRestClient } from './qq/qq-rest.js'
 import { Rounds } from './rounds.js'
@@ -138,6 +139,10 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
 
   registerCommand(definition: DirectCommandDefinition): () => void {
     return this.registry.registerCommand(definition, this.registrationContext())
+  }
+
+  commandNameProblem(command: string): string | null {
+    return commandNameProblem(command)
   }
 
   /** 这里的 `this.ctx` 是调用方的：取它的插件包名（`fiber.entry` 是 loader 加上的，不在 cordis 的类型里，按运行时形状取），取不到就不写 */

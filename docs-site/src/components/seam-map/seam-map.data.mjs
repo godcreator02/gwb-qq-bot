@@ -197,16 +197,16 @@ const seams = [
     via: 'code',
     text: 'agent 做完自己调。命令由装配注册、转给派任务：本轮编号只用来对上是哪一轮，不当凭证；回执先交回，发回 QQ 在后台做。',
   },
-  /* ref file="../plugins/qq-bot/src/api.ts" lines="5-23" hash="d0251555e9ca" blob="aa8532784480" */
+  /* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="0216ac5808a4" blob="57a540937d16" */
   {
     n: 8,
     name: '下游插件',
     a: ['ds-register', 'ds-notify'],
     b: ['service'],
-    iface: 'inject gwbQqBot：notify(id, text) · registerTaskGroup(definition) · registerCommand(definition)',
+    iface: 'inject gwbQqBot：notify(id, text) · registerTaskGroup(definition) · registerCommand(definition) · commandNameProblem(command)',
     convention: false,
     via: 'code',
-    text: '服务 gwbQqBot 的三个方法就是给别的插件的全部接口。两个注册方法交回撤掉注册的函数，调用方包在 ctx.effect 里，插件卸载或重载时自动撤掉；参数不合规则当场抛异常。',
+    text: '服务 gwbQqBot 的四个方法就是给别的插件的全部接口。两个注册方法交回撤掉注册的函数，调用方包在 ctx.effect 里，插件卸载或重载时自动撤掉；参数不合规则当场抛异常。commandNameProblem 让调用方在注册之前按同一条规则校验命令名。',
   },
   /* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="68-82" hash="98be07ab119c" blob="eb57224d1c72" */
   {
@@ -241,7 +241,7 @@ const seams = [
     via: 'code',
     text: '派任务读写私聊行与命令登记的组，通知读写去重记录，连接与收发记近期消息 id 和被动回复用掉的次数。所有改表的操作经同一条串行队列；调执行端、发 QQ 消息在队列外面做，一个组慢不会卡住别的组。',
   },
-  /* ref file="../plugins/qq-bot/src/index.ts" lines="103-103" hash="3f4db5b01f24" blob="3a0b4b162ed1" */
+  /* ref file="../plugins/qq-bot/src/index.ts" lines="104-104" hash="3f4db5b01f24" blob="030d7ded07d1" */
   {
     n: 12,
     name: '存盘',

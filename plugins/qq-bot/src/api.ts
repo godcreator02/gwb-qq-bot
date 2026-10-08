@@ -20,6 +20,11 @@ export interface GwbQqBotApi {
    * handle 抛错时把「指令 <command> 出错：<原话>」回给私聊。交回撤掉注册的函数，写法同 registerTaskGroup；命令名规则与重名同样抛异常
    */
   registerCommand(definition: DirectCommandDefinition): () => void
+  /**
+   * 命令名不合规则时回原因，合规回 null；和两个注册方法用的是同一条规则（见 TaskGroupDefinition.command），不查重名。
+   * 给调用方在注册之前先校验自己收到的命令名，规则不用自己抄一份
+   */
+  commandNameProblem(command: string): string | null
 }
 
 export interface TaskGroupDefinition {

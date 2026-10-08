@@ -18,11 +18,11 @@ full: true
 
 **1 QQ 推私聊**：QQ 开放平台 → 网关。插件保持一条出站 WebSocket 长连接，订阅单聊事件所在的那一位；群事件也会跟着到，只记事件类型。连接、心跳、重连、去重都在[连接与收发](/docs/qq)。
 
-**2 入站与白名单**：网关把解析好的私聊消息交给装配，装配先用连接与收发里的白名单过一道，名单外的静默拒绝，通过的才交给派任务。三块之间的这个顺序写在接线里，三块自己互不 import：
+**2 入站与白名单**：网关把解析好的私聊消息交给装配，装配先用连接与收发里的白名单过一道，名单外的静默拒绝，通过的才交给派任务。三块之间的这个顺序写在装配里，三块自己互不 import：
 
 {/* ref file="../plugins/qq-bot/src/rounds.ts" lines="48-52" hash="80acb3401eab" blob="c2b4c0d08570" */}
 
-**3 交给派任务与通知**：连上机器人时，接线建出派任务与通知两块，把聊天表、执行端表、插件注册表、读设置的函数和发消息的函数传进去。改了任何一块的构造参数，只动这里：
+**3 交给派任务与通知**：连上机器人时，装配建出派任务与通知两块，把聊天表、执行端表、插件注册表、读设置的函数和发消息的函数传进去。改了任何一块的构造参数，只动这里：
 
 {/* ref file="../plugins/qq-bot/src/rounds.ts" lines="37-46" hash="98236e2c2f37" blob="c2b4c0d08570" */}
 
@@ -34,9 +34,9 @@ full: true
 
 **7 回报**：agent 做完自己经 gwb MCP 入口调 `qq-bot.report {round, text}`。本轮编号只用来对上是哪一轮，不当凭证。
 
-**8 下游插件**：别的插件 inject `gwbQqBot`。三个方法就是给它们的全部接口——`notify` 主动私聊主人，`registerTaskGroup` / `registerCommand` 注册任务组与直接命令：
+**8 下游插件**：别的插件 inject `gwbQqBot`。四个方法就是给它们的全部接口——`notify` 主动私聊主人，`registerTaskGroup` / `registerCommand` 注册任务组与直接命令，`commandNameProblem` 在注册之前按同一条规则校验命令名：
 
-{/* ref file="../plugins/qq-bot/src/api.ts" lines="5-23" hash="d0251555e9ca" blob="aa8532784480" */}
+{/* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="0216ac5808a4" blob="57a540937d16" */}
 
 **9 注册表在服务上**：插件注册的组与直接命令存在服务对象上，没配 AppID 时照样能注册，换机器人重连也不丢。
 
@@ -46,7 +46,7 @@ full: true
 
 **12 存盘**：整份表按 AppID 存成一份 gwb-data 文档，换机器人就是另一份：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="103-103" hash="3f4db5b01f24" blob="3a0b4b162ed1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="104-104" hash="3f4db5b01f24" blob="030d7ded07d1" */}
 
 ## 各块对外能做什么
 
@@ -77,7 +77,7 @@ full: true
 
 前三项改完要 `qq-bot.reconnect`；其余每次用到时现读，改完即时生效：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="25-33" hash="6194f1a6627b" blob="3a0b4b162ed1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="26-34" hash="6194f1a6627b" blob="030d7ded07d1" */}
 
 ## 依赖
 
@@ -90,7 +90,7 @@ full: true
 | `cordis` | peer | 服务基类 `Service` | — |
 | QQ 开放平台 | 外部服务 | WebSocket 收事件，REST 发消息 | 连不上时网关退避重连 |
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="45-45" hash="f3e25754b611" blob="3a0b4b162ed1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="46-46" hash="f3e25754b611" blob="030d7ded07d1" */}
 
 下游插件（协作站、gitea-issues）依赖 qq-bot，qq-bot 不依赖它们：依赖只有它们 → qq-bot 一个方向，反过来写 peer 会成环、发版被拒。
 
