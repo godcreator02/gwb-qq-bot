@@ -93,7 +93,7 @@ access token 提前 2 分钟刷新，几个请求同时要时共用一次换取�
 
 {/* ref file="../plugins/qq-bot/src/index.ts" lines="79-86" hash="70a35eead6bb" blob="81cfa322bfe9" */}
 
-**出错**：「面板操作进行中」（40030009）隔 5 秒重试一次；别的错误、或重试还是进行中，都不再重试，原话记进 `panel.error` 与日志，等下次变化或重连再同步：
+**出错**：「面板操作进行中」（40030009）隔 5 秒重试一次；别的错误、或重试还是进行中，都不再重试，原话记进 `panel.error` 与日志，等下次变化或重连再同步。回执形状不对时报错里带上回执原文的 JSON（最多 500 字，面板接口的回执里没有凭据），对着它核对官方字段：
 
 {/* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="236-264" hash="cf54cc17ce52" blob="a061ff8fbfd0" */}
 

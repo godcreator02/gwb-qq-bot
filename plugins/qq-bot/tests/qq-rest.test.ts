@@ -88,7 +88,25 @@ describe('QQ 官方 REST 请求', () => {
     const rest = new QqRestClient(() => 'app', () => 'secret', () => false, log)
     await expect(rest.updatePanel('p1', { items: [], remark: '' })).rejects.toMatchObject({ code: 40030009, message: 'PUT /v2/panels/p1 失败：HTTP 400 40030009 指令面板操作进行中' })
     await expect(rest.updatePanel('p1', { items: [], remark: '' })).rejects.toBeInstanceOf(QqApiError)
-    await expect(rest.listC2cPanels('')).rejects.toThrow('回执形状不对')
+    await expect(rest.listC2cPanels('')).rejects.toThrow('GET /v2/panels?scope=c2c&limit=50 回执形状不对：{"records":"oops"}')
+  })
+
+  it('指令面板回执形状不对时报错带上回执原文，超过 500 字截短', async () => {
+    const replies: Record<string, unknown> = {
+      'GET /v2/panels?scope=c2c&limit=50': { data: [], long: 'x'.repeat(600) },
+      'POST /v2/panels': { id: 'p2' },
+      'GET /v2/panels/p1': { user_openids: 'u1' },
+    }
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith('/app/getAppAccessToken')) return Response.json({ access_token: 'test-token', expires_in: 7200 })
+      return Response.json(replies[`${init.method} ${url.replace('https://api.bot.qq.com', '')}`])
+    }))
+    const rest = new QqRestClient(() => 'app', () => 'secret', () => false, log)
+    const listError = await rest.listC2cPanels('').then(() => null, (error: unknown) => error as Error)
+    expect(listError?.message).toMatch(/^GET \/v2\/panels\?scope=c2c&limit=50 回执形状不对：\{"data":\[\],"long":"x+……（共 621 字，后面省略）$/)
+    expect(listError?.message.split('：')[1]?.indexOf('……')).toBe(500)
+    await expect(rest.createC2cPanel({ items: [], remark: '' }, ['u1'])).rejects.toThrow('POST /v2/panels 回执缺 panel_id：{"id":"p2"}')
+    await expect(rest.panelOpenids('p1')).rejects.toThrow('GET /v2/panels/p1 回执的 user_openids 形状不对：{"user_openids":"u1"}')
   })
 
   it('HTTP 200 里业务 err_code 非零也判失败', async () => {

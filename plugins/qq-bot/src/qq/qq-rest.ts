@@ -118,8 +118,9 @@ export class QqRestClient {
 
   async listC2cPanels(cursor: string): Promise<PanelPage> {
     const path = `/v2/panels?scope=${PANEL_SCOPE_C2C}&limit=${PANEL_PAGE_LIMIT}${cursor === '' ? '' : `&cursor=${encodeURIComponent(cursor)}`}`
-    const page = readPanelPage(await this.call('GET', path, undefined))
-    if (page === null) throw new Error(`GET ${path} 回执形状不对`)
+    const body = await this.call('GET', path, undefined)
+    const page = readPanelPage(body)
+    if (page === null) throw new Error(`GET ${path} 回执形状不对：${bodyExcerpt(body)}`)
     return page
   }
 
@@ -127,7 +128,7 @@ export class QqRestClient {
   async createC2cPanel(panel: PanelContent, openids: string[]): Promise<string> {
     const body = await this.call('POST', '/v2/panels', { scope: PANEL_SCOPE_C2C, target_type: PANEL_TARGET_SPECIFIC, user_openids: openids, panel })
     const panelId = isRecord(body) ? body['panel_id'] : undefined
-    if (typeof panelId !== 'string') throw new Error('POST /v2/panels 回执缺 panel_id')
+    if (typeof panelId !== 'string') throw new Error(`POST /v2/panels 回执缺 panel_id：${bodyExcerpt(body)}`)
     return panelId
   }
 
@@ -142,8 +143,9 @@ export class QqRestClient {
 
   async panelOpenids(panelId: string): Promise<string[]> {
     const path = `/v2/panels/${encodeURIComponent(panelId)}`
-    const openids = readPanelOpenids(await this.call('GET', path, undefined))
-    if (openids === null) throw new Error(`GET ${path} 回执的 user_openids 形状不对`)
+    const body = await this.call('GET', path, undefined)
+    const openids = readPanelOpenids(body)
+    if (openids === null) throw new Error(`GET ${path} 回执的 user_openids 形状不对：${bodyExcerpt(body)}`)
     return openids
   }
 
@@ -184,6 +186,14 @@ export class QqRestClient {
       : undefined
     return { ok: raw.ok && (code === undefined || code === 0), status: raw.status, code, message, body: parsed }
   }
+}
+
+/** 形状不对时报错里带的回执原文最多这么多字：面板接口的回执里没有凭据 */
+const BODY_EXCERPT_MAX_CHARS = 500
+
+function bodyExcerpt(body: unknown): string {
+  const text = JSON.stringify(body)
+  return text.length <= BODY_EXCERPT_MAX_CHARS ? text : `${text.slice(0, BODY_EXCERPT_MAX_CHARS)}……（共 ${text.length} 字，后面省略）`
 }
 
 /** 官方上限 50；一个机器人最多 20 个面板，一页就够 */
