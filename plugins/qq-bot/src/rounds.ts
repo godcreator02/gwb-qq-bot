@@ -83,6 +83,10 @@ export class Rounds {
     return this.chatRounds.conflictingCommands()
   }
 
+  panelCandidates(): ReturnType<ChatRounds['panelCandidates']> {
+    return this.chatRounds.panelCandidates()
+  }
+
   summary(): ReturnType<ChatRounds['summary']> {
     return this.chatRounds.summary()
   }

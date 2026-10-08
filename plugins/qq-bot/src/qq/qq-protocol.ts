@@ -54,3 +54,65 @@ export function readC2cMessageEvent(raw: unknown): IncomingMessage | null {
   if (typeof openid !== 'string') return null
   return { msgId, msgSeq, senderOpenid: openid, content }
 }
+
+/** 指令面板（/v2/panels）：只用单聊、指定用户、指令类条目 */
+export const PANEL_SCOPE_C2C = 'c2c'
+export const PANEL_TARGET_SPECIFIC = 'specific'
+export const PANEL_ITEM_COMMAND = 'command'
+/** 「指令面板操作进行中」：官方建议稍后重试 */
+export const PANEL_ERROR_BUSY = 40030009
+
+/** 面板里的一条；type 为 command 时点击后 name 填进输入框，不直接发送 */
+export interface PanelItem {
+  name: string
+  desc: string
+  type: string
+}
+
+export interface PanelRecord {
+  panelId: string
+  targetType: string
+  remark: string
+  items: PanelItem[]
+}
+
+export interface PanelPage {
+  records: PanelRecord[]
+  nextCursor: string
+  isEnd: boolean
+}
+
+/** name、desc、type 官方标为可选，缺了按空串比较 */
+function readPanelItem(raw: unknown): PanelItem | null {
+  if (!isRecord(raw)) return null
+  const name = raw['name'] ?? '', desc = raw['desc'] ?? '', type = raw['type'] ?? ''
+  if (typeof name !== 'string' || typeof desc !== 'string' || typeof type !== 'string') return null
+  return { name, desc, type }
+}
+
+function readPanelRecord(raw: unknown): PanelRecord | null {
+  if (!isRecord(raw) || !isRecord(raw['panel'])) return null
+  const panelId = raw['panel_id'], targetType = raw['target_type'], remark = raw['panel']['remark'] ?? '', rawItems = raw['panel']['items'] ?? []
+  if (typeof panelId !== 'string' || typeof targetType !== 'string' || typeof remark !== 'string' || !Array.isArray(rawItems)) return null
+  const items = rawItems.map(readPanelItem)
+  if (items.some((item) => item === null)) return null
+  return { panelId, targetType, remark, items: items as PanelItem[] }
+}
+
+/** GET /v2/panels 的回执；形状不对回 null，由调用方报错 */
+export function readPanelPage(raw: unknown): PanelPage | null {
+  if (!isRecord(raw) || !Array.isArray(raw['records'])) return null
+  const nextCursor = raw['next_cursor'] ?? '', isEnd = raw['is_end']
+  if (typeof nextCursor !== 'string' || typeof isEnd !== 'boolean') return null
+  const records = raw['records'].map(readPanelRecord)
+  if (records.some((record) => record === null)) return null
+  return { records: records as PanelRecord[], nextCursor, isEnd }
+}
+
+/** GET /v2/panels/{panel_id} 回执里的 user_openids；列表为空时官方可能不带这个字段 */
+export function readPanelOpenids(raw: unknown): string[] | null {
+  if (!isRecord(raw)) return null
+  const openids = raw['user_openids'] ?? []
+  if (!Array.isArray(openids) || !openids.every((openid) => typeof openid === 'string')) return null
+  return openids as string[]
+}

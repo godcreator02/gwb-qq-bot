@@ -141,7 +141,7 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '入站私聊过了白名单才进来；命令 qq-bot.bind、group.*、report、status 都经接线转到这里。QQ 没连上时没有接线，命令直接报错。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="145-159" hash="4ced5876b1e1" blob="52997d98cc3c" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="147-161" hash="4ced5876b1e1" blob="834b53b1bcf7" */
     {
       n: 2,
       name: '分发',
@@ -152,7 +152,7 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '分发规则全在 routing.ts，它只问一个问题：这一段是哪种已注册的命令（kindOf）。分到任务的，在收下消息的同一步里进那一组的队列；其余的当场回一句。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="105-112" hash="80f91ccbf8f6" blob="52997d98cc3c" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="107-114" hash="80f91ccbf8f6" blob="834b53b1bcf7" */
     {
       n: 3,
       name: '查命令',
@@ -163,7 +163,7 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '命令登记的组在聊天表里，插件注册的项在注册表里；两边都有同一个命令就是重名，派到它的消息回重名、不派出。登记新组时查两边。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="68-82" hash="98be07ab119c" blob="eb57224d1c72" */
+    /* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="69-85" hash="a91aa77baae8" blob="d23387c0f04a" */
     {
       n: 4,
       name: '插件注册',
@@ -172,7 +172,7 @@ export const dispatchGraph = defineSeamGraph({
       iface: 'registerTaskGroup(raw, { plugin, storedGroupCommands }) → () => void',
       convention: false,
       via: 'code',
-      text: '服务的两个注册方法原样转进来，带上调用方的插件包名（取不到就不写）和此刻命令登记的组的命令。QQ 还没连上时后者是空的，连上以后的重名在派任务时报出。',
+      text: '服务的两个注册方法原样转进来，带上调用方的插件包名（取不到就不写）和此刻命令登记的组的命令。QQ 还没连上时后者是空的，连上以后的重名在派任务时报出。注册、撤掉都通知 onChange 的监听者，插件入口据此排一次「/」指令面板的同步。',
     },
     /* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="29-53" hash="9ae281bdc22e" blob="eb57224d1c72" */
     {
@@ -219,7 +219,7 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '两个执行端的形状不同，翻译只在这一层：会话号是 taskId 或 sessionId；ZCode 的回答里混着工具调用记录，只取末尾 600 字。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="522-529" hash="dd9baa90ed01" blob="34552a9a6bf9" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="532-539" hash="dd9baa90ed01" blob="834b53b1bcf7" */
     {
       n: 9,
       name: '收发',

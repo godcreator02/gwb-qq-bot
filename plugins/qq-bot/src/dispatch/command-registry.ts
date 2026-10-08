@@ -64,13 +64,15 @@ function parseDirectCommandDefinition(raw: unknown): DirectCommandDefinition {
 export class PluginCommandRegistry {
   private readonly groups = new Map<string, PluginTaskGroup>()
   private readonly directCommands = new Map<string, PluginDirectCommand>()
+  private readonly changeListeners = new Set<() => void>()
 
   registerTaskGroup(raw: unknown, context: RegistrationContext): () => void {
     const entry: PluginTaskGroup = { definition: parseTaskGroupDefinition(raw, 'registerTaskGroup'), plugin: context.plugin }
     const command = entry.definition.command
     this.requireFree(command, context.storedGroupCommands)
     this.groups.set(command, entry)
-    return () => { if (this.groups.get(command) === entry) this.groups.delete(command) }
+    this.notifyChanged()
+    return () => { if (this.groups.get(command) === entry) { this.groups.delete(command); this.notifyChanged() } }
   }
 
   registerCommand(raw: unknown, context: RegistrationContext): () => void {
@@ -78,7 +80,18 @@ export class PluginCommandRegistry {
     const command = entry.definition.command
     this.requireFree(command, context.storedGroupCommands)
     this.directCommands.set(command, entry)
-    return () => { if (this.directCommands.get(command) === entry) this.directCommands.delete(command) }
+    this.notifyChanged()
+    return () => { if (this.directCommands.get(command) === entry) { this.directCommands.delete(command); this.notifyChanged() } }
+  }
+
+  /** 注册或撤掉一项后调 listener；回取消订阅的函数 */
+  onChange(listener: () => void): () => void {
+    this.changeListeners.add(listener)
+    return () => { this.changeListeners.delete(listener) }
+  }
+
+  private notifyChanged(): void {
+    for (const listener of this.changeListeners) listener()
   }
 
   /** 命令已经被占用就报错，写明被谁占着；保留命令在 commandNameProblem 里已经拒过 */

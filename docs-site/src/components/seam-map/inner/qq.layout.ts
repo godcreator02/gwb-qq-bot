@@ -1,8 +1,8 @@
 /**
  * 连接与收发内部接缝图（qq.data.mjs）的坐标与图标。目录外的调用方在最上一行，各自对着它调的那个文件；
- * 中间两行是目录里的文件，协议与选路在它们的使用者下面；QQ 开放平台与聊天表在最下。
+ * 中间两行是目录里的文件，协议与选路在它们的使用者下面，指令面板在选路下面；QQ 开放平台与聊天表在最下。
  */
-import { Cable, Cloud, Database, FileCode, Filter, Globe, Megaphone, Radio, Route, Send, Server, Workflow } from 'lucide-react';
+import { Cable, Cloud, Database, FileCode, Filter, Globe, Megaphone, Radio, Route, Send, Server, SquareSlash, Workflow } from 'lucide-react';
 import { cap } from '@godcreator/docfirst-explainer';
 import type { SeamLayout } from '@godcreator/docfirst-explainer';
 
@@ -27,6 +27,8 @@ export const qqLayout: SeamLayout = {
     'proto-parse': cap(54, 358, 142),
     'proto-intents': cap(54, 416, 142),
     'win-route': cap(614, 358, 232),
+    'panel-sync': cap(614, 468, 232),
+    'panel-plan': cap(614, 526, 232),
 
     'q-ws': cap(150, 588, 200),
     'q-api': cap(370, 588, 196),
@@ -43,6 +45,7 @@ export const qqLayout: SeamLayout = {
     gate: { x: 880, y: 160, w: 340, h: 148 },
     proto: { x: 40, y: 330, w: 170, h: 148 },
     window: { x: 600, y: 330, w: 260, h: 90 },
+    panel: { x: 600, y: 440, w: 260, h: 148 },
     qqc: { x: 136, y: 560, w: 444, h: 88 },
     store: { x: 880, y: 560, w: 340, h: 88 },
   },
@@ -60,6 +63,8 @@ export const qqLayout: SeamLayout = {
     '10': { d: 'M450,96 V188', badge: [450, 140] },
     '11': { d: 'M450,352 V588', badge: [450, 470] },
     '12': { d: 'M1050,294 V588', badge: [1050, 450] },
+    '13': { d: 'M286,72 H310 V130 H590 V430 H730 V468', badge: [380, 130] },
+    '14': { d: 'M614,492 H545 V588', badge: [545, 545] },
   },
   entries: {},
   moduleIcons: {
@@ -71,6 +76,7 @@ export const qqLayout: SeamLayout = {
     rest: Globe,
     sender: Send,
     window: Route,
+    panel: SquareSlash,
     gate: Filter,
     proto: FileCode,
     qqc: Cloud,

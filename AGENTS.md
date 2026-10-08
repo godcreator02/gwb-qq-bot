@@ -25,8 +25,8 @@ agent 做完调 `qq-bot.report` 发回原私聊；服务 `gwbQqBot` 给别的插
 
 ## QQ 官方文档
 
-- 文档首页：https://bot.q.qq.com/wiki/ ；管理端（配机器人、白名单、指令）：https://q.qq.com
-- 指令与快捷菜单（只能在管理端手动配，没有接口）：https://bot.q.qq.com/wiki/#_9-1-2-指令配置
+- 文档首页：https://bot.q.qq.com/wiki/ ；管理端（配机器人、白名单）：https://q.qq.com
+- 指令面板（`src/qq/command-panel.ts` 自动同步）：总览 https://bot.q.qq.com/wiki/develop/api-v2/server-inter/menu-panel/ ；各接口在 https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/ 下的 `v2_panels.get.html`、`v2_panels.post.html`、`v2_panels_panel_id.get.html`、`v2_panels_panel_id.put.html`、`v2_panels_panel_id.delete.html`、`v2_panels_panel_id_target.put.html`
 - 获取 access token：https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html
 - WebSocket 网关：https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html
 - 消息收发规则（被动回复窗口、主动消息限额）：https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/overview.html

@@ -30,13 +30,13 @@ full: true
 
 派任务时按组名找定义：默认组按这个私聊的绑定算，别的组先找命令登记的、再找插件注册的；两处都有同一个命令就是重名，派不出去；派到一半组被撤掉了，这条回「已经撤掉」、不派出：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="82-88" hash="ad4d5caf6edb" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="84-90" hash="ad4d5caf6edb" blob="834b53b1bcf7" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="118-134" hash="d673f969fdbb" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="120-136" hash="d673f969fdbb" blob="834b53b1bcf7" */}
 
 ## 命令名
 
-命令以 `/` 开头、不含空白，去掉斜杠后汉字等非 ASCII 字符算 2、其余算 1，总长不超过 16，和 QQ 管理端指令名的上限一致，每个命令都放得进 QQ 的「/」面板。
+命令以 `/` 开头、不含空白，去掉斜杠后汉字等非 ASCII 字符算 2、其余算 1，总长不超过 16。QQ「/」指令面板的条目名含斜杠最长 14，更长的命令照常能用，只是不进面板，这条规则不因面板改变。
 `/帮助`、`/状态`、`/新会话` 是保留命令，谁都不能注册；和已有的任何命令重名（不论对方是哪种来源）直接报错，不覆盖、不自动改名。去掉斜杠就是组名，`/新会话 <组名>` 用它：
 
 {/* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="4-10" hash="caa7229e4233" blob="4ba17a7cf705" */}
@@ -45,9 +45,11 @@ full: true
 
 规则只有这一份：两个注册方法校验命令名调它，服务方法 `commandNameProblem` 也原样转给它。下游插件要在注册之前先校验收到的命令名（比如人给项目起的 QQ 命令），就调这个服务方法，不自己抄一份规则。它是服务方法、包里不导出这个函数，见[命令名规则做成服务方法](/trajectory/2026-10-08-command-name-rule-as-service-method)：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="144-146" hash="d78a97ecf1fc" blob="030d7ded07d1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="162-164" hash="d78a97ecf1fc" blob="81cfa322bfe9" */}
 
-命令以工作台里注册的为准，`/帮助` 按此刻注册的现算；QQ 的「/」面板只能在管理端手动配置，qq-bot 不同步它，见[不同步「/」面板](/trajectory/2026-10-08-qq-command-panel-not-synced)。
+命令以工作台里注册的为准，`/帮助` 按此刻注册的现算。手机私聊里打「/」弹出的指令面板也跟着它自动同步：放哪些、什么顺序由这里算——任务组（命令登记的在前，称呼作说明）、直接命令（它的说明）、`/新会话`、`/状态`、`/帮助`，默认组没有命令不进面板；官方的上限与接口调用在[连接与收发](/docs/qq)。见[自动同步「/」面板](/trajectory/2026-10-08-qq-command-panel-auto-sync)：
+
+{/* ref file="../plugins/qq-bot/src/dispatch/panel-candidates.ts" hash="5a2fc6fecc3f" blob="30cb118987bb" */}
 
 ## 会话
 
@@ -62,11 +64,11 @@ full: true
 
 设置 `idle-hours` 不是正数时派任务报错、这条不派出，不替它改值。定了开新会话就当场清掉旧的：派出失败以后上一条任务的时间已经刷新，不清的话下一条会接回旧会话：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="214-238" hash="c4b94c679ae8" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="216-240" hash="c4b94c679ae8" blob="834b53b1bcf7" */}
 
 执行端没接着用交给它的会话、交回了另一个会话号，就算开了新会话，轮数从 1 数起。回执开头写组名，第二行是「会话 a1b2 · 第 3 轮」（会话号的末 4 位、这个会话的第几轮），手机上看得出是接着做还是新开的：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="273-276" hash="9a1d9ac5281c" blob="34552a9a6bf9" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="275-278" hash="9a1d9ac5281c" blob="834b53b1bcf7" */}
 
 旧会话不能从 QQ 回去接着做：它们在 ZCode 或 Claude Code 里还看得到，要接着做就在电脑上接。
 
@@ -80,19 +82,19 @@ full: true
 **提示词**：任务原文后面附三段：来源（QQ 私聊、发言人、任务组的称呼与工作区）、组的要求（组或绑定写了 `instructions` 才有，原样附上）、本轮回报说明。
 回报说明写的是 home 名，不写 MCP 服务名：每个 gwb MCP 服务的说明里都写着它连的是哪个 home，agent 照着选，两个 home 各自派出的任务不会报到另一个 home：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="279-294" hash="e6b1a3e4b0bb" blob="34552a9a6bf9" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="281-296" hash="e6b1a3e4b0bb" blob="834b53b1bcf7" */}
 
 **回报**：本轮编号只用来对上是哪一轮，不当凭证，在所有私聊的所有组里找。同一轮同一段话重交回 `duplicate`，已经结束的轮次交来不同的话拒绝，超过 2000 字拒绝；回执先交回，发回 QQ 与开下一轮在后台做，agent 不用等自己的回报发完：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="317-333" hash="d13e5c2bbbbe" blob="34552a9a6bf9" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="319-335" hash="d13e5c2bbbbe" blob="834b53b1bcf7" */}
 
 **收尾**：结果开头写「【组名 · 第 N 轮】」，引用派出这一轮的那条消息；被动、主动都发不出去，连同要引用的消息 id 和组名记进这个私聊的没送达，等人发 `/状态` 补发。收尾后接着开这一组排队的下一条：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="296-313" hash="140bfa501f7f" blob="34552a9a6bf9" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="298-315" hash="140bfa501f7f" blob="834b53b1bcf7" */}
 
 **懒检查**：没有后台轮询。这一组这一轮还没回报，而人发了 `/状态` 或又往这一组发了一条消息时，才经适配层的 `check` 问一次执行端；做完了却没回报，就按「执行端这一轮已经结束，没有收到回报」收尾，附上最后的回答末尾 600 字，再开下一轮：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="178-200" hash="5ddcd7de6203" blob="52997d98cc3c" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="180-202" hash="5ddcd7de6203" blob="834b53b1bcf7" */}
 
 **`/状态`**：有没送达的结果就只补发它们（被动回复用 `/状态` 这条的窗口，引用当初的任务）；没有就逐组报空闲，或在做第几轮、排队几条，在做的组做一次懒检查，最新回答只给末尾 300 字。
 
@@ -102,21 +104,21 @@ full: true
 
 {/* ref file="../plugins/qq-bot/src/api.ts" lines="48-62" hash="440c98fbc26b" blob="57a540937d16" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="363-373" hash="a19f40dfca01" blob="34552a9a6bf9" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="365-375" hash="a19f40dfca01" blob="834b53b1bcf7" */}
 
 ## 服务的两个注册方法
 
 `registerTaskGroup`、`registerCommand` 交回撤掉注册的函数，写法和 `gwbSkills.register` 一样：调用方包在 `ctx.effect` 里，插件卸载或重载时自动撤掉；撤掉旧注册不会撤掉之后同名的新注册。
 命令名不合规则、和已有命令重名、工作区不是已存在目录的绝对路径都当场抛异常；不检查执行端装没装，派任务时没装就把原因回给私聊。
-注册表放在服务上，QQ 还没连上时也能注册：
+注册表放在服务上，QQ 还没连上时也能注册；注册、撤掉都通知监听者（`onChange`），装配据此排一次「/」指令面板的同步：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="68-88" hash="d76ccca57788" blob="eb57224d1c72" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="69-101" hash="900616941b67" blob="d23387c0f04a" */}
 
 注册方的插件包名从调用方的上下文里取，`qq-bot.group.list` 里标出来；取不到就不写。插件在聊天表读回之前注册了和命令登记的组同名的命令时，注册当下查不出重名：连上时日志记一行，派到这个命令的消息回重名、不派出：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="148-152" hash="546b78ce018c" blob="030d7ded07d1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="166-170" hash="546b78ce018c" blob="81cfa322bfe9" */}
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="122-122" hash="38256210d620" blob="030d7ded07d1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="140-140" hash="38256210d620" blob="81cfa322bfe9" */}
 
 ## 命令
 
@@ -124,21 +126,21 @@ full: true
 | --- | --- | --- |
 | `qq-bot.bind` | `{chat, workspace, title, agent?, instructions?}` | 设一个私聊的默认组：已存在的目录、装着的执行端（缺省 zcode），`instructions` 原样附进提示词 |
 | `qq-bot.unbind` | `{chat}` | 解除默认组的绑定；主人私聊解绑后仍按设置 `default-workspace` 派出 |
-| `qq-bot.group.add` | `{command, title, workspace, agent, instructions?, idleHours?}` | 登记一个任务组，存在聊天表里；执行端此刻必须装着 |
+| `qq-bot.group.add` | `{command, title, workspace, agent, instructions?, idleHours?}` | 登记一个任务组，存在聊天表里；执行端此刻必须装着。登记、删掉后都排一次「/」指令面板的同步 |
 | `qq-bot.group.remove` | `{command}` | 只删命令登记的组；插件注册的报错并写明来源 |
 | `qq-bot.group.list` | 无 | 全部任务组（默认组按各私聊的绑定列）与直接命令，标明来源 |
 | `qq-bot.report` | `{round, text}` | 执行任务的 agent 交这一轮的结果 |
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="178-206" hash="5d1278602b3a" blob="030d7ded07d1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="196-232" hash="c447f90b6a27" blob="81cfa322bfe9" */}
 
 私聊在机器人收到它的第一条消息后才出现在 `qq-bot.status` 里，`bind` 用那里的 `id`（`c2c:<openid>`）。参数只收列出的键，多给、少给、空串都直接报错。
 绑定、改绑、解绑只看默认组：默认组还有在做或排队的任务时拒绝，别的组不受影响；改绑后默认组下一条开新会话：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="450-461" hash="f34ab6cbb5f7" blob="34552a9a6bf9" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="452-463" hash="f34ab6cbb5f7" blob="834b53b1bcf7" */}
 
 删任务组在它任何私聊里还有在做或排队的任务时拒绝，删掉后各私聊里这一组的状态一起删：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="485-503" hash="c1c4f8a0fcc9" blob="34552a9a6bf9" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="487-505" hash="c1c4f8a0fcc9" blob="834b53b1bcf7" */}
 
 ## 执行端适配层
 
@@ -146,7 +148,7 @@ qq-bot 自己定两件事：`start` 开一轮、交回会话号；`check` 问一
 
 {/* ref file="../plugins/qq-bot/src/dispatch/executors/executor.ts" lines="5-17" hash="9a1b60d04dec" blob="2914407123d2" */}
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="85-86" hash="a61a9dfa9f35" blob="030d7ded07d1" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="100-101" hash="a61a9dfa9f35" blob="81cfa322bfe9" */}
 
 ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来（只取回答末尾 600 字，ZCode 的回答里混着工具调用记录）；Claude Code 那份翻译 `sessionId`、`status`、`text`：
 
@@ -159,7 +161,7 @@ ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来
 ## 测试
 
 `tests/rounds.test.ts` 覆盖派出与回报、排队续会话、懒检查、派出失败、白名单、分发、任务组的登记与删除、两个组同时在做、`/新会话 组名`、空闲开新会话、直接命令、绑定、窗口外改主动消息、没送达补发、通知去重与重载、聊天表从第 1、2 版换成第 3 版；
-分发与命令名规则在 `tests/routing.test.ts`，会话选择在 `tests/group-session.test.ts`，注册表在 `tests/command-registry.test.ts`。
+分发与命令名规则在 `tests/routing.test.ts`，会话选择在 `tests/group-session.test.ts`，注册表在 `tests/command-registry.test.ts`，面板里放哪些命令在 `tests/command-panel.test.ts`。
 
 ## 不做的事
 

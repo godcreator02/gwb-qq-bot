@@ -82,7 +82,7 @@ export const notifyGraph = defineSeamGraph({
       via: 'code',
       text: '服务方法与命令是同一个契约：正文 1–600 字，id 由调用方定，同一件事用同一个 id。命令只收 id、text 两个键。',
     },
-    /* ref file="../plugins/qq-bot/src/rounds.ts" lines="90-92" hash="24080ace3971" blob="c2b4c0d08570" */
+    /* ref file="../plugins/qq-bot/src/rounds.ts" lines="94-96" hash="24080ace3971" blob="5d45b391b251" */
     {
       n: 2,
       name: '转给通知',

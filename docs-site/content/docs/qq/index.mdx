@@ -1,6 +1,6 @@
 ---
 title: 连接与收发 qq/
-description: 和 QQ 开放平台打交道的全部：网关长连接、access token、白名单与去重、按被动回复窗口选路、引用原消息、长回复分段。不认识任务组，也不知道通知的存在
+description: 和 QQ 开放平台打交道的全部：网关长连接、access token、白名单与去重、按被动回复窗口选路、引用原消息、长回复分段、单聊「/」指令面板的自动同步。不认识任务组，也不知道通知的存在
 full: true
 ---
 
@@ -71,6 +71,38 @@ access token 提前 2 分钟刷新，几个请求同时要时共用一次换取�
 
 测试在 `tests/qq-rest.test.ts`。
 
+### 指令面板：跟着注册的命令走
+
+手机 QQ 私聊里打「/」弹出的指令面板，由 `command-panel.ts` 经官方 `/v2/panels` 接口同步成此刻注册的命令。点面板里的一条指令只是把它填进输入框，人接着写任务再发，到达的是普通文本，分发照常认。
+
+**什么时候同步**：插件注册或撤掉任务组、直接命令，`qq-bot.group.add` / `remove` 登记或删掉组，连上 QQ（包括断线重连），都排一次同步。变化停下 2 秒才做，期间再变只重新计时；同一时刻只跑一次，跑着时又变了就跑完再排一次。插件卸载时它的注册已经经它自己的 `ctx.effect` 撤掉，这里只听注册表的变化：
+
+{/* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="188-196" hash="22fa6bdad028" blob="a061ff8fbfd0" */}
+
+**放什么**：顺序由派任务给（任务组 → 直接命令 → `/新会话`、`/状态`、`/帮助`，见 `dispatch/panel-candidates.ts`），这里只套官方上限：名字含斜杠超过 14（汉字算 2）的不进面板，说明超过 30 截短、末尾换成「…」，最多 20 条，排在后面的放不下。没放进去的连同原因列在 `qq-bot.status` 的 `panel.omitted` 里，日志记一行。命令名规则（去掉斜杠最长 16）不因面板改变：
+
+{/* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="8-22" hash="6aa583a14372" blob="a061ff8fbfd0" */}
+
+{/* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="54-72" hash="91f2fba84bca" blob="a061ff8fbfd0" */}
+
+**始终改同一个面板**：备注里写固定标记 `gwb-qq-bot 自动同步`（备注不对用户展示），`GET /v2/panels?scope=c2c` 按标记认出自己的面板。找不到就 `POST` 新建，白名单为空时不建；找到多个留列表里的第一个、其余删掉；条目没变不调 `PUT`。`PUT` 只覆盖条目与备注、不动能看到面板的用户，用户另经 `PUT /v2/panels/{panel_id}/target` 按差集增删：
+
+{/* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="104-136" hash="6160f942edf9" blob="a061ff8fbfd0" */}
+
+**给谁看**：`scope: "c2c"`、`target_type: "specific"`，用户是设置 `allowed-openids` 的前 20 个（建面板时官方单次最多 20 个），超出的列在 `panel.omittedTargets`。设置没有变化通知：每 30 秒在本地现算一次该有的面板，和上次同步时不同才排同步，不调接口。没配 AppID、还没连上时不同步，原因写在 `panel.notSyncing`：
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="79-86" hash="70a35eead6bb" blob="81cfa322bfe9" */}
+
+**出错**：「面板操作进行中」（40030009）隔 5 秒重试一次；别的错误、或重试还是进行中，都不再重试，原话记进 `panel.error` 与日志，等下次变化或重连再同步：
+
+{/* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="236-264" hash="cf54cc17ce52" blob="a061ff8fbfd0" */}
+
+qq-bot 自己卸载、断开都不删面板：每次重载都删了重建，会撞上建面板每分钟 10 次的限制。`qq-bot.status` 的 `panel` 字段：
+
+{/* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="153-169" hash="d86a6e7d61e2" blob="a061ff8fbfd0" */}
+
+测试在 `tests/command-panel.test.ts`（条目、按标记增删改、防抖、注册与撤掉、白名单变化、重试与报错），请求形状在 `tests/qq-rest.test.ts`。官方接口文档地址列在仓根 AGENTS.md。
+
 ## 接口
 
 这一块对外给的就是这些，调用方都在插件里：
@@ -78,7 +110,8 @@ access token 提前 2 分钟刷新，几个请求同时要时共用一次换取�
 | 导出 | 文件 | 谁用 |
 | --- | --- | --- |
 | `QqGateway`（`start` / `stop` / `currentState`，回调 `onMessage` / `onState`） | `qq-gateway.ts` | 装配建出、重连时停掉重开 |
-| `QqRestClient`（`sendC2c` / `getAccessToken` / `resetAuth` / `fetchGatewayUrl`） | `qq-rest.ts` | 装配建出；`sendC2c` 作为发消息的函数传给通知与回复 |
+| `QqRestClient`（`sendC2c` / `getAccessToken` / `resetAuth` / `fetchGatewayUrl`，指令面板的 `listC2cPanels` / `createC2cPanel` / `updatePanel` / `deletePanel` / `panelOpenids` / `changePanelTargets`）、`QqApiError` | `qq-rest.ts` | 装配建出；`sendC2c` 作为发消息的函数传给通知与回复；面板那几个交给 `CommandPanelSync` |
+| `CommandPanelSync`（`schedule` / `startWatching` / `status` / `dispose`）、`planPanelItems`、`PANEL_MAX_OPENIDS`、类型 `PanelCandidate` | `command-panel.ts` | 装配建出、排同步、给 `qq-bot.status`；派任务只用类型 `PanelCandidate` |
 | `AllowedSenderGate`、`intakeFirstDelivery` | `incoming-gate.ts` | 接线过白名单；派任务收下消息 |
 | `ReplySender`、类型 `SendC2c` | `reply-sender.ts` | 接线建出、交给派任务；通知只用类型 |
 | `chooseReplyRoute` | `reply-window.ts` | `ReplySender` |
@@ -88,10 +121,11 @@ access token 提前 2 分钟刷新，几个请求同时要时共用一次换取�
 
 ## 依赖
 
-QQ 开放平台（网关与 REST）；聊天表（近期消息 id、被动回复次数，都在串行队列里改）。不依赖 gwb 的任何服务：凭据与沙箱开关由装配经函数传进来，每次现读。
+QQ 开放平台（网关、发消息与指令面板的 REST 接口）；聊天表（近期消息 id、被动回复次数，都在串行队列里改）。不依赖 gwb 的任何服务：凭据与沙箱开关由装配经函数传进来，每次现读。
 
 ## 不做的事
 
 - **不处理群聊**：群事件只记事件类型，不解析、不回消息，见[只处理私聊](/trajectory/2026-10-07-private-chat-only)
 - **不重发**：被动发不出去只改发一次主动消息，再不行交给调用方记没送达
+- **不删指令面板**：qq-bot 卸载、断开时面板留着，下次连上接着改同一个，见[自动同步「/」面板](/trajectory/2026-10-08-qq-command-panel-auto-sync)
 - **不记原始载荷、不记凭据**：日志里只有事件类型与序号，access token 与 AppSecret 不进日志、不进命令回执

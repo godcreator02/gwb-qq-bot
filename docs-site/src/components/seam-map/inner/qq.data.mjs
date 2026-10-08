@@ -118,12 +118,24 @@ export const qqGraph = defineSeamGraph({
       ],
     },
     {
+      id: 'panel',
+      name: '指令面板',
+      pkg: 'command-panel.ts',
+      role: 'violet',
+      outside: false,
+      blurb: '手机私聊里「/」弹出的指令面板：注册表变化、连上 QQ 时排一次同步，停下 2 秒才做；按备注里的标记认出自己的面板，找不到新建、找到就改，多余的删掉；只给白名单前 20 个人看。卸载、断开都不删面板。',
+      caps: [
+        { id: 'panel-sync', name: '防抖同步', ident: 'CommandPanelSync.schedule' },
+        { id: 'panel-plan', name: '套官方上限', ident: 'planPanelItems' },
+      ],
+    },
+    {
       id: 'qqc',
       name: 'QQ 开放平台',
       pkg: '腾讯',
       role: null,
       outside: true,
-      blurb: '网关推事件，REST 发消息、换 access token。被动回复的窗口与次数是它定的。',
+      blurb: '网关推事件，REST 发消息、换 access token、增删改指令面板。被动回复的窗口与次数是它定的。',
       caps: [
         { id: 'q-ws', name: '网关', ident: 'WebSocket' },
         { id: 'q-api', name: 'REST 接口', ident: 'api.bot.qq.com' },
@@ -272,6 +284,28 @@ export const qqGraph = defineSeamGraph({
       convention: false,
       via: 'code',
       text: '近期消息 id 最多记 2000 条，被动回复次数最多记 500 条消息，超了丢最早的。次数先记进表、存盘，再发请求。',
+    },
+    /* ref file="../plugins/qq-bot/src/index.ts" lines="79-86" hash="70a35eead6bb" blob="81cfa322bfe9" */
+    {
+      n: 13,
+      name: '排同步',
+      a: ['w-index'],
+      b: ['panel-sync', 'panel-plan'],
+      iface: 'schedule() · desired() → { items, omitted, openids, omittedOpenids } | 不同步的原因',
+      convention: false,
+      via: 'code',
+      text: '插件入口在注册表变化、登记或删掉组、网关进入 open 时调 schedule；desired 现算此刻该有的面板，条目顺序由派任务给，planPanelItems 套官方上限。没配 AppID、没连上时回原因，不调接口。',
+    },
+    /* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="104-136" hash="6160f942edf9" blob="a061ff8fbfd0" */
+    {
+      n: 14,
+      name: '面板接口',
+      a: ['panel-sync'],
+      b: ['q-api'],
+      iface: 'GET /v2/panels?scope=c2c · POST /v2/panels · PUT /v2/panels/{panel_id} · PUT …/target · DELETE /v2/panels/{panel_id}',
+      convention: false,
+      via: 'code',
+      text: '经 QqRestClient 的面板方法调用，失败抛 QqApiError 带官方错误码。条目没变不调 PUT；面板操作进行中（40030009）隔 5 秒重试一次，别的错误原话记进 qq-bot.status 的 panel.error。',
     },
   ],
 });

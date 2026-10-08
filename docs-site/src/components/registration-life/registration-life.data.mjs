@@ -13,7 +13,7 @@
  * @type {{ title: string, text: string, plugin: PluginSide, service: ServiceSide, phone: PhoneSide }[]}
  */
 /* ref file="../plugins/qq-bot/src/api.ts" lines="1-4" hash="7a652ae12fa1" blob="57a540937d16" */
-/* ref file="../plugins/qq-bot/src/index.ts" lines="51-51" hash="dc80592374cb" blob="030d7ded07d1" */
+/* ref file="../plugins/qq-bot/src/index.ts" lines="52-52" hash="dc80592374cb" blob="81cfa322bfe9" */
 /* ref file="../plugins/qq-bot/tests/command-registry.test.ts" lines="22-29" hash="b6246f684acf" blob="d9eafac0905c" */
 /* ref file="../plugins/qq-bot/tests/rounds.test.ts" lines="306-315" hash="3a4c4ce33761" blob="b09fd4ef827c" */
 export const steps = [

@@ -4,6 +4,7 @@
  * 改聊天表都在 ChatTable.serial 里做；调执行端、发 QQ 消息、执行直接命令都在它外面做，一个组慢不会卡住别的组。
  */
 import { randomBytes } from 'node:crypto'
+import type { PanelCandidate } from '../qq/command-panel.js'
 import { intakeFirstDelivery } from '../qq/incoming-gate.js'
 import type { IncomingMessage, QqLog } from '../qq/qq-protocol.js'
 import type { ReplySender } from '../qq/reply-sender.js'
@@ -11,6 +12,7 @@ import { DEFAULT_GROUP_KEY, DEFAULT_GROUP_LABEL, type Binding, type Chat, type C
 import { onlyKeys, optionalText, requireExistingDirectory, requireText } from './command-args.js'
 import { parseTaskGroupDefinition, type PluginCommandRegistry } from './command-registry.js'
 import type { ExecutorTable } from './executors/executor.js'
+import { commandPanelCandidates } from './panel-candidates.js'
 import { chooseSession, resolveIdleHours, type SessionChoice } from './group-session.js'
 import { COMMAND_FRESH_SESSION, COMMAND_HELP, COMMAND_STATUS, groupNameOf, normalizeIncoming, routeMessage, tailExcerpt, type CommandKind, type RoutedMessage } from './routing.js'
 
@@ -515,6 +517,14 @@ export class ChatRounds {
       ],
       directCommands: this.deps.registry.allDirectCommands().map(({ definition, plugin }) => ({ command: definition.command, description: definition.description, source: 'plugin' as const, ...(plugin === undefined ? {} : { plugin }) })),
     }))
+  }
+
+  /** 单聊指令面板里该放的命令，按此刻登记与注册的现算 */
+  panelCandidates(): PanelCandidate[] {
+    return commandPanelCandidates(
+      [...this.table.book.groups, ...this.deps.registry.allGroups().map(({ definition }) => definition)],
+      this.deps.registry.allDirectCommands().map(({ definition }) => definition),
+    )
   }
 
   // ───── 投递 ─────

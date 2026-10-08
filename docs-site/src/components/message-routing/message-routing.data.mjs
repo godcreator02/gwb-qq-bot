@@ -49,7 +49,7 @@ export const checks = [
     ],
   },
   /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="57-60" hash="e44af8487631" blob="4ba17a7cf705" */
-  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="105-112" hash="80f91ccbf8f6" blob="52997d98cc3c" */
+  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="107-114" hash="80f91ccbf8f6" blob="834b53b1bcf7" */
   {
     id: 'registered',
     q: '第一段和哪个注册过的命令完全相同？',
@@ -77,10 +77,10 @@ export const checks = [
  * reply 是机器人回的话（… 表示省略的部分）
  * @type {{ id: string, label: string, message: string, path: [string, string][], result: string, reply: string, text: string }[]}
  */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="161-176" hash="1ab1cc4757c9" blob="52997d98cc3c" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="273-276" hash="9a1d9ac5281c" blob="34552a9a6bf9" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="114-116" hash="bc908f85b40a" blob="52997d98cc3c" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="427-427" hash="d4edb62861b5" blob="34552a9a6bf9" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="163-178" hash="1ab1cc4757c9" blob="834b53b1bcf7" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="275-278" hash="9a1d9ac5281c" blob="834b53b1bcf7" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="116-118" hash="bc908f85b40a" blob="834b53b1bcf7" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="429-429" hash="d4edb62861b5" blob="834b53b1bcf7" */
 /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="50-54" hash="ccfeea48248d" blob="4ba17a7cf705" */
 /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="61-61" hash="5e8ed20c9310" blob="4ba17a7cf705" */
 export const cases = [

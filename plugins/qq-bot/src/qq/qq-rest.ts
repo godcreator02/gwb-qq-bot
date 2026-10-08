@@ -1,6 +1,6 @@
-/** REST 侧：access token 的取用与刷新、发送消息、查网关地址。凭据与沙箱开关经函数每次现读，改设置后重连即生效 */
+/** REST 侧：access token 的取用与刷新、发送消息、查网关地址、指令面板的增删改查。凭据与沙箱开关经函数每次现读，改设置后重连即生效 */
 
-import { isRecord, type QqLog } from './qq-protocol.js'
+import { isRecord, PANEL_SCOPE_C2C, PANEL_TARGET_SPECIFIC, readPanelOpenids, readPanelPage, type PanelItem, type PanelPage, type QqLog } from './qq-protocol.js'
 
 /** 换 access token 的端点不分沙箱与正式环境 */
 const TOKEN_URL = 'https://api.bot.qq.com/app/getAppAccessToken'
@@ -116,6 +116,49 @@ export class QqRestClient {
     return { ok: true, id }
   }
 
+  async listC2cPanels(cursor: string): Promise<PanelPage> {
+    const path = `/v2/panels?scope=${PANEL_SCOPE_C2C}&limit=${PANEL_PAGE_LIMIT}${cursor === '' ? '' : `&cursor=${encodeURIComponent(cursor)}`}`
+    const page = readPanelPage(await this.call('GET', path, undefined))
+    if (page === null) throw new Error(`GET ${path} 回执形状不对`)
+    return page
+  }
+
+  /** 建一个只给指定用户看的单聊面板，回 panel_id */
+  async createC2cPanel(panel: PanelContent, openids: string[]): Promise<string> {
+    const body = await this.call('POST', '/v2/panels', { scope: PANEL_SCOPE_C2C, target_type: PANEL_TARGET_SPECIFIC, user_openids: openids, panel })
+    const panelId = isRecord(body) ? body['panel_id'] : undefined
+    if (typeof panelId !== 'string') throw new Error('POST /v2/panels 回执缺 panel_id')
+    return panelId
+  }
+
+  /** 整体覆盖条目与备注，不动关联的用户 */
+  async updatePanel(panelId: string, panel: PanelContent): Promise<void> {
+    await this.call('PUT', `/v2/panels/${encodeURIComponent(panelId)}`, { panel })
+  }
+
+  async deletePanel(panelId: string): Promise<void> {
+    await this.call('DELETE', `/v2/panels/${encodeURIComponent(panelId)}`, undefined)
+  }
+
+  async panelOpenids(panelId: string): Promise<string[]> {
+    const path = `/v2/panels/${encodeURIComponent(panelId)}`
+    const openids = readPanelOpenids(await this.call('GET', path, undefined))
+    if (openids === null) throw new Error(`GET ${path} 回执的 user_openids 形状不对`)
+    return openids
+  }
+
+  /** 官方单次最多 20 个 openid，调用方先分好批 */
+  async changePanelTargets(panelId: string, op: 'add' | 'del', openids: string[]): Promise<void> {
+    await this.call('PUT', `/v2/panels/${encodeURIComponent(panelId)}/target`, { op, user_openids: openids })
+  }
+
+  /** 失败抛 QqApiError，带官方错误码与原话 */
+  private async call(method: string, path: string, body: Record<string, unknown> | undefined): Promise<unknown> {
+    const response = await this.request(method, path, body)
+    if (!response.ok) throw new QqApiError(`${method} ${path.split('?')[0]}`, response.status, response.code, response.message)
+    return response.body
+  }
+
   private async getJson(path: string): Promise<unknown> {
     const response = await this.request('GET', path, undefined)
     if (!response.ok) throw new Error(`GET ${path} 失败：HTTP ${response.status} ${response.message}`)
@@ -140,5 +183,26 @@ export class QqRestClient {
       ? typeof parsed['err_code'] === 'number' ? parsed['err_code'] : typeof parsed['code'] === 'number' ? parsed['code'] : undefined
       : undefined
     return { ok: raw.ok && (code === undefined || code === 0), status: raw.status, code, message, body: parsed }
+  }
+}
+
+/** 官方上限 50；一个机器人最多 20 个面板，一页就够 */
+const PANEL_PAGE_LIMIT = 50
+
+/** 面板的内容：条目与备注 */
+export interface PanelContent {
+  items: PanelItem[]
+  remark: string
+}
+
+/** 官方接口回了失败：code 是官方错误码（err_code 或 code），message 是原话 */
+export class QqApiError extends Error {
+  constructor(
+    readonly endpoint: string,
+    readonly status: number,
+    readonly code: number | undefined,
+    readonly detail: string,
+  ) {
+    super(`${endpoint} 失败：HTTP ${status}${code === undefined ? '' : ` ${code}`} ${detail}`)
   }
 }

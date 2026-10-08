@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { QqRestClient } from '../src/qq/qq-rest.js'
+import { QqApiError, QqRestClient } from '../src/qq/qq-rest.js'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -46,6 +46,49 @@ describe('QQ 官方 REST 请求', () => {
     const rest = new QqRestClient(() => 'app', () => 'secret', () => false, log)
     expect(await rest.sendC2c('user', { content: 'hi', msgId: 'old', msgSeq: 1 }))
       .toMatchObject({ ok: false, code: 40034005, status: 400 })
+  })
+
+  it('指令面板接口：请求路径与请求体照官方文档，回执在入口校验形状', async () => {
+    const requests: { url: string; method: string; body: unknown }[] = []
+    const replies: Record<string, unknown> = {
+      'GET /v2/panels?scope=c2c&limit=50': { records: [{ panel_id: 'p1', scope: 'c2c', target_type: 'specific', panel: { items: [{ name: '/mmc', desc: '样机', type: 'command', only_admin: false, link: '' }], remark: 'gwb-qq-bot 自动同步', version: 1 }, version: 1 }], next_cursor: '', is_end: true },
+      'POST /v2/panels': { panel_id: 'p2' },
+      'GET /v2/panels/p1': { panel_id: 'p1', scope: 'c2c', target_type: 'specific', panel: {}, user_openids: ['u1'] },
+    }
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit) => {
+      if (url.endsWith('/app/getAppAccessToken')) return Response.json({ access_token: 'test-token', expires_in: 7200 })
+      const key = `${init.method} ${url.replace('https://api.bot.qq.com', '')}`
+      requests.push({ url: key, method: String(init.method), body: init.body === undefined ? undefined : JSON.parse(String(init.body)) })
+      return Response.json(replies[key] ?? {})
+    }))
+    const rest = new QqRestClient(() => 'app', () => 'secret', () => false, log)
+    const panel = { items: [{ name: '/mmc', desc: '样机', type: 'command' }], remark: 'gwb-qq-bot 自动同步' }
+    expect(await rest.listC2cPanels('')).toEqual({ records: [{ panelId: 'p1', targetType: 'specific', remark: 'gwb-qq-bot 自动同步', items: [{ name: '/mmc', desc: '样机', type: 'command' }] }], nextCursor: '', isEnd: true })
+    expect(await rest.createC2cPanel(panel, ['u1'])).toBe('p2')
+    await rest.updatePanel('p1', panel)
+    expect(await rest.panelOpenids('p1')).toEqual(['u1'])
+    await rest.changePanelTargets('p1', 'del', ['u1'])
+    await rest.deletePanel('p1')
+    expect(requests.map(({ url, body }) => [url, body])).toEqual([
+      ['GET /v2/panels?scope=c2c&limit=50', undefined],
+      ['POST /v2/panels', { scope: 'c2c', target_type: 'specific', user_openids: ['u1'], panel }],
+      ['PUT /v2/panels/p1', { panel }],
+      ['GET /v2/panels/p1', undefined],
+      ['PUT /v2/panels/p1/target', { op: 'del', user_openids: ['u1'] }],
+      ['DELETE /v2/panels/p1', undefined],
+    ])
+  })
+
+  it('指令面板接口失败抛 QqApiError，带官方错误码；回执形状不对报错', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/app/getAppAccessToken')) return Response.json({ access_token: 'test-token', expires_in: 7200 })
+      if (url.includes('/v2/panels?')) return Response.json({ records: 'oops' })
+      return Response.json({ code: 40030009, message: '指令面板操作进行中' }, { status: 400 })
+    }))
+    const rest = new QqRestClient(() => 'app', () => 'secret', () => false, log)
+    await expect(rest.updatePanel('p1', { items: [], remark: '' })).rejects.toMatchObject({ code: 40030009, message: 'PUT /v2/panels/p1 失败：HTTP 400 40030009 指令面板操作进行中' })
+    await expect(rest.updatePanel('p1', { items: [], remark: '' })).rejects.toBeInstanceOf(QqApiError)
+    await expect(rest.listC2cPanels('')).rejects.toThrow('回执形状不对')
   })
 
   it('HTTP 200 里业务 err_code 非零也判失败', async () => {

@@ -14,6 +14,7 @@ import { claudecodeExecutor } from './dispatch/executors/claudecode.js'
 import { ExecutorTable } from './dispatch/executors/executor.js'
 import { zcodeExecutor } from './dispatch/executors/zcode.js'
 import { commandNameProblem } from './dispatch/routing.js'
+import { CommandPanelSync, PANEL_MAX_OPENIDS, planPanelItems, type DesiredPanel } from './qq/command-panel.js'
 import { QqGateway } from './qq/qq-gateway.js'
 import { QqRestClient } from './qq/qq-rest.js'
 import { Rounds } from './rounds.js'
@@ -51,6 +52,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
   private readonly registry = new PluginCommandRegistry()
   private readonly rest: QqRestClient
   private readonly gateway: QqGateway
+  private readonly panel: CommandPanelSync
   /** 连上的那个机器人；入站与出站用同一份，改设置在 reconnect 时一起生效 */
   private active: { appId: string; secret: string; sandbox: boolean } = { appId: '', secret: '', sandbox: false }
   private rounds: Rounds | null = null
@@ -66,8 +68,21 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
         if (this.rounds === null) return
         void this.rounds.handleIncoming(message).catch((error: unknown) => log.error(`QQ 私聊消息处理失败：${String(error)}`))
       },
-      onState: (state, detail) => log.info(`QQ 网关状态：${state}${detail === undefined ? '' : `（${detail}）`}`),
+      onState: (state, detail) => {
+        log.info(`QQ 网关状态：${state}${detail === undefined ? '' : `（${detail}）`}`)
+        if (state === 'open') this.panel.schedule()
+      },
     })
+    this.panel = new CommandPanelSync({ endpoints: this.rest, desired: () => this.desiredPanel(), log })
+  }
+
+  /** 单聊指令面板此刻该有的样子：条目由派任务算出顺序，能看到面板的是白名单的前 20 个 */
+  private desiredPanel(): DesiredPanel | string {
+    if (readString(this.setting('app-id')) === '') return '机器人没配好（没有 AppID），不同步'
+    if (this.rounds === null) return 'QQ 还没连上，连上后同步'
+    const { items, omitted } = planPanelItems(this.rounds.panelCandidates())
+    const allowed = [...new Set(readStringList(this.setting('allowed-openids')))]
+    return { items, omitted, openids: allowed.slice(0, PANEL_MAX_OPENIDS), omittedOpenids: allowed.slice(PANEL_MAX_OPENIDS) }
   }
 
   private setting(key: string): unknown {
@@ -85,6 +100,9 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
     ctx.inject(['gwbZcode'], (scoped) => { scoped.effect(() => this.executors.register(zcodeExecutor(scoped.gwbZcode))) })
     ctx.inject(['gwbClaudecode'], (scoped) => { scoped.effect(() => this.executors.register(claudecodeExecutor(scoped.gwbClaudecode))) })
     this.registerCommands()
+    // 插件卸载时它的注册已经经它自己的 ctx.effect 撤掉，这里只听注册表的变化；白名单没有变化通知，靠定时在本地比对
+    ctx.effect(() => this.registry.onChange(() => this.panel.schedule()))
+    this.panel.startWatching()
     // 说明书在包根的 skills/，相对产物 dist/index.js 写作 '../skills/'；那个目录要在 package.json 的 files 里
     ctx.inject(['gwbSkills'], (scoped) => { scoped.effect(() => scoped.gwbSkills.register(new URL('../skills/', import.meta.url))) })
     ctx.effect(() => () => this.dispose())
@@ -156,12 +174,12 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
     if (commands === undefined) throw new Error('ctx.gwbCommands 不在：inject 里写了它，cordis 本不该调用到这里')
 
     commands.register(
-      { name: 'qq-bot.status', description: '读 QQ 通道状态：连接、各个私聊的绑定、每个任务组的会话、在做的一轮、排队与没送达的结果', effect: 'read',
-        usage: '无参数。回 { gateway, appIdConfigured, appSecretSet, sandbox, executors, chats: [{ id, target, lastSeen, lastSender, binding, bindingFromDefault, groups: [{ group, title, workspace, agent, source, session, round, queued, lastTaskAt }], undelivered }], recentRejected }。只处理私聊，群里 @ 机器人不处理；chats 的 id 给 qq-bot.bind；私聊在机器人收到它的第一条消息后才出现。binding 是这个私聊默认组的绑定，为空的私聊直接发的文字派不出去。groups 列默认组（group 为「默认」）、全部任务组和已经撤掉但还记着状态的组：source 是 default / command（qq-bot.group.add 登记）/ plugin（插件注册），组撤掉或默认组没绑定时 title、workspace、agent、source 为 null；session 是 { agent, workspace, id, rounds }，round 是在做的一轮 { id, turn, agent, workspace, session }；undelivered 是没送达的结果条数' },
+      { name: 'qq-bot.status', description: '读 QQ 通道状态：连接、各个私聊的绑定、每个任务组的会话、在做的一轮、排队与没送达的结果、「/」指令面板的同步情况', effect: 'read',
+        usage: '无参数。回 { gateway, appIdConfigured, appSecretSet, sandbox, executors, chats: [{ id, target, lastSeen, lastSender, binding, bindingFromDefault, groups: [{ group, title, workspace, agent, source, session, round, queued, lastTaskAt }], undelivered }], recentRejected, panel }。只处理私聊，群里 @ 机器人不处理；chats 的 id 给 qq-bot.bind；私聊在机器人收到它的第一条消息后才出现。binding 是这个私聊默认组的绑定，为空的私聊直接发的文字派不出去。groups 列默认组（group 为「默认」）、全部任务组和已经撤掉但还记着状态的组：source 是 default / command（qq-bot.group.add 登记）/ plugin（插件注册），组撤掉或默认组没绑定时 title、workspace、agent、source 为 null；session 是 { agent, workspace, id, rounds }，round 是在做的一轮 { id, turn, agent, workspace, session }；undelivered 是没送达的结果条数。panel 是手机私聊里「/」指令面板的同步情况 { notSyncing, pending, panelId, syncedAt, items: [{ name, desc, type }], omitted: [{ command, reason }], targets, omittedTargets, error, errorAt }：notSyncing 是此刻不同步的原因（没配机器人、没连上），同步着是 null；pending 表示有一次同步排着或在做；items 是上次同步上去的条目，omitted 是没放进面板的命令与原因（名字超过 14、超过 20 条）；targets 是能看到面板的 openid（白名单前 20 个），omittedTargets 是超出的；error 是最近一次同步失败的原话，成功后清空' },
       async () => {
         const rounds = this.rounds
         const chats = rounds === null ? [] : await rounds.summary()
-        return { ok: true, data: { gateway: this.gateway.currentState, appIdConfigured: readString(this.setting('app-id')) !== '', appSecretSet: readString(this.setting('app-secret')) !== '', sandbox: this.setting('sandbox') === true, executors: this.executors.ids(), chats, recentRejected: rounds?.recentRejected ?? [] } }
+        return { ok: true, data: { gateway: this.gateway.currentState, appIdConfigured: readString(this.setting('app-id')) !== '', appSecretSet: readString(this.setting('app-secret')) !== '', sandbox: this.setting('sandbox') === true, executors: this.executors.ids(), chats, recentRejected: rounds?.recentRejected ?? [], panel: this.panel.status() } }
       },
     )
     commands.register(
@@ -187,12 +205,20 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
     commands.register(
       { name: 'qq-bot.group.add', description: '登记一个任务组：私聊里发「/命令 任务」，任务交给这个组的执行端在组的目录里做', effect: 'write',
         usage: '{ command: string, title: string, workspace: string, agent: "zcode" | "claudecode", instructions?: string, idleHours?: number }。command 以 / 开头、不含空白，去掉斜杠后汉字算 2、其余算 1，总长不超过 16；/帮助、/状态、/新会话 是保留命令；和已有的任何命令重名都拒绝。去掉斜杠就是组名（/新会话 <组名> 用）。title 是回执里叫它的名字；workspace 是已存在目录的绝对路径；agent 必须是装着的执行端；instructions 原样附在任务说明的「[任务组要求]」一段里；idleHours 是正数，空闲超过这么多小时下一条开新会话，不给就用设置 idle-hours。白名单里的每个私聊都能用，各记各的会话。存在聊天表里，要先连上 QQ。回登记下的组' },
-      async (raw) => ({ ok: true, data: await this.requireRounds().addGroup(raw) }),
+      async (raw) => {
+        const added = await this.requireRounds().addGroup(raw)
+        this.panel.schedule()
+        return { ok: true, data: added }
+      },
     )
     commands.register(
       { name: 'qq-bot.group.remove', description: '删掉一个用 qq-bot.group.add 登记的任务组', effect: 'write',
         usage: '{ command: string }。只删命令登记的组；插件注册的组由那个插件撤掉，这里报错并写明来源。这个组在任何私聊里还有在做或排队的任务时拒绝。回删掉的组' },
-      async (raw) => ({ ok: true, data: await this.requireRounds().removeGroup(raw) }),
+      async (raw) => {
+        const removed = await this.requireRounds().removeGroup(raw)
+        this.panel.schedule()
+        return { ok: true, data: removed }
+      },
     )
     commands.register(
       { name: 'qq-bot.group.list', description: '列出全部任务组与直接命令，标明来源', effect: 'read',
@@ -220,6 +246,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
 
   private async dispose(): Promise<void> {
     this.disposed = true
+    this.panel.dispose()
     this.gateway.stop()
     await this.rounds?.dispose()
   }

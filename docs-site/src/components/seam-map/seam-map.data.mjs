@@ -98,7 +98,7 @@ const modules = [
     pkg: 'src/qq/',
     role: 'blue',
     outside: false,
-    blurb: '和 QQ 开放平台打交道的全部：网关长连接、access token、白名单与按消息 id 去重、按被动回复窗口选路、引用原消息、长回复分段。不认识任务组，也不知道通知的存在。',
+    blurb: '和 QQ 开放平台打交道的全部：网关长连接、access token、白名单与按消息 id 去重、按被动回复窗口选路、引用原消息、长回复分段、把注册的命令同步进手机的「/」指令面板。不认识任务组，也不知道通知的存在。',
     caps: [
       { id: 'gate', name: '白名单与去重', ident: 'incoming-gate.ts' },
       { id: 'reply', name: '回复：被动或主动', ident: 'reply-sender.ts · reply-window.ts' },
@@ -112,7 +112,7 @@ const modules = [
     pkg: '腾讯',
     role: null,
     outside: true,
-    blurb: '官方机器人接口：WebSocket 网关推事件，REST 发消息。被动回复单聊 60 分钟、每条消息 4 次，过了只能发主动消息；指令面板只能在管理端手动配置。',
+    blurb: '官方机器人接口：WebSocket 网关推事件，REST 发消息、增删改单聊指令面板。被动回复单聊 60 分钟、每条消息 4 次，过了只能发主动消息。',
     caps: [
       { id: 'qqc-gw', name: '推私聊事件', ident: 'C2C_MESSAGE_CREATE' },
       { id: 'qqc-api', name: '收消息', ident: '/v2/users/{openid}/messages' },
@@ -208,7 +208,7 @@ const seams = [
     via: 'code',
     text: '服务 gwbQqBot 的四个方法就是给别的插件的全部接口。两个注册方法交回撤掉注册的函数，调用方包在 ctx.effect 里，插件卸载或重载时自动撤掉；参数不合规则当场抛异常。commandNameProblem 让调用方在注册之前按同一条规则校验命令名。',
   },
-  /* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="68-82" hash="98be07ab119c" blob="eb57224d1c72" */
+  /* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="69-85" hash="a91aa77baae8" blob="d23387c0f04a" */
   {
     n: 9,
     name: '注册表在服务上',
@@ -217,7 +217,7 @@ const seams = [
     iface: 'PluginCommandRegistry.registerTaskGroup / registerCommand(definition, { plugin, storedGroupCommands })',
     convention: false,
     via: 'code',
-    text: '插件注册的组与直接命令存在服务对象上，不在连上以后才有的对象上：没配 AppID 时照样能注册，换机器人重连也不丢。注册方的插件包名从调用方的上下文里取。',
+    text: '插件注册的组与直接命令存在服务对象上，不在连上以后才有的对象上：没配 AppID 时照样能注册，换机器人重连也不丢。注册方的插件包名从调用方的上下文里取。注册表一变，装配就排一次「/」指令面板的同步。',
   },
   /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="7-8" hash="b5bee59e08d3" blob="3e1dda368b15" */
   {
@@ -241,7 +241,7 @@ const seams = [
     via: 'code',
     text: '派任务读写私聊行与命令登记的组，通知读写去重记录，连接与收发记近期消息 id 和被动回复用掉的次数。所有改表的操作经同一条串行队列；调执行端、发 QQ 消息在队列外面做，一个组慢不会卡住别的组。',
   },
-  /* ref file="../plugins/qq-bot/src/index.ts" lines="104-104" hash="3f4db5b01f24" blob="030d7ded07d1" */
+  /* ref file="../plugins/qq-bot/src/index.ts" lines="122-122" hash="3f4db5b01f24" blob="81cfa322bfe9" */
   {
     n: 12,
     name: '存盘',
