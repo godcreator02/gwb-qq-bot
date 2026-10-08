@@ -5,9 +5,7 @@ description: 还有哪些事没做、各在等什么
 
 **本页回答**：还有哪些事没做、各在等什么。
 
-- **真机看一眼「/」指令面板是否弹出**：面板由 qq-bot 经官方接口自动同步，还没在真机上看过。在 default 上连着机器人时，手机 QQ 私聊里打「/」，看弹出的条目和 `qq-bot.status` 的 `panel.items` 对得上；在等主会话升级 default
-- **协作站按项目注册任务组**：在协作站仓里做——协作项目的配置加一项人自己起的「QQ 命令」，填了的项目经 `gwbQqBot.registerTaskGroup` 注册一个任务组，工作区是项目文件夹，
-  要求只写项目名、协作仓路径和「先读 skill collab」；项目登记或命令变了就撤掉重注册。qq-bot 这边已经准备好，见[协作项目注册任务组](/trajectory/2026-10-08-collab-registers-project-groups)
+- **真机看一眼「/」指令面板是否弹出**：default 上的面板已经经官方接口建好（`qq-bot.status` 的 `panel` 有编号与条目），还没在手机上看过。手机 QQ 私聊里打「/」，看弹出的条目和 `panel.items` 对得上；在等人在手机上看
 - **随手记「记：」**：主人私聊里「记：」开头的消息由 qq-bot 直接写进当天日志、不开 agent。gwb-bn-journal 已经提供服务方法 `gwbBnJournal.append`，
   不再等别的仓：qq-bot 可选注入它、加上这一条就能做。做法可以是 gwb-bn-journal 反过来经 `gwbQqBot.registerCommand` 注册一个直接命令（如 `/记`），这样 qq-bot 不用依赖它
 - **flomo 退役**：在等观察期结束（手机端确认无滞留新记录），随后撤 bn-journal 的收集命令，历史数据不动
