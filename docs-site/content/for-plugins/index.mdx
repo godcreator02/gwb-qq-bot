@@ -1,0 +1,71 @@
+---
+title: 在别的插件里用 qq-bot
+description: 服务 gwbQqBot 给别的插件四个方法：注册任务组、注册直接命令、校验命令名、私聊主人；注册跟着两边插件的启停自动撤掉、重来
+---
+
+别的插件经服务 `gwbQqBot` 用 qq-bot，不调 `qq-bot.*` 命令。这一页用协作站做例子：它给每个起了 QQ 命令的项目注册一个任务组（比如 `/mmc`），有新通知时私聊主人。协作站内部怎么决定注册哪些组，写在协作站自己的文档里。
+
+## 服务给的四个方法
+
+| 方法 | 做什么 | 什么时候用 |
+| --- | --- | --- |
+| `registerTaskGroup` | 私聊里发 `/命令 任务`，任务交给 agent 在你给的目录里做，每个私聊各记一个会话 | 要 agent 动手，要接着上次的会话 |
+| `registerCommand` | 私聊里发 `/命令 正文`，你的处理函数当场交回一段文字发回去 | 答案当场算得出，用不着 agent |
+| `commandNameProblem` | 命令名不合规则时回原因，合规回 `null`，不查重名 | 命令名是人起的，注册之前先校验 |
+| `notify` | 主动私聊主人一条，同一个 id 只发一次 | 有事要告诉主人 |
+
+{/* ref file="../plugins/qq-bot/src/api.ts" hash="2757615f17f2" blob="57a540937d16" */}
+
+## 注册跟着两边的启停走
+
+注册写在依赖 `gwbQqBot` 的作用域里，用 `effect` 包住，交回的撤掉函数交给 `effect` 当清理函数：
+
+```ts
+ctx.inject(['gwbQqBot'], (scoped) => {
+  scoped.effect(() => scoped.gwbQqBot.registerTaskGroup({ command: '/mmc', title: '混合型 MMC 样机', workspace: 'D:\\…\\hybrid-mmc', agent: 'zcode' }))
+})
+```
+
+注册表放在 qq-bot 的服务对象上。qq-bot 重载时服务对象换成新的、注册表从空的开始；你的插件重载或卸载时作用域撤掉。这样写以后，两种情况都不用另写代码：
+
+<RegistrationLife />
+
+`ctx.inject` 是可有可无的接法：没装 qq-bot 时你的插件照常运行。离开 qq-bot 就没有意义的插件，把 `gwbQqBot` 写进自己的 `inject` 名单，直接 `ctx.effect(() => ctx.gwbQqBot.registerTaskGroup(…))`，qq-bot 重载时整个插件跟着重启。
+
+## 任务组还是直接命令
+
+任务组派出以后和用 `qq-bot.group.add` 登记的组完全一样：每个私聊里一条队列、一次做一轮、空闲久了开新会话，agent 做完调 `qq-bot.report` 直接发回私聊，注册方拿不到结果，见[派任务](/docs/dispatch)。
+
+直接命令不排队、不开会话、不派给 agent：处理函数拿到命令后面的正文和发消息的人的 openid，交回的文字按被动回复发回；抛错时把原话回给私聊。
+
+一条消息落到哪个组、哪个直接命令，见[一条消息分到哪](/docs/dispatch/routing)。
+
+## 命令名由人来起
+
+命令名由人起时（协作站让人在网页上给项目起），按顺序做：
+
+1. 调 `commandNameProblem` 校验，回了原因就拒绝。规则只在 qq-bot 里有一份，不要自己抄，见[命令名规则做成服务方法](/trajectory/2026-10-08-command-name-rule-as-service-method)
+2. 注册。和已有的命令重名会当场抛异常，原话里写着被谁占着
+
+注册成功也可能派不出去：QQ 连上之前聊天表还没读回，那时查不到用 `qq-bot.group.add` 登记的组，同名的注册也能成功。连上以后日志记一行，派到这个命令的消息回重名、不派出。注册以后用 `qq-bot.group.list` 核对：
+
+{/* ref file="../plugins/qq-bot/tests/rounds.test.ts" lines="317-329" hash="3f818f7c0cf4" blob="b09fd4ef827c" */}
+
+## 私聊主人：notify
+
+- 只发给设置 `owner-openid` 那个人，QQ 要已经连上；没连上、没配好主人都直接报错
+- id 用「这件事」的编号（协作站用通知的编号），不用时间：同一个 id 同样的内容再调回 `duplicate`，内容不同直接报错
+- 回 `delivered: false` 是没发出去（频控、主人关了接收主动消息），qq-bot 不重发。这件事要能在别处看到，协作站是在网站的提示栏里
+
+{/* ref file="../plugins/qq-bot/tests/rounds.test.ts" lines="530-537" hash="a7b64cfd123e" blob="b09fd4ef827c" */}
+
+## 依赖方向
+
+你的插件把 `@godcreator/gwb-qq-bot` 写成 peer 依赖（可有可无地接就标成可选），类型从包里取：`import type { GwbQqBotApi } from '@godcreator/gwb-qq-bot'`。qq-bot 不依赖任何用它的插件：注册时只从调用方的上下文取包名，用在 `qq-bot.group.list` 和重名的报错里，见[协作项目注册任务组](/trajectory/2026-10-08-collab-registers-project-groups)。
+
+## 不做的事
+
+- **不私聊主人以外的人**：`notify` 只有主人一个收件人
+- **不处理群聊**：任务组与直接命令只在私聊里生效，见[只处理私聊](/trajectory/2026-10-07-private-chat-only)
+- **不把一轮的结果交给注册方**：结果由 agent 调 `qq-bot.report` 直接发回私聊
+- **不开放聊天表**：会话、队列、没送达的结果只经 `qq-bot.status` 读

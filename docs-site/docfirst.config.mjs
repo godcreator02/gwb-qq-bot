@@ -15,6 +15,7 @@
  */
 import { fumadocsRoster } from '@godcreator/docfirst-workflow/fumadocs/roster'
 import { MessageRouting as messageRoutingRule } from './src/components/message-routing/message-routing.ai.mjs'
+import { RegistrationLife as registrationLifeRule } from './src/components/registration-life/registration-life.ai.mjs'
 import { SeamMap as seamMapRule } from './src/components/seam-map/seam-map.ai.mjs'
 
 export default {
@@ -31,5 +32,6 @@ export default {
     ...fumadocsRoster,
     SeamMap: seamMapRule,
     MessageRouting: messageRoutingRule,
+    RegistrationLife: registrationLifeRule,
   },
 }

@@ -10,6 +10,7 @@ import type { MDXComponents } from 'mdx/types';
 import type { ReactNode } from 'react';
 import { DocfirstPre } from '@godcreator/docfirst-workflow/fumadocs/pre';
 import { MessageRouting } from './message-routing/message-routing';
+import { RegistrationLife } from './registration-life/registration-life';
 import { SeamMap } from './seam-map/seam-map';
 import type { ComponentName } from './registry';
 
@@ -24,6 +25,7 @@ const table: Record<ComponentName, MDXComponents[string]> = {
   File,
   SeamMap,
   MessageRouting,
+  RegistrationLife,
 };
 
 export function getMDXComponents(components?: MDXComponents) {

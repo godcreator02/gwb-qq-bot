@@ -18,3 +18,4 @@ html > body[data-scroll-locked] {
 }
 @import '@godcreator/docfirst-explainer/styles.css';
 @import '../components/message-routing/message-routing.css';
+@import '../components/registration-life/registration-life.css';
