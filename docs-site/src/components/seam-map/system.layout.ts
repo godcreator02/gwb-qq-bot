@@ -1,0 +1,82 @@
+/**
+ * 全局接缝图（seam-map.data.mjs）的坐标与图标。按依赖方向从上往下：调用方（agent、下游插件）→ 装配 → 派任务、执行端、通知、聊天表 →
+ * 连接与收发、gwb 数据 → QQ 开放平台；手机上的人从左下进 QQ 开放平台。
+ */
+import { Blocks, Bot, Boxes, Cable, Cloud, Database, HardDrive, Megaphone, Smartphone, SquareTerminal, Workflow } from 'lucide-react';
+import { cap } from '@godcreator/docfirst-explainer';
+import type { SeamLayout } from '@godcreator/docfirst-explainer';
+
+export const systemLayout: SeamLayout = {
+  view: { w: 1240, h: 830 },
+  caps: {
+    'agent-report': cap(54, 48, 212),
+    'ds-register': cap(314, 48, 250),
+    'ds-notify': cap(574, 48, 132),
+
+    service: cap(54, 178, 220),
+    rounds: cap(284, 178, 922),
+
+    registry: cap(54, 318, 230),
+    routing: cap(304, 318, 282),
+    'chat-rounds': cap(54, 376, 330),
+    executors: cap(394, 376, 192),
+    zc: cap(634, 318, 172),
+    cc: cap(634, 376, 172),
+    notifier: cap(854, 318, 172),
+    'chat-table': cap(1074, 318, 132),
+
+    gate: cap(54, 528, 220),
+    reply: cap(284, 528, 236),
+    gateway: cap(530, 528, 240),
+    rest: cap(780, 528, 246),
+    'gwb-data': cap(1074, 528, 132),
+
+    'qqc-gw': cap(530, 748, 240),
+    'qqc-api': cap(780, 748, 246),
+  },
+  groups: {
+    agent: { x: 40, y: 20, w: 240, h: 88 },
+    ds: { x: 300, y: 20, w: 420, h: 88 },
+    root: { x: 40, y: 150, w: 1180, h: 88 },
+    dispatch: { x: 40, y: 290, w: 560, h: 150 },
+    exec: { x: 620, y: 290, w: 200, h: 150 },
+    notify: { x: 840, y: 290, w: 200, h: 90 },
+    storage: { x: 1060, y: 290, w: 160, h: 90 },
+    qq: { x: 40, y: 500, w: 1000, h: 96 },
+    gwb: { x: 1060, y: 500, w: 160, h: 88 },
+    qqc: { x: 516, y: 720, w: 524, h: 88 },
+  },
+  // 共用聊天表（11）只画通知那一段，派任务与连接与收发两端固定高亮时照样亮
+  seamPaths: {
+    '1': { d: 'M650,748 V576', badge: [650, 662] },
+    '2': { d: 'M830,226 V480 H650 V528', badge: [830, 262] },
+    '3': { d: 'M294,226 V376 M940,226 V318', badge: [294, 262] },
+    '4': { d: 'M164,424 V528 M330,424 V528', badge: [164, 470] },
+    '5': { d: 'M903,576 V748', badge: [903, 662] },
+    '6': { d: 'M586,400 H634 M610,400 V342 H634', badge: [610, 371] },
+    '7': { d: 'M160,96 V178', badge: [160, 137] },
+    '8': { d: 'M439,96 V130 H230 V178 M640,96 V130 H439', badge: [335, 130] },
+    '9': { d: 'M164,226 V318', badge: [164, 262] },
+    '10': { d: 'M940,366 V528', badge: [940, 470] },
+    '11': { d: 'M1026,342 H1074', badge: [1050, 342] },
+    '12': { d: 'M1140,366 V528', badge: [1140, 447] },
+  },
+  entries: {
+    person: { box: { x: 300, y: 730, w: 170, h: 36 }, arrow: [470, 748, 516, 748] },
+  },
+  moduleIcons: {
+    agent: Bot,
+    ds: Blocks,
+    root: Boxes,
+    dispatch: Workflow,
+    exec: SquareTerminal,
+    notify: Megaphone,
+    storage: Database,
+    gwb: HardDrive,
+    qq: Cable,
+    qqc: Cloud,
+  },
+  entryIcons: {
+    person: Smartphone,
+  },
+};

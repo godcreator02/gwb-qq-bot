@@ -1,20 +1,117 @@
 ---
 title: gwb-qq-bot
-description: QQ 官方机器人当通道，在手机 QQ 上给本机的 agent 派任务
+description: QQ 官方机器人当私聊通道：在手机 QQ 上给本机 agent 派任务、收结果，别的插件经它私聊主人。这一页讲插件由哪几块接成、每条接缝传什么、对外能做什么、刻意不做什么
+full: true
 ---
 
-**本页回答**：这个仓是什么、由哪几块组成、从哪一页接着读。
+这个仓做一个 gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`），提供一个服务 `gwbQqBot`。它做两件方向相反的事：
 
-这个仓做一个 gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网关，收私聊消息，
-把任务交给这个私聊绑定的执行端（ZCode 或 Claude Code），agent 做完调 `qq-bot.report`，结果发回原私聊。
-每个人在自己的 home 里配自己的机器人，只处理私聊、不处理群聊。一个机器人可以接白名单里几个人的私聊：每个私聊绑一个工作区和一个执行端，同一个私聊一次做一件、后面的排队；任务和结果始终属于发起它的私聊。
+- **派任务**：人 → 工作台 → agent → 人。私聊里的一句话按斜杠命令分到一个任务组，交给组的执行端（ZCode 或 Claude Code）在组的目录里做，agent 做完调 `qq-bot.report`，结果发回原私聊
+- **通知**：工作台 → 人。别的插件调 `notify` 主动私聊主人，只发不收
 
-接入采用 QQ 官方机器人 API。平台侧通过服务范围和开发体验号码控制可用对象，插件侧通过 openid 白名单控制谁能派本机任务。
-取舍的完整记录见轨迹区的根卡；派单这一组插件之间怎么接，整体的接缝图在接缝图集单元 uxje5-gwb-seams。
+两件事共用一条网关连接、一套白名单和发消息的规则，所以是一个插件，源码分成三块：连接与收发、通知、派任务，外加三块共用的聊天表和把它们接起来的装配。
+只处理私聊：每个人在自己的 home 里配自己的机器人，群里 @ 机器人不处理。鼠标停在编号上看每条接缝交换什么，点击固定高亮它连着谁：
 
-仓的组成：
+<SeamMap />
 
-- `plugins/qq-bot/`：插件包（唯一成员），分为 QQ 协议与连接、消息归一与回复选路、聊天表、一轮的生命周期、执行端适配层、插件入口。
-  逐块的契约与钉码见[插件页](/docs/qq-bot)
-- `docs-site/`：这个文档站。仓根 README / AGENTS / CLAUDE 与包里 SKILL.md 是生成物，正本在 `content/docs/outputs/`
-- `probes/`：自包含实验材料；每个实验分别保存输入、运行方法与证据
+## 接缝
+
+**1 QQ 推私聊**：QQ 开放平台 → 网关。插件保持一条出站 WebSocket 长连接，订阅单聊事件所在的那一位；群事件也会跟着到，只记事件类型。连接、心跳、重连、去重都在[连接与收发](/docs/qq)。
+
+**2 入站与白名单**：网关把解析好的私聊消息交给装配，装配先用连接与收发里的白名单过一道，名单外的静默拒绝，通过的才交给派任务。三块之间的这个顺序写在接线里，三块自己互不 import：
+
+{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="48-52" hash="80acb3401eab" blob="c2b4c0d08570" */}
+
+**3 交给派任务与通知**：连上机器人时，接线建出派任务与通知两块，把聊天表、执行端表、插件注册表、读设置的函数和发消息的函数传进去。改了任何一块的构造参数，只动这里：
+
+{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="37-46" hash="98236e2c2f37" blob="c2b4c0d08570" */}
+
+**4 派任务用收发**：派任务收下消息时经连接与收发建私聊行、按消息 id 去重；回执、结果、用法说明也经它发出，由它按回复窗口选被动或主动、分段、带上引用。派任务只决定说什么、引用哪条。
+
+**5 发消息**：REST → QQ 开放平台。回执、结果、通知都从这里出去，一律纯文本；被动回复的窗口与次数是平台的硬限制，插件只做选择。
+
+**6 派给执行端**：派任务的执行端适配层把「开一轮」「问一次做完没有」翻译成 gwb-zcode、gwb-claudecode 各自服务的方法。执行端插件改了服务方法，只动适配层里对应的那份，见[派任务](/docs/dispatch)。
+
+**7 回报**：agent 做完自己经 gwb MCP 入口调 `qq-bot.report {round, text}`。本轮编号只用来对上是哪一轮，不当凭证。
+
+**8 下游插件**：别的插件 inject `gwbQqBot`。三个方法就是给它们的全部接口——`notify` 主动私聊主人，`registerTaskGroup` / `registerCommand` 注册任务组与直接命令：
+
+{/* ref file="../plugins/qq-bot/src/api.ts" lines="5-23" hash="d0251555e9ca" blob="aa8532784480" */}
+
+**9 注册表在服务上**：插件注册的组与直接命令存在服务对象上，没配 AppID 时照样能注册，换机器人重连也不丢。
+
+**10 通知发主动消息**：通知只 import 连接与收发的类型，发消息的函数由装配传进来；不经回复窗口，不引用消息。
+
+**11 共用聊天表**：派任务读写私聊行与命令登记的组，通知读写去重记录，连接与收发记近期消息 id 和被动回复用掉的次数。所有改表的操作经同一条串行队列，形状与迁移见[聊天表](/docs/dispatch/chat-table)。
+
+**12 存盘**：整份表按 AppID 存成一份 gwb-data 文档，换机器人就是另一份：
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="103-103" hash="3f4db5b01f24" blob="3a0b4b162ed1" */}
+
+## 各块对外能做什么
+
+| 块 | 目录 | 对外给什么 | 详见 |
+| --- | --- | --- | --- |
+| 连接与收发 | `src/qq/` | 网关连接与重连、access token、白名单与去重、按回复窗口发一段话、引用原消息 | [连接与收发](/docs/qq) |
+| 通知 | `src/notify/` | 主动私聊主人，按 id 去重 | [通知](/docs/notify) |
+| 派任务 | `src/dispatch/` | 斜杠命令分发、任务组与直接命令、会话与队列、一轮、回报、懒检查、执行端适配层 | [派任务](/docs/dispatch)、[一条消息分到哪](/docs/dispatch/routing) |
+| 聊天表 | `src/storage/` | 每个私聊每组一份状态，命令登记的组、通知去重、消息 id、被动回复次数 | [聊天表](/docs/dispatch/chat-table) |
+| 装配 | `src/index.ts`、`src/rounds.ts` | 服务 `gwbQqBot`、`qq-bot.*` 命令、设置、执行端登记、连接生命周期 | 本页 |
+
+依赖方向只有一种：通知 → 连接与收发，派任务 → 连接与收发，三块 → 聊天表，装配 → 全部。`qq/` 不 import `notify/`、`dispatch/`，`notify/` 与 `dispatch/` 互不 import。
+
+### 命令
+
+| 命令 | effect | 用途 | 哪一块 |
+| --- | --- | --- | --- |
+| `qq-bot.status` | read | 连接、各个私聊的绑定、每个任务组的会话、在做的一轮、排队与没送达的结果、最近被拒的 openid | 装配 + 派任务 |
+| `qq-bot.reconnect` | write | 改完 AppID / AppSecret / 旧沙箱接口设置后重连 | 装配 |
+| `qq-bot.bind` / `unbind` | write | 设、解除一个私聊的默认组 | 派任务 |
+| `qq-bot.group.add` / `remove` / `list` | write / write / read | 登记、删掉、列出任务组 | 派任务 |
+| `qq-bot.report` | external | 执行任务的 agent 交这一轮的结果 | 派任务 |
+| `qq-bot.notify` | external | 把服务方法 `notify` 做成命令给 agent 用 | 通知 |
+
+参数与回执逐条写在命令的 usage 与随包说明书 `qq-bot` 里，契约讲解在各块的页上。
+
+### 设置
+
+前三项改完要 `qq-bot.reconnect`；其余每次用到时现读，改完即时生效：
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="25-33" hash="6194f1a6627b" blob="3a0b4b162ed1" */}
+
+## 依赖
+
+| 依赖 | 怎么接 | 用来做什么 | 缺了会怎样 |
+| --- | --- | --- | --- |
+| `gwbCommands`、`gwbSettings`、`gwbData` | 必需 inject | 命令、设置、聊天表 | 插件不加载 |
+| `gwbZcode`（gwb-zcode） | 可选 inject，peer 标 optional | ZCode 那份执行端实现 | 绑定、登记任务组报「没装」，派任务回「没装执行端 zcode」 |
+| `gwbClaudecode`（gwb-claudecode） | 可选 inject，peer 标 optional | Claude Code 那份执行端实现 | 同上 |
+| `gwbSkills` | 可选 inject | 登记说明书 `qq-bot` | agent 读不到说明书 |
+| `cordis` | peer | 服务基类 `Service` | — |
+| QQ 开放平台 | 外部服务 | WebSocket 收事件，REST 发消息 | 连不上时网关退避重连 |
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="45-45" hash="f3e25754b611" blob="3a0b4b162ed1" */}
+
+下游插件（协作站、gitea-issues）依赖 qq-bot，qq-bot 不依赖它们：依赖只有它们 → qq-bot 一个方向，反过来写 peer 会成环、发版被拒。
+
+## 不做的事
+
+- **不拆成两个插件**：一个机器人同一时间只能有一条网关连接，被动回复次数也要在一处计数，见[一个插件分三块](/trajectory/2026-10-08-notify-and-dispatch-in-one-plugin)
+- **不处理群聊**：群事件只记事件类型，见[只处理私聊](/trajectory/2026-10-07-private-chat-only)
+- **不同步 QQ 的「/」指令面板**：面板只能在管理端手动配置、没有接口，命令以工作台里注册的为准，见[不同步「/」面板](/trajectory/2026-10-08-qq-command-panel-not-synced)
+- **不写和协作站有关的代码**：协作站自己注册任务组，见[协作项目注册任务组](/trajectory/2026-10-08-collab-registers-project-groups)
+- **不轮询执行端**：只在人问起时做一次懒检查，见[按聊天重写](/trajectory/2026-10-07-rebuild-around-chats)
+- **不自动重发**：派出失败、执行端中断都把原话告诉人，结果被动发不出去只改发一次主动消息，见[按聊天重写](/trajectory/2026-10-07-rebuild-around-chats)
+- **不锁工作区、不回到旧会话**：两个组指向同一个目录也同时做；旧会话要接着做就在电脑上接，见[按命令分任务组](/trajectory/2026-10-08-slash-command-task-groups)
+- **不做随手记**：在等日志插件提供追加的服务，见[路线](/future/roadmap)
+- **不做界面、不解析 agent 回答的内容**：状态经 `qq-bot.status` 查；回报正文原样发回，最多 2000 字
+
+## 这个站怎么分
+
+| 区 | 在哪 | 写什么 |
+| --- | --- | --- |
+| 现状 | `content/docs/` | 本页；三块各一个目录（[连接与收发](/docs/qq)、[通知](/docs/notify)、[派任务](/docs/dispatch)，聊天表在派任务目录下）；[术语表](/docs/glossary)；仓根 README / AGENTS / CLAUDE 与随包 SKILL.md 的正本在 `content/docs/outputs/` |
+| 轨迹 | `content/trajectory/` | 每次取舍的理由，一个结论一张卡，只增不改；[星轨盘](/trajectory) |
+| 未来 | `content/future/` | [路线](/future/roadmap)：还没做的事、各在等什么 |
+
+仓的其余部分：`plugins/qq-bot/` 是唯一的插件包；`probes/` 是自包含的实验材料，每个实验一个目录，照目录里 README 第一行就能重新运行一次。

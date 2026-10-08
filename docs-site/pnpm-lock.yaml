@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@godcreator/docfirst-explainer':
+        specifier: 0.1.1
+        version: 0.1.1(react@19.3.0)
       cn:
         specifier: ^0.3.0
         version: 0.3.3
@@ -315,6 +318,11 @@ packages:
 
   '@godcreator/code-pin@0.1.0':
     resolution: {integrity: sha512-2NUkvdFz1pVGNXWhwvDzxCqa399Yu+9CpvsgKs8u3QopSua4TbHMvOWu2WeFXiPiVLCHiQSd2tLCjfljKaVstw==, tarball: https://git.tianshen02.online:28377/api/packages/godcreator/npm/%40godcreator%2Fcode-pin/-/0.1.0/code-pin-0.1.0.tgz}
+
+  '@godcreator/docfirst-explainer@0.1.1':
+    resolution: {integrity: sha512-7GaUHKrkSZBKpFDsDBLLUrzI4wO5ziULmedSoKybH7qkVNJhZJ3gcxFOUazudQxrqHBtkqDxyiALlhVbg69ZQg==, tarball: https://git.tianshen02.online:28377/api/packages/godcreator/npm/%40godcreator%2Fdocfirst-explainer/-/0.1.1/docfirst-explainer-0.1.1.tgz}
+    peerDependencies:
+      react: '>=19'
 
   '@godcreator/docfirst-workflow@0.5.4':
     resolution: {integrity: sha512-VRz+ebKcXSqBKDmHEJTFFjarHDHCq6pV55gi6pHAvJxleyTZyO8+vkhC8jhLJ0v1WNEj/qdDVcJFxFEhsFYQqA==, tarball: https://git.tianshen02.online:28377/api/packages/godcreator/npm/%40godcreator%2Fdocfirst-workflow/-/0.5.4/docfirst-workflow-0.5.4.tgz}
@@ -2074,6 +2082,10 @@ snapshots:
   '@fumari/image-size@0.1.1': {}
 
   '@godcreator/code-pin@0.1.0': {}
+
+  '@godcreator/docfirst-explainer@0.1.1(react@19.3.0)':
+    dependencies:
+      react: 19.3.0
 
   '@godcreator/docfirst-workflow@0.5.4(@fumadocs/base-ui@16.15.17(@types/mdx@2.0.14)(@types/react@19.3.0)(fumadocs-core@16.15.17(@mdx-js/mdx@3.1.1)(@types/estree-jsx@1.0.5)(@types/hast@3.0.5)(@types/mdast@4.0.4)(@types/react@19.3.0)(lucide-react@1.52.0(@types/react@19.3.0)(react@19.3.0))(next@16.3.5(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5))(next@16.3.5(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tailwindcss@4.3.3))(fumadocs-core@16.15.17(@mdx-js/mdx@3.1.1)(@types/estree-jsx@1.0.5)(@types/hast@3.0.5)(@types/mdast@4.0.4)(@types/react@19.3.0)(lucide-react@1.52.0(@types/react@19.3.0)(react@19.3.0))(next@16.3.5(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5))(react@19.3.0)':
     dependencies:

@@ -1,0 +1,97 @@
+---
+title: 连接与收发 qq/
+description: 和 QQ 开放平台打交道的全部：网关长连接、access token、白名单与去重、按被动回复窗口选路、引用原消息、长回复分段。不认识任务组，也不知道通知的存在
+full: true
+---
+
+源码在 `plugins/qq-bot/src/qq/`。这一块只管「和 QQ 怎么收发」：收到的私聊交给装配，发什么由调用方决定，怎么发由这里决定。
+它不 import 通知与派任务；那两块经装配传进来的函数、以及这里导出的类用它。
+
+<SeamMap module="qq" />
+
+## 功能
+
+### 网关：收私聊
+
+一条出站 WebSocket 长连接：Hello 之后发 Identify 或 Resume，按服务端给的间隔发心跳；两次心跳之间没收到 ACK、连接被关、网关要求重连，都按 1 秒起翻倍、最长 60 秒退避重连，收到 READY 后归零。
+只有 4007、4008、4009 三种关闭码接着 Resume，其余重新 Identify：
+
+{/* ref file="../plugins/qq-bot/src/qq/qq-gateway.ts" lines="141-149" hash="67aebe051cb6" blob="51a5be790d4e" */}
+
+订阅只有一位。单聊事件 `C2C_MESSAGE_CREATE` 在官方的 `GROUP_AND_C2C_EVENT` 里，订了它群事件也会跟着到达：群事件只记一行事件类型；频道事件不订阅。网关在解析和白名单之前记录事件类型，不记录原始载荷：
+
+{/* ref file="../plugins/qq-bot/src/qq/qq-protocol.ts" lines="19-24" hash="705a04f44a90" blob="6a6bf8eff594" */}
+
+私聊事件在入口校验形状，不对就记一行日志丢弃，不猜字段、不打断连接：
+
+{/* ref file="../plugins/qq-bot/src/qq/qq-protocol.ts" lines="43-56" hash="cb30b88ce22c" blob="6a6bf8eff594" */}
+
+同一条消息官方会重复推送：按 `msg_id` 加 `msg_seq` 只交出一次（记最近 1000 个），同一个 `msg_id` 换了序号分别处理。测试在 `tests/qq-gateway.test.ts`：
+
+{/* ref file="../plugins/qq-bot/src/qq/qq-gateway.ts" lines="223-235" hash="14c1b379e2ff" blob="51a5be790d4e" */}
+
+### 入站两道关：白名单与去重
+
+白名单管的是发私聊的人。名单外的消息静默拒绝、只记日志与最近 10 条被拒的 openid，不给探测者任何反馈；名单每条消息现读设置，改了即时生效。
+官方 API 给的 openid 每个机器人各不相同、不是 QQ 号，首次配置从 `qq-bot.status` 的 `recentRejected` 里取：
+
+{/* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="12-19" hash="a25b4b0c3d73" blob="ed832dd08797" */}
+
+第二道是聊天表里的去重，防的是重载、重连之后网关再推一次：在串行队列里建私聊行、记下消息 id，第一次见到才把同一步交给调用方改表，然后一起存盘。
+派任务把分发与入队写在这一步里，所以一条消息不会入队两次：
+
+{/* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="22-34" hash="117d111a6ff6" blob="ed832dd08797" */}
+
+### 回复：被动还是主动
+
+窗口与次数是腾讯侧的硬限制（单聊 60 分钟、每条触发消息 4 次），这里只做选择：窗口内且次数没用完走被动回复；过了窗口、次数用完或没有触发消息，走主动消息。测试在 `tests/reply-window.test.ts`：
+
+{/* ref file="../plugins/qq-bot/src/qq/reply-window.ts" hash="9a3354b64365" blob="c063025593d7" */}
+
+`ReplySender.reply` 把一段话按行切成 700 字以内的几段（多段加「(i/n)」），每段重新选一次路：选了被动就先在聊天表里记一次、存盘再发，`msg_seq` 不会重复；被动发不出去改发一次主动消息；主动也发不出去回 false，由调用方记进没送达：
+
+{/* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="49-65" hash="05a4d9ddbdc3" blob="3e1dda368b15" */}
+
+### 引用原消息
+
+每条回复都带 `message_reference`，在 QQ 里显示成引用它所回答的那条消息。「被动回复用哪条消息的窗口与次数」（`msg_id`）和「引用哪条」是两个参数：
+回执引用刚收到的那条；一轮的结果引用派出这一轮的那条；`/状态` 补发的结果用 `/状态` 这条的窗口，引用的仍是当初那条任务。实测记录见[回复引用原消息](/trajectory/2026-10-07-quote-the-task-message)。
+
+引用取不到原消息时照常发正文、只是不带引用（`ignore_get_message_error: true`），结果本身比引用要紧。
+
+### REST 与 access token
+
+{/* ref file="../plugins/qq-bot/src/qq/qq-rest.ts" lines="101-117" hash="3e2879db6b74" blob="3a4012a87ac1" */}
+
+鉴权与业务接口用 `api.bot.qq.com`；设置 `sandbox` 为 true 时只兼容旧的 `sandbox.api.sgroup.qq.com`。私聊一律发纯文本（`msg_type: 0`），被动回复显式转成 `msg_id` / `msg_seq`；HTTP 200 里业务错误码非零也算失败，错误码同时认 `err_code` 与 `code`。
+
+access token 提前 2 分钟刷新，几个请求同时要时共用一次换取；`qq-bot.reconnect` 时换一个代次，晚回来的旧请求不覆盖新缓存。官方回的 `expires_in` 是数字字符串，数字与字符串两种都收，这是照官方文档核对过的，不是放宽校验：
+
+{/* ref file="../plugins/qq-bot/src/qq/qq-rest.ts" lines="70-82" hash="72d7a60efb8d" blob="3a4012a87ac1" */}
+
+测试在 `tests/qq-rest.test.ts`。
+
+## 接口
+
+这一块对外给的就是这些，调用方都在插件里：
+
+| 导出 | 文件 | 谁用 |
+| --- | --- | --- |
+| `QqGateway`（`start` / `stop` / `currentState`，回调 `onMessage` / `onState`） | `qq-gateway.ts` | 装配建出、重连时停掉重开 |
+| `QqRestClient`（`sendC2c` / `getAccessToken` / `resetAuth` / `fetchGatewayUrl`） | `qq-rest.ts` | 装配建出；`sendC2c` 作为发消息的函数传给通知与回复 |
+| `AllowedSenderGate`、`intakeFirstDelivery` | `incoming-gate.ts` | 接线过白名单；派任务收下消息 |
+| `ReplySender`、类型 `SendC2c` | `reply-sender.ts` | 接线建出、交给派任务；通知只用类型 |
+| `chooseReplyRoute` | `reply-window.ts` | `ReplySender` |
+| `IncomingMessage`、`QqLog`、`isRecord` 与协议常量 | `qq-protocol.ts` | 全插件 |
+
+协议字段名、事件位值都集中在 `qq-protocol.ts`，接口报错先对官方文档（地址列在仓根 AGENTS.md）核对再改这里。
+
+## 依赖
+
+QQ 开放平台（网关与 REST）；聊天表（近期消息 id、被动回复次数，都在串行队列里改）。不依赖 gwb 的任何服务：凭据与沙箱开关由装配经函数传进来，每次现读。
+
+## 不做的事
+
+- **不处理群聊**：群事件只记事件类型，不解析、不回消息，见[只处理私聊](/trajectory/2026-10-07-private-chat-only)
+- **不重发**：被动发不出去只改发一次主动消息，再不行交给调用方记没送达
+- **不记原始载荷、不记凭据**：日志里只有事件类型与序号，access token 与 AppSecret 不进日志、不进命令回执

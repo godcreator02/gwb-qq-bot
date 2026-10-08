@@ -5,6 +5,12 @@ description: 还有哪些事没做、各在等什么
 
 **本页回答**：还有哪些事没做、各在等什么。
 
+- **实测「/」面板点出来的指令是什么文本**：在 QQ 开放平台管理端「指令配置」里配好一个和工作台里同名的命令，从手机 QQ 的「/」面板点出来发一次，看到达的 `C2C_MESSAGE_CREATE` 正文是不是「/命令」开头的普通文本、能不能被分发认出。
+  官方文档没写这一点，单聊事件的字段里也没有和指令相关的，推测是普通文本；在等一个配好指令的测试机器人
+- **协作站按项目注册任务组**：在协作站仓里做——协作项目的配置加一项人自己起的「QQ 命令」，填了的项目经 `gwbQqBot.registerTaskGroup` 注册一个任务组，工作区是项目文件夹，
+  要求只写项目名、协作仓路径和「先读 skill collab」；项目登记或命令变了就撤掉重注册。qq-bot 这边已经准备好，见[协作项目注册任务组](/trajectory/2026-10-08-collab-registers-project-groups)
+- **下游的 peer 跟上 0.7**：协作站（`qrx1l-collab-site/collab-site/plugins/collab`）与 gitea-issues（`evew5-gwbapps/gwb-gitea/plugins/gitea-issues`）的 peer 还写着 `^0.6.0`，
+  它们只用 `notify`，改成 `^0.7.0` 就行；在等两个仓各自发版
 - **随手记「记：」**：主人私聊里「记：」开头的消息由 qq-bot 直接写进当天日志、不开 agent。在等 gwb-bn-journal 提供往当天日志追加一条的服务 `gwbBnJournal`
   （需求在 gwb-block-note 仓的收件里，由「服务是本体」迁移会话做），发版后 qq-bot 可选注入它、加上这一条
 - **flomo 退役**：在等观察期结束（手机端确认无滞留新记录），随后撤 bn-journal 的收集命令，历史数据不动

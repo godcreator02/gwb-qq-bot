@@ -9,6 +9,8 @@ import { File, Files, Folder } from 'fumadocs-ui/components/files';
 import type { MDXComponents } from 'mdx/types';
 import type { ReactNode } from 'react';
 import { DocfirstPre } from '@godcreator/docfirst-workflow/fumadocs/pre';
+import { MessageRouting } from './message-routing/message-routing';
+import { SeamMap } from './seam-map/seam-map';
 import type { ComponentName } from './registry';
 
 export function Note({ children }: { children?: ReactNode }) {
@@ -20,6 +22,8 @@ const table: Record<ComponentName, MDXComponents[string]> = {
   Files,
   Folder,
   File,
+  SeamMap,
+  MessageRouting,
 };
 
 export function getMDXComponents(components?: MDXComponents) {

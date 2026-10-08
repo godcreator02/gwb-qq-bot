@@ -6,7 +6,7 @@ description: 配置 QQ 机器人、绑定私聊、登记任务组、给插件注
 
 # QQ 机器人 → 本机 agent
 
-gwb 插件 `@godcreator/gwb-qq-bot`：常驻连 QQ 开放平台的 WebSocket 网关，收私聊消息，按斜杠命令分到任务组，交给组的执行端（ZCode 或 Claude Code），
+gwb 插件 `@godcreator/gwb-qq-bot`：保持一条到 QQ 开放平台 WebSocket 网关的长连接，收私聊消息，按斜杠命令分到任务组，交给组的执行端（ZCode 或 Claude Code），
 agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每个人在自己的 home 里配自己的机器人，群里 @ 机器人不处理。
 命令：`qq-bot.status`、`qq-bot.bind`、`qq-bot.unbind`、`qq-bot.group.add`、`qq-bot.group.remove`、`qq-bot.group.list`、`qq-bot.report`、`qq-bot.notify`、`qq-bot.reconnect`；参数与回执用 `search {"prefix":"qq-bot."}` 看 usage。
 
@@ -30,7 +30,7 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 
 **完成判据**：`qq-bot.status` 的 `gateway` 是 `open`；私聊发 `/帮助` 收到指令列表。
 
-一个机器人同一时间只连在一个 home 上：两个 home 用同一个 AppID 会互相顶掉网关连接。机器人换 home 时，旧 home 先清空 `app-id` 再 `qq-bot.reconnect`（会报没配置、不再连接），新 home 再配。
+一个机器人同一时间只连在一个 home 上：两个 home 用同一个 AppID 会互相断开对方的网关连接。机器人换 home 时，旧 home 先清空 `app-id` 再 `qq-bot.reconnect`（会报没配置、不再连接），新 home 再配。
 
 ## 任务组
 
@@ -75,7 +75,7 @@ ctx.effect(() => ctx.gwbQqBot.registerCommand({ command: '/血糖', description:
 - QQ 没连上时也能注册
 - 直接命令不排队、不开会话：`handle` 交回的文字按被动回复发回，抛错时回「指令 /xxx 出错：原话」
 
-## QQ 那头的指令
+## QQ 里的指令
 
 - 直接发任务文本：进默认组，在绑定的目录里真的执行，权限遵循所选执行端（ZCode 完全访问、Claude Code bypassPermissions）
 - `/<组命令> 任务`：进那一组；只发组命令不写任务回用法

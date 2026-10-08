@@ -16,3 +16,5 @@ html > body[data-scroll-locked] {
     'Microsoft YaHei UI', 'Noto Sans SC', sans-serif;
   --font-mono: 'Sarasa Mono SC', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 }
+@import '@godcreator/docfirst-explainer/styles.css';
+@import '../components/message-routing/message-routing.css';

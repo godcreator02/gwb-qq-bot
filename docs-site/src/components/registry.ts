@@ -9,5 +9,5 @@
  * 它们与 Note 的机读规则在 @godcreator/docfirst-workflow/fumadocs/roster 的 fumadocsRoster 里。
  * registry.ts 只有可擦除的类型，Node 直接运行。
  */
-export const componentNames = ['Note', 'Files', 'Folder', 'File'] as const
+export const componentNames = ['Note', 'Files', 'Folder', 'File', 'SeamMap', 'MessageRouting'] as const
 export type ComponentName = (typeof componentNames)[number]

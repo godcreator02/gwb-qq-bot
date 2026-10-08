@@ -1,0 +1,40 @@
+---
+title: 通知 notify/
+description: 主动私聊主人：服务方法 gwbQqBot.notify 与命令 qq-bot.notify 的实现，按通知 id 去重，发不出去不重发
+full: true
+---
+
+源码在 `plugins/qq-bot/src/notify/`，只有一个文件。方向是工作台 → 主人：别的插件（协作站的巡检、gitea-issues）调 `notify` 主动私聊这台机器的主人，只发不收。
+它不 import 派任务，只 import 连接与收发的类型；发消息的函数由装配传进来。
+
+<SeamMap module="notify" />
+
+## 接口
+
+服务方法与命令是同一个契约，命令 `qq-bot.notify {id, text}` 只收这两个键，原样转给服务方法：
+
+{/* ref file="../plugins/qq-bot/src/api.ts" lines="6-10" hash="cca1aba051ff" blob="aa8532784480" */}
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="202-213" hash="ce1c07a01924" blob="3a0b4b162ed1" */}
+
+QQ 还没连上（没配 AppID、或正在重连）时直接报错：通知要连上才能用，这和注册任务组不同。
+
+## 功能
+
+主人是设置 `owner-openid`，必须也在 `allowed-openids` 里，没配好直接报错。同一个 id 只发一次：先在聊天表里记下 id 与正文、存盘，再发；发出去了才标成已送达。
+同一个 id、同一段正文再调回 `duplicate` 和当初是否送达；同一个 id 换了正文直接报错：
+
+{/* ref file="../plugins/qq-bot/src/notify/owner-notifier.ts" lines="19-46" hash="0d5551504142" blob="b847b35d1ef2" */}
+
+发的是主动消息：不带 `msg_id`、不引用任何消息，受官方频控与用户「接收机器人主动消息」开关限制，额度的实测见[主动配额](/trajectory/2026-10-05-active-message-quota)。
+发送抛错只记一行警告、回 `delivered: false`。测试在 `tests/rounds.test.ts` 的「通知与重载」。
+
+## 依赖
+
+连接与收发（只用类型 `SendC2c` 与 `QqLog`，实际发送是装配传进来的 `QqRestClient.sendC2c`）；聊天表（去重记录 `notices`）；设置 `owner-openid`、`allowed-openids`（经装配传进来的函数现读）。
+
+## 不做的事
+
+- **不重发**：发不出去回 `delivered: false`，调用方要再发就换一个 id
+- **不发给别人**：收件人只有主人一个，不收「发给谁」的参数
+- **不收消息**：主人回复通知的私聊照常当作派任务的输入，和通知无关

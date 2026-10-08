@@ -14,6 +14,8 @@
  * 站里自己加的组件在它后面追加。
  */
 import { fumadocsRoster } from '@godcreator/docfirst-workflow/fumadocs/roster'
+import { MessageRouting as messageRoutingRule } from './src/components/message-routing/message-routing.ai.mjs'
+import { SeamMap as seamMapRule } from './src/components/seam-map/seam-map.ai.mjs'
 
 export default {
   content: 'content',
@@ -27,5 +29,7 @@ export default {
   },
   components: {
     ...fumadocsRoster,
+    SeamMap: seamMapRule,
+    MessageRouting: messageRoutingRule,
   },
 }
