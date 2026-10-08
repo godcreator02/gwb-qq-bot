@@ -82,7 +82,7 @@ export const notifyGraph = defineSeamGraph({
       via: 'code',
       text: '服务方法与命令是同一个契约：正文 1–600 字，id 由调用方定，同一件事用同一个 id。命令只收 id、text 两个键。',
     },
-    /* ref file="../plugins/qq-bot/src/rounds.ts" lines="94-96" hash="24080ace3971" blob="5d45b391b251" */
+    /* ref file="../plugins/qq-bot/src/rounds.ts" lines="100-102" hash="24080ace3971" blob="80fe8dc6f49c" */
     {
       n: 2,
       name: '转给通知',
@@ -115,16 +115,16 @@ export const notifyGraph = defineSeamGraph({
       via: 'code',
       text: '同一个 id、同一段正文回 duplicate 和当初是否送达；同一个 id 换了正文直接报错。',
     },
-    /* ref file="../plugins/qq-bot/src/notify/owner-notifier.ts" lines="36-38" hash="edc3fe2f5d9f" blob="b847b35d1ef2" */
+    /* ref file="../plugins/qq-bot/src/notify/owner-notifier.ts" lines="36-38" hash="9b566aa5a7b3" blob="4da401bd59b4" */
     {
       n: 5,
       name: '发出去',
       a: ['notifier'],
       b: ['send'],
-      iface: 'sendC2c(owner, text, undefined, undefined, undefined)',
+      iface: "sendC2c(owner, text, undefined, undefined, undefined, { kind: 'notice', notice: id, segment })",
       convention: false,
       via: 'code',
-      text: '主动消息，不引用任何消息。发送抛错只记一行警告，回 delivered: false。',
+      text: '主动消息，不引用任何消息。最后一个参数是给消息记录的用途：种类 notice 与通知 id。发送抛错只记一行警告，回 delivered: false。',
     },
   ],
 });

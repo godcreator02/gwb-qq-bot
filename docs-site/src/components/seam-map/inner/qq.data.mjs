@@ -44,7 +44,7 @@ export const qqGraph = defineSeamGraph({
       pkg: 'src/rounds.ts',
       role: null,
       outside: true,
-      blurb: '连上机器人以后建出白名单与回复发送器，入站私聊先过白名单，再交给派任务。',
+      blurb: '连上机器人以后建出白名单与回复发送器，入站私聊先过白名单，再交给派任务；发消息的函数先交给消息记录包一层，再交给回复发送器与通知。',
       caps: [{ id: 'w-rounds', name: '接线', ident: 'rounds.ts · Rounds' }],
     },
     {
@@ -78,7 +78,7 @@ export const qqGraph = defineSeamGraph({
       pkg: 'reply-sender.ts',
       role: 'violet',
       outside: false,
-      blurb: '给一个私聊发一段话：长的按行切成 700 字以内的几段（多段加序号），每段先在聊天表里记一次被动回复再发，被动发不出去改发主动消息，每段都引用同一条消息。',
+      blurb: '给一个私聊发一段话：长的按行切成 700 字以内的几段（多段加序号），每段先在聊天表里记一次被动回复再发，被动发不出去改发主动消息，每段都引用同一条消息。调用方给的用途加上第几段，原样交给发消息的函数。',
       caps: [
         { id: 'snd-reply', name: '发一段回复', ident: 'ReplySender.reply' },
         { id: 'snd-split', name: '分段', ident: 'splitForSend' },
@@ -99,7 +99,7 @@ export const qqGraph = defineSeamGraph({
       pkg: 'incoming-gate.ts',
       role: 'emerald',
       outside: false,
-      blurb: '白名单：名单外的消息静默拒绝，只记日志和最近 10 条被拒的 openid。收下：在聊天表的串行队列里建私聊行、按消息 id 去重，第一次见到才交给调用方改表。',
+      blurb: '白名单：名单外的消息静默拒绝，只记日志、最近 10 条被拒的 openid 和消息记录（正文前 40 字）。收下：在聊天表的串行队列里建私聊行、按消息 id 去重，第一次见到才交给调用方改表。',
       caps: [
         { id: 'gate-admit', name: '白名单', ident: 'AllowedSenderGate.admit' },
         { id: 'gate-intake', name: '收下、去重', ident: 'intakeFirstDelivery' },
@@ -128,6 +128,27 @@ export const qqGraph = defineSeamGraph({
         { id: 'panel-sync', name: '防抖同步', ident: 'CommandPanelSync.schedule' },
         { id: 'panel-plan', name: '套官方上限', ident: 'planPanelItems' },
       ],
+    },
+    {
+      id: 'log',
+      name: '消息记录',
+      pkg: 'message-log.ts',
+      role: 'cyan',
+      outside: false,
+      blurb: '收发的每条消息记一行：入站带分到哪，白名单外的只记正文前 40 字；出站带种类、组名、本轮编号、被动还是主动、第几段与发送结果。分到哪、是哪一种出站由调用方传进来，本目录不认识任务组。写入排队做、失败只记一行 warn；按月分文件，留当月与前 3 个月。',
+      caps: [
+        { id: 'log-record', name: '记入站与出站', ident: 'inbound · rejected · recordingSend' },
+        { id: 'log-query', name: '倒着查', ident: 'queryMessages · parseMessageQuery' },
+      ],
+    },
+    {
+      id: 'files',
+      name: '数据目录',
+      pkg: 'gwbData.dir',
+      role: null,
+      outside: true,
+      blurb: 'qq-bot 在这个 home 里的数据目录，和聊天表那份文档在同一个目录；消息记录按机器人、按月各一个 JSONL 文件，只追加。',
+      caps: [{ id: 'f-jsonl', name: '按月的记录文件', ident: 'messages-<AppID>-<YYYY-MM>.jsonl' }],
     },
     {
       id: 'qqc',
@@ -197,7 +218,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '同一个 msg_id 加 msg_seq 只交出一次（记最近 1000 个）；同一个 msg_id 换了序号分别处理。插件入口把它转给接线。',
     },
-    /* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="12-19" hash="a25b4b0c3d73" blob="ed832dd08797" */
+    /* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="13-21" hash="e1633982638a" blob="da543a94796c" */
     {
       n: 5,
       name: '白名单',
@@ -208,7 +229,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '白名单每条消息现读设置 allowed-openids，改了即时生效。名单外绝不回消息，不给探测者任何反馈。',
     },
-    /* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="22-34" hash="117d111a6ff6" blob="ed832dd08797" */
+    /* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="24-36" hash="117d111a6ff6" blob="da543a94796c" */
     {
       n: 6,
       name: '收下',
@@ -219,16 +240,16 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '派任务把分发与入队写在 onFirstDelivery 里，和建私聊行、记消息 id 在同一步里改表、一起存盘；网关重推的同一条消息回 null，不再派出。',
     },
-    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="49-53" hash="ce564994ca14" blob="3e1dda368b15" */
+    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="46-50" hash="7aff9cc630ae" blob="8455e3316792" */
     {
       n: 7,
       name: '回复',
       a: ['d-chat'],
       b: ['snd-reply'],
-      iface: 'reply(target, trigger, text, quote = trigger.msgId) → 都发出去了吗',
+      iface: 'reply(target, trigger, text, purpose, quote = trigger.msgId) → 都发出去了吗',
       convention: false,
       via: 'code',
-      text: 'trigger 决定被动回复用哪条消息的窗口与次数，quote 决定 QQ 里显示引用哪条；两者分开，/状态 补发的结果用 /状态 的窗口、引用当初的任务。回 false 时派任务把结果记进没送达。',
+      text: 'trigger 决定被动回复用哪条消息的窗口与次数，quote 决定 QQ 里显示引用哪条；两者分开，/状态 补发的结果用 /状态 的窗口、引用当初的任务。purpose 是这条出站的种类、组名与本轮编号，只给消息记录用。回 false 时派任务把结果记进没送达。',
     },
     /* ref file="../plugins/qq-bot/src/qq/reply-window.ts" lines="19-25" hash="53493d0ab8e1" blob="c063025593d7" */
     {
@@ -241,27 +262,27 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '每一段都重新选一次：已用次数从聊天表现读，选了被动就当场记一次再发，msg_seq 不会重复。',
     },
-    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="67-75" hash="d7b16068d495" blob="3e1dda368b15" */
+    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="66-74" hash="1d68b86648c4" blob="8455e3316792" */
     {
       n: 9,
       name: '发出去',
       a: ['snd-reply'],
       b: ['rest-send'],
-      iface: 'SendC2c(openid, content, msgId?, msgSeq?, quote?) → SendOutcome',
+      iface: 'SendC2c(openid, content, msgId?, msgSeq?, quote?, purpose) → SendOutcome',
       convention: false,
       via: 'code',
-      text: '发送函数由装配传进来，就是 QqRestClient.sendC2c。抛错只记一行警告、当作没发出去，交给上一层改发主动或记没送达。',
+      text: '发送函数由装配传进来：QqRestClient.sendC2c 经消息记录包过一层，发完记一条再交回结果。抛错只记一行警告、当作没发出去，交给上一层改发主动或记没送达。',
     },
-    /* ref file="../plugins/qq-bot/src/notify/owner-notifier.ts" lines="36-38" hash="edc3fe2f5d9f" blob="b847b35d1ef2" */
+    /* ref file="../plugins/qq-bot/src/notify/owner-notifier.ts" lines="36-38" hash="9b566aa5a7b3" blob="4da401bd59b4" */
     {
       n: 10,
       name: '通知',
       a: ['n-owner'],
       b: ['rest-send'],
-      iface: 'SendC2c(owner, text, undefined, undefined, undefined)',
+      iface: "SendC2c(owner, text, undefined, undefined, undefined, { kind: 'notice', notice: id, … })",
       convention: false,
       via: 'code',
-      text: '主人通知不经回复窗口，也不引用消息，一律是主动消息。',
+      text: '主人通知不经回复窗口，也不引用消息，一律是主动消息；用途写明是通知与通知 id，消息记录里查得到。',
     },
     /* ref file="../plugins/qq-bot/src/qq/qq-rest.ts" lines="101-117" hash="3e2879db6b74" blob="3a4012a87ac1" */
     {
@@ -274,7 +295,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '鉴权与业务接口用 api.bot.qq.com，设置 sandbox 为 true 时只兼容旧的 sandbox.api.sgroup.qq.com。HTTP 200 里业务错误码非零也算失败。回执里带 access_token，不进日志。',
     },
-    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="56-60" hash="51451182b316" blob="3e1dda368b15" */
+    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="55-59" hash="51451182b316" blob="8455e3316792" */
     {
       n: 12,
       name: '记表',
@@ -285,7 +306,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '近期消息 id 最多记 2000 条，被动回复次数最多记 500 条消息，超了丢最早的。次数先记进表、存盘，再发请求。',
     },
-    /* ref file="../plugins/qq-bot/src/index.ts" lines="81-88" hash="70a35eead6bb" blob="cb3f3cc19734" */
+    /* ref file="../plugins/qq-bot/src/index.ts" lines="84-91" hash="70a35eead6bb" blob="46b54b586aa9" */
     {
       n: 13,
       name: '排同步',
@@ -306,6 +327,50 @@ export const qqGraph = defineSeamGraph({
       convention: false,
       via: 'code',
       text: '经 QqRestClient 的面板方法调用，失败抛 QqApiError 带官方错误码。条目没变不调 PUT；面板操作进行中（40030009）隔 5 秒重试一次，别的错误原话记进 qq-bot.status 的 panel.error。',
+    },
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="150-165" hash="c7939d66a45d" blob="b57d400e44e3" */
+    {
+      n: 15,
+      name: '记入站',
+      a: ['gate-admit', 'd-chat'],
+      b: ['log-record'],
+      iface: 'rejected(message) · inbound(message, route: InboundRoute)',
+      convention: false,
+      via: 'code',
+      text: '白名单外的由白名单记，只留正文前 40 字；收下的由派任务记，分到哪（哪一组、哪条保留命令或直接命令、没派出及原因）由派任务算好传进来，本目录不认识任务组。空消息、网关重推的同一条也各记一条。',
+    },
+    /* ref file="../plugins/qq-bot/src/rounds.ts" lines="45-51" hash="a46bd8157429" blob="80fe8dc6f49c" */
+    {
+      n: 16,
+      name: '包发消息的函数',
+      a: ['w-rounds'],
+      b: ['log-record'],
+      iface: 'recordingSend(RawSendC2c) → SendC2c',
+      convention: false,
+      via: 'code',
+      text: '接线把 QqRestClient.sendC2c 交给消息记录包一层，包出来的才交给发回复与通知：所有出站都经这一处，发完（成功、官方回失败、抛错）各记一条再原样交回。',
+    },
+    /* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="191-208" hash="0aa97812f167" blob="1b247976864d" */
+    {
+      n: 17,
+      name: '写文件、倒着读',
+      a: ['log-record', 'log-query'],
+      b: ['f-jsonl'],
+      iface: 'appendFile(messages-<AppID>-<YYYY-MM>.jsonl, 一行 JSON) · readFile',
+      convention: false,
+      via: 'disk',
+      text: '写入排成一条队按顺序做，不让收发等它；写失败只记一行 warn（不带正文）。连上时与跨进新的月份时删掉当月与前 3 个月以外的文件。查询从最新的月份倒着读，找够 limit 条就停。',
+    },
+    /* ref file="../plugins/qq-bot/src/index.ts" lines="207-213" hash="b8db3b8881a2" blob="46b54b586aa9" */
+    {
+      n: 18,
+      name: '查询命令',
+      a: ['w-index'],
+      b: ['log-query'],
+      iface: 'qq-bot.messages { chat?, group?, round?, direction?, since?, limit? } → { appId, records, more }',
+      convention: false,
+      via: 'code',
+      text: '插件入口按设置 app-id 查，不要求连着；没配 AppID 回空列表。查之前先等排着的写入做完；回执超过 MCP 单次 40000 字就报错，让调用方缩小范围。',
     },
   ],
 });

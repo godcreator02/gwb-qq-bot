@@ -89,8 +89,11 @@ const modules = [
     pkg: 'gwbData',
     role: null,
     outside: true,
-    blurb: '工作台的数据服务：聊天表按 AppID 整份存成一份文档，换机器人就是另一份。',
-    caps: [{ id: 'gwb-data', name: '一份文档', ident: 'chats-<AppID>' }],
+    blurb: '工作台的数据服务：聊天表按 AppID 整份存成一份文档，换机器人就是另一份。消息记录只追加、一直增长，不用文档：按 AppID、按月写成 JSONL 文件，放在它给 qq-bot 的数据目录里。',
+    caps: [
+      { id: 'gwb-data', name: '一份文档', ident: 'chats-<AppID>' },
+      { id: 'gwb-msgfiles', name: '按月的记录文件', ident: 'messages-<AppID>-<月>.jsonl' },
+    ],
   },
   {
     id: 'qq',
@@ -98,12 +101,13 @@ const modules = [
     pkg: 'src/qq/',
     role: 'blue',
     outside: false,
-    blurb: '和 QQ 开放平台打交道的全部：网关长连接、access token、白名单与按消息 id 去重、按被动回复窗口选路、引用原消息、长回复分段、把注册的命令同步进手机的「/」指令面板。不认识任务组，也不知道通知的存在。',
+    blurb: '和 QQ 开放平台打交道的全部：网关长连接、access token、白名单与按消息 id 去重、按被动回复窗口选路、引用原消息、长回复分段、把注册的命令同步进手机的「/」指令面板，以及收发的每条消息的记录。不认识任务组，也不知道通知的存在：分到哪、是哪一种出站由调用方传进来。',
     caps: [
       { id: 'gate', name: '白名单与去重', ident: 'incoming-gate.ts' },
       { id: 'reply', name: '回复：被动或主动', ident: 'reply-sender.ts · reply-window.ts' },
       { id: 'gateway', name: '网关长连接', ident: 'qq-gateway.ts · QqGateway' },
       { id: 'rest', name: 'REST 与 access token', ident: 'qq-rest.ts · QqRestClient' },
+      { id: 'msglog', name: '消息记录', ident: 'message-log.ts · MessageLog' },
     ],
   },
   {
@@ -132,7 +136,7 @@ const seams = [
     via: 'code',
     text: '插件保持一条出站长连接：心跳、断线按 1 秒起翻倍退避重连，能 Resume 的接着收。单聊事件和群事件在同一位里，群事件到了只记事件类型；同一条消息重推按消息 id 与序号去重。',
   },
-  /* ref file="../plugins/qq-bot/src/rounds.ts" lines="48-52" hash="80acb3401eab" blob="c2b4c0d08570" */
+  /* ref file="../plugins/qq-bot/src/rounds.ts" lines="54-58" hash="80acb3401eab" blob="80fe8dc6f49c" */
   {
     n: 2,
     name: '入站与白名单',
@@ -141,9 +145,9 @@ const seams = [
     iface: 'GatewayEvents.onMessage(IncomingMessage) → Rounds.handleIncoming → AllowedSenderGate.admit',
     convention: false,
     via: 'code',
-    text: '网关把解析好的私聊消息交给装配；装配先用连接与收发里的白名单过一道，名单外的静默拒绝、只记日志和最近被拒的 openid，通过的才交给派任务。连接与收发自己不 import 派任务。',
+    text: '网关把解析好的私聊消息交给装配；装配先用连接与收发里的白名单过一道，名单外的静默拒绝、只记日志、最近被拒的 openid 和消息记录，通过的才交给派任务。连接与收发自己不 import 派任务。',
   },
-  /* ref file="../plugins/qq-bot/src/rounds.ts" lines="37-46" hash="98236e2c2f37" blob="c2b4c0d08570" */
+  /* ref file="../plugins/qq-bot/src/rounds.ts" lines="41-52" hash="a3f5f7caf161" blob="80fe8dc6f49c" */
   {
     n: 3,
     name: '交给派任务与通知',
@@ -152,19 +156,19 @@ const seams = [
     iface: 'ChatRounds.handleAdmitted · report · bind · addGroup … ；OwnerNotifier.notify',
     convention: false,
     via: 'code',
-    text: '装配连上机器人时建出派任务与通知两块，把聊天表、执行端表、插件注册表和读设置的函数传进去；命令与服务方法都经它转过去。两块互不 import。',
+    text: '装配连上机器人时建出派任务与通知两块，把聊天表、执行端表、插件注册表、消息记录和读设置的函数传进去；发消息的函数先经消息记录包一层再交给它们。命令与服务方法都经它转过去。两块互不 import。',
   },
-  /* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="22-34" hash="117d111a6ff6" blob="ed832dd08797" */
-  /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="49-53" hash="ce564994ca14" blob="3e1dda368b15" */
+  /* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="24-36" hash="117d111a6ff6" blob="da543a94796c" */
+  /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="46-50" hash="7aff9cc630ae" blob="8455e3316792" */
   {
     n: 4,
     name: '派任务用收发',
     a: ['chat-rounds'],
     b: ['gate', 'reply'],
-    iface: 'intakeFirstDelivery(table, message, onFirstDelivery) · ReplySender.reply(target, trigger, text, quote?)',
+    iface: 'intakeFirstDelivery(table, message, onFirstDelivery) · MessageLog.inbound(message, route) · ReplySender.reply(target, trigger, text, purpose, quote?)',
     convention: false,
     via: 'code',
-    text: '派任务收下一条消息时经连接与收发记下这个私聊、按消息 id 去重；回执、结果、用法说明都经它发出，由它按回复窗口选被动或主动、分段、带上引用。派任务只决定说什么、引用哪条。',
+    text: '派任务收下一条消息时经连接与收发记下这个私聊、按消息 id 去重；回执、结果、用法说明都经它发出，由它按回复窗口选被动或主动、分段、带上引用。派任务只决定说什么、引用哪条，并把分到哪、是哪一种出站、哪个组第几轮传过去记进消息记录。',
   },
   {
     n: 5,
@@ -219,16 +223,16 @@ const seams = [
     via: 'code',
     text: '插件注册的组与直接命令存在服务对象上，不在连上以后才有的对象上：没配 AppID 时照样能注册，换机器人重连也不丢。注册方的插件包名从调用方的上下文里取。注册表一变，装配就排一次「/」指令面板的同步。',
   },
-  /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="7-8" hash="b5bee59e08d3" blob="3e1dda368b15" */
+  /* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="41-44" hash="90e6fe94b52c" blob="1b247976864d" */
   {
     n: 10,
     name: '通知发主动消息',
     a: ['notifier'],
     b: ['rest'],
-    iface: 'SendC2c(owner, text)：不带 msg_id、不引用',
+    iface: 'SendC2c(owner, text, …, { kind: notice, notice: id })：不带 msg_id、不引用',
     convention: false,
     via: 'code',
-    text: '通知只 import 连接与收发的类型；真正发消息的函数由装配传进来，就是 QqRestClient.sendC2c。通知不经回复窗口，一律是主动消息。',
+    text: '通知只 import 连接与收发的类型；真正发消息的函数由装配传进来：QqRestClient.sendC2c 经消息记录包过一层，发完记一条。通知不经回复窗口，一律是主动消息。',
   },
   /* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="263-289" hash="22ba087acb83" blob="27e96639d11f" */
   {
@@ -241,7 +245,7 @@ const seams = [
     via: 'code',
     text: '派任务读写私聊行与命令登记的组，通知读写去重记录，连接与收发记近期消息 id 和被动回复用掉的次数。所有改表的操作经同一条串行队列；调执行端、发 QQ 消息在队列外面做，一个组慢不会卡住别的组。',
   },
-  /* ref file="../plugins/qq-bot/src/index.ts" lines="128-128" hash="3f4db5b01f24" blob="cb3f3cc19734" */
+  /* ref file="../plugins/qq-bot/src/index.ts" lines="131-131" hash="3f4db5b01f24" blob="46b54b586aa9" */
   {
     n: 12,
     name: '存盘',
@@ -251,6 +255,17 @@ const seams = [
     convention: false,
     via: 'disk',
     text: '整份表按 AppID 存成一份文档，记录里不写 home 与 AppID。读回时形状不对直接报错，读到第 1、2 版先迁成第 3 版。',
+  },
+  /* ref file="../plugins/qq-bot/src/index.ts" lines="138-140" hash="226b180a9194" blob="46b54b586aa9" */
+  {
+    n: 13,
+    name: '消息记录',
+    a: ['msglog'],
+    b: ['gwb-msgfiles'],
+    iface: 'gwbData.dir/messages-<AppID>-<YYYY-MM>.jsonl：一行一条，只追加',
+    convention: false,
+    via: 'disk',
+    text: '入站经白名单与派任务、出站经包过的发消息函数，每条一行追加进当月的文件；写失败只记一行 warn，收发照常。连上时与跨进新的月份时删掉当月与前 3 个月以外的文件。qq-bot.messages 跨月份文件倒着读。',
   },
 ];
 

@@ -1,13 +1,14 @@
 /**
  * 连接与收发内部接缝图（qq.data.mjs）的坐标与图标。目录外的调用方在最上一行，各自对着它调的那个文件；
  * 中间两行是目录里的文件，协议与选路在它们的使用者下面，指令面板在选路下面；QQ 开放平台与聊天表在最下。
+ * 消息记录与它写的数据目录在最右一列：所有入站、出站都要连到它，放在边上线最少。
  */
-import { Cable, Cloud, Database, FileCode, Filter, Globe, Megaphone, Radio, Route, Send, Server, SquareSlash, Workflow } from 'lucide-react';
+import { Cable, Cloud, Database, FileCode, Filter, Globe, HardDrive, Megaphone, Radio, Route, ScrollText, Send, Server, SquareSlash, Workflow } from 'lucide-react';
 import { cap } from '@godcreator/docfirst-explainer';
 import type { SeamLayout } from '@godcreator/docfirst-explainer';
 
 export const qqLayout: SeamLayout = {
-  view: { w: 1240, h: 670 },
+  view: { w: 1600, h: 670 },
   caps: {
     'w-index': cap(54, 48, 232),
     'n-owner': cap(334, 48, 232),
@@ -23,6 +24,9 @@ export const qqLayout: SeamLayout = {
     'snd-split': cap(744, 188, 102),
     'gate-admit': cap(894, 188, 312),
     'gate-intake': cap(894, 246, 312),
+    'log-record': cap(1254, 188, 272),
+    'log-query': cap(1254, 246, 272),
+    'f-jsonl': cap(1254, 358, 272),
 
     'proto-parse': cap(54, 358, 142),
     'proto-intents': cap(54, 416, 142),
@@ -43,6 +47,8 @@ export const qqLayout: SeamLayout = {
     rest: { x: 320, y: 160, w: 260, h: 206 },
     sender: { x: 600, y: 160, w: 260, h: 90 },
     gate: { x: 880, y: 160, w: 340, h: 148 },
+    log: { x: 1240, y: 160, w: 300, h: 148 },
+    files: { x: 1240, y: 330, w: 300, h: 88 },
     proto: { x: 40, y: 330, w: 170, h: 148 },
     window: { x: 600, y: 330, w: 260, h: 90 },
     panel: { x: 600, y: 440, w: 260, h: 148 },
@@ -65,6 +71,10 @@ export const qqLayout: SeamLayout = {
     '12': { d: 'M1050,294 V588', badge: [1050, 450] },
     '13': { d: 'M286,72 H310 V130 H590 V430 H730 V468', badge: [380, 130] },
     '14': { d: 'M614,492 H545 V588', badge: [545, 545] },
+    '15': { d: 'M1206,212 H1254 M820,96 V140 H1330 V188', badge: [1230, 212] },
+    '16': { d: 'M1206,72 H1460 V188', badge: [1460, 130] },
+    '17': { d: 'M1390,294 V358', badge: [1390, 326] },
+    '18': { d: 'M230,48 V10 H1570 V270 H1526', badge: [1570, 140] },
   },
   entries: {},
   moduleIcons: {
@@ -78,6 +88,8 @@ export const qqLayout: SeamLayout = {
     window: Route,
     panel: SquareSlash,
     gate: Filter,
+    log: ScrollText,
+    files: HardDrive,
     proto: FileCode,
     qqc: Cloud,
     store: Database,

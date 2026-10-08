@@ -6,6 +6,7 @@
 import { randomBytes } from 'node:crypto'
 import type { PanelCandidate } from '../qq/command-panel.js'
 import { intakeFirstDelivery } from '../qq/incoming-gate.js'
+import type { InboundRoute, MessageLog, OutboundPurpose } from '../qq/message-log.js'
 import type { IncomingMessage, QqLog } from '../qq/qq-protocol.js'
 import type { ReplySender } from '../qq/reply-sender.js'
 import { DEFAULT_GROUP_KEY, DEFAULT_GROUP_LABEL, type Binding, type Chat, type ChatTable, type GroupState, type Round, type StoredTaskGroup, type Trigger, type UndeliveredResult } from '../storage/chat-table.js'
@@ -28,6 +29,8 @@ export interface ChatRoundsDeps {
   /** 设置 idle-hours 的原值，派任务时才校验 */
   idleHours(): unknown
   replies: ReplySender
+  /** 入站分到哪由这里算好记进去 */
+  messages: MessageLog
   log: QqLog
 }
 
@@ -146,7 +149,7 @@ export class ChatRounds {
   /** 处理一条私聊；调用方先过白名单（qq/incoming-gate.ts 的 AllowedSenderGate） */
   async handleAdmitted(message: IncomingMessage): Promise<void> {
     const text = normalizeIncoming(message.content)
-    if (text === '') return
+    if (text === '') { this.deps.messages.inbound(message, { route: 'not-dispatched', reason: 'empty' }); return }
     const trigger: Trigger = { msgId: message.msgId, receivedAt: Date.now() }
     const intake = await intakeFirstDelivery(this.table, message, (chat) => {
       const routed = routeMessage(text, (command) => this.commandKindOf(command))
@@ -156,23 +159,25 @@ export class ChatRounds {
       this.table.groupState(chat, routed.group).queue.push({ prompt: routed.prompt, sender: message.senderOpenid, trigger })
       return { chatId: chat.id, routed, problem: null }
     })
-    if (intake === null) return
+    if (intake === null) { this.deps.messages.inbound(message, { route: 'not-dispatched', reason: 'duplicate' }); return }
+    this.deps.messages.inbound(message, inboundRouteOf(intake.routed, intake.problem))
     await this.answer(intake.chatId, intake.routed, intake.problem, message.senderOpenid, trigger)
   }
 
   private async answer(chatId: string, routed: RoutedMessage, problem: string | null, target: string, trigger: Trigger): Promise<void> {
     switch (routed.kind) {
-      case 'help': await this.replies.reply(target, trigger, await this.helpFor(chatId)); return
+      case 'help': await this.replies.reply(target, trigger, await this.helpFor(chatId), { kind: 'command-answer' }); return
       case 'status': await this.status(chatId, target, trigger); return
       case 'fresh-session': await this.freshSession(chatId, routed.group, target, trigger); return
-      case 'usage': await this.replies.reply(target, trigger, routed.text); return
-      case 'unknown-command': await this.replies.reply(target, trigger, `没有指令 ${routed.command}，这条没有派出。\n${await this.helpFor(chatId)}`); return
-      case 'conflict': await this.replies.reply(target, trigger, this.conflictText(routed.command)); return
+      case 'usage': await this.replies.reply(target, trigger, routed.text, { kind: 'not-dispatched' }); return
+      case 'unknown-command': await this.replies.reply(target, trigger, `没有指令 ${routed.command}，这条没有派出。\n${await this.helpFor(chatId)}`, { kind: 'not-dispatched' }); return
+      case 'conflict': await this.replies.reply(target, trigger, this.conflictText(routed.command), { kind: 'not-dispatched' }); return
       case 'direct': await this.runDirectCommand(chatId, routed.command, routed.text, target, trigger); return
       case 'task': {
-        if (problem !== null) { await this.replies.reply(target, trigger, `【${labelOf(routed.group)}】${problem}`); return }
+        const label = labelOf(routed.group)
+        if (problem !== null) { await this.replies.reply(target, trigger, `【${label}】${problem}`, { kind: 'not-dispatched', group: label }); return }
         const busy = await this.advance(chatId, routed.group, true)
-        if (busy !== null) await this.replies.reply(target, trigger, busy)
+        if (busy !== null) await this.replies.reply(target, trigger, busy, { kind: 'receipt', group: label })
       }
     }
   }
@@ -243,7 +248,7 @@ export class ChatRounds {
     const started = await this.takeNextRound(chatId, key)
     if (started === null) return
     if ('problem' in started) {
-      await this.replies.reply(started.target, started.trigger, started.problem)
+      await this.replies.reply(started.target, started.trigger, started.problem, { kind: 'not-dispatched', group: labelOf(key) })
       await this.advance(chatId, key, false)
       return
     }
@@ -257,7 +262,7 @@ export class ChatRounds {
         const state = this.table.require(chatId).groups[key]
         if (state?.round?.id === round.id) { state.round = null; await this.table.save() }
       })
-      await this.replies.reply(target, trigger, `【${group.label}】派单失败：${errorText(error)}`)
+      await this.replies.reply(target, trigger, `【${group.label}】派单失败：${errorText(error)}`, { kind: 'not-dispatched', group: group.label, round: round.id })
       await this.advance(chatId, key, false)
       return
     }
@@ -269,7 +274,7 @@ export class ChatRounds {
       if (state.round?.id === round.id) { state.round.session = sessionId; state.round.turn = turn }
       await this.table.save()
     })
-    await this.replies.reply(target, trigger, this.receipt(group, round.agent, sessionId, turn, choice))
+    await this.replies.reply(target, trigger, this.receipt(group, round.agent, sessionId, turn, choice), { kind: 'receipt', group: group.label, round: round.id })
   }
 
   private receipt(group: ResolvedGroup, agent: string, sessionId: string, turn: number, choice: SessionChoice): string {
@@ -310,7 +315,7 @@ export class ChatRounds {
     })
     if (closed === null) return
     const label = labelOf(key)
-    await this.deliver(chatId, closed.target, closed.trigger, `【${label} · 第 ${closed.turn} 轮】\n${text}`, { group: label, text, quote: closed.trigger.msgId })
+    await this.deliver(chatId, closed.target, closed.trigger, `【${label} · 第 ${closed.turn} 轮】\n${text}`, { group: label, text, quote: closed.trigger.msgId }, { kind: 'result', group: label, round: roundId })
     await this.advance(chatId, key, false)
   }
 
@@ -364,14 +369,14 @@ export class ChatRounds {
 
   private async runDirectCommand(chatId: string, command: string, text: string, target: string, trigger: Trigger): Promise<void> {
     const entry = this.deps.registry.directCommand(command)
-    if (entry === undefined) { await this.replies.reply(target, trigger, `没有指令 ${command}，这条没有派出。\n${await this.helpFor(chatId)}`); return }
+    if (entry === undefined) { await this.replies.reply(target, trigger, `没有指令 ${command}，这条没有派出。\n${await this.helpFor(chatId)}`, { kind: 'not-dispatched' }); return }
     let answer: string
     try {
       answer = await entry.definition.handle({ text, senderOpenid: target })
     } catch (error) {
       answer = `指令 ${command} 出错：${errorText(error)}`
     }
-    await this.replies.reply(target, trigger, answer)
+    await this.replies.reply(target, trigger, answer, { kind: 'command-answer' })
   }
 
   /** 这个私聊在 /状态 与 qq-bot.status 里要列的组：默认组、全部登记与注册的组、以及已经撤掉但还记着状态的组 */
@@ -392,7 +397,7 @@ export class ChatRounds {
     })
     if (pending.results.length > 0) {
       // 被动回复挂在这条 /状态 上，引用的仍是当初派出这一轮的那条消息
-      for (const result of pending.results) await this.deliver(chatId, target, trigger, `【${result.group}】补发结果：\n${result.text}`, result)
+      for (const result of pending.results) await this.deliver(chatId, target, trigger, `【${result.group}】补发结果：\n${result.text}`, result, { kind: 'resend', group: result.group })
       return
     }
     const lines: string[] = []
@@ -410,7 +415,7 @@ export class ChatRounds {
       }
       lines.push(`${label}还在做第 ${group.round.turn} 轮${queued}。最新的回答末尾：\n${tailExcerpt(checked.reply, PROGRESS_TAIL_CHARS)}`)
     }
-    await this.replies.reply(target, trigger, lines.join('\n'))
+    await this.replies.reply(target, trigger, lines.join('\n'), { kind: 'command-answer' })
     for (const each of finished) {
       await this.closeRound(chatId, each.key, each.roundId, `执行端这一轮已经结束，没有收到回报。最后的回答：\n${tailExcerpt(each.reply, REPLY_TAIL_CHARS)}`)
     }
@@ -418,7 +423,7 @@ export class ChatRounds {
 
   private async freshSession(chatId: string, groupName: string | null, target: string, trigger: Trigger): Promise<void> {
     if (groupName !== null && !this.registeredGroupNames().includes(groupName)) {
-      await this.replies.reply(target, trigger, `没有任务组 ${groupName}。可用的组名：${this.registeredGroupNames().join('、') || '没有'}；不写组名是默认组。`)
+      await this.replies.reply(target, trigger, `没有任务组 ${groupName}。可用的组名：${this.registeredGroupNames().join('、') || '没有'}；不写组名是默认组。`, { kind: 'command-answer' })
       return
     }
     const key = groupName ?? DEFAULT_GROUP_KEY
@@ -426,7 +431,7 @@ export class ChatRounds {
       const state = this.table.require(chatId).groups[key]
       if (state !== undefined) { state.session = null; await this.table.save() }
     })
-    await this.replies.reply(target, trigger, `【${labelOf(key)}】下一条起用新会话；在做的这一轮照常回报。`)
+    await this.replies.reply(target, trigger, `【${labelOf(key)}】下一条起用新会话；在做的这一轮照常回报。`, { kind: 'command-answer', group: labelOf(key) })
   }
 
   // ───── 绑定 ─────
@@ -530,8 +535,8 @@ export class ChatRounds {
   // ───── 投递 ─────
 
   /** 发一段结果，引用 undelivered.quote 那条消息；没发出去就记进这个私聊的没送达，等人发 /状态 */
-  private async deliver(chatId: string, target: string, trigger: Trigger, message: string, undelivered: UndeliveredResult): Promise<void> {
-    if (await this.replies.reply(target, trigger, message, undelivered.quote)) return
+  private async deliver(chatId: string, target: string, trigger: Trigger, message: string, undelivered: UndeliveredResult, purpose: OutboundPurpose): Promise<void> {
+    if (await this.replies.reply(target, trigger, message, purpose, undelivered.quote)) return
     await this.table.serial(async () => {
       this.table.require(chatId).undelivered.push(undelivered)
       await this.table.save()
@@ -580,6 +585,22 @@ export class ChatRounds {
   async dispose(): Promise<void> {
     while (this.workers.size > 0) await Promise.allSettled([...this.workers])
     await this.table.settle()
+  }
+}
+
+/** 一条收下的私聊在消息记录里写成分到哪；problem 是任务派不进组的原因 */
+function inboundRouteOf(routed: RoutedMessage, problem: string | null): InboundRoute {
+  switch (routed.kind) {
+    case 'help': return { route: 'reserved', command: COMMAND_HELP }
+    case 'status': return { route: 'reserved', command: COMMAND_STATUS }
+    case 'fresh-session': return { route: 'reserved', command: COMMAND_FRESH_SESSION }
+    case 'usage': return { route: 'not-dispatched', reason: 'usage', detail: routed.text }
+    case 'unknown-command': return { route: 'not-dispatched', reason: 'unknown-command', command: routed.command }
+    case 'conflict': return { route: 'not-dispatched', reason: 'conflict', command: routed.command }
+    case 'direct': return { route: 'direct', command: routed.command }
+    case 'task': return problem === null
+      ? { route: 'group', group: labelOf(routed.group) }
+      : { route: 'not-dispatched', reason: 'group-unavailable', group: labelOf(routed.group), detail: problem }
   }
 }
 

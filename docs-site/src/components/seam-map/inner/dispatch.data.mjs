@@ -130,7 +130,7 @@ export const dispatchGraph = defineSeamGraph({
   ],
   entries: [],
   seams: [
-    /* ref file="../plugins/qq-bot/src/rounds.ts" lines="48-76" hash="5fb463488257" blob="c2b4c0d08570" */
+    /* ref file="../plugins/qq-bot/src/rounds.ts" lines="54-82" hash="5fb463488257" blob="80fe8dc6f49c" */
     {
       n: 1,
       name: '接线转进来',
@@ -141,7 +141,7 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '入站私聊过了白名单才进来；命令 qq-bot.bind、group.*、report、status 都经接线转到这里。QQ 没连上时没有接线，命令直接报错。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="147-161" hash="4ced5876b1e1" blob="834b53b1bcf7" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="150-165" hash="c7939d66a45d" blob="b57d400e44e3" */
     {
       n: 2,
       name: '分发',
@@ -152,7 +152,7 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '分发规则全在 routing.ts，它只问一个问题：这一段是哪种已注册的命令（kindOf）。分到任务的，在收下消息的同一步里进那一组的队列；其余的当场回一句。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="107-114" hash="80f91ccbf8f6" blob="834b53b1bcf7" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="110-117" hash="80f91ccbf8f6" blob="b57d400e44e3" */
     {
       n: 3,
       name: '查命令',
@@ -219,16 +219,16 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '两个执行端的形状不同，翻译只在这一层：会话号是 taskId 或 sessionId；ZCode 的回答里混着工具调用记录，只取末尾 600 字。ZCode 侧栏只列打开过的工作区：聊天表里没记过的工作区，开一轮前先 open 一次，成功才记下（记录由装配接到聊天表上）；open 失败按派出失败处理。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="532-539" hash="dd9baa90ed01" blob="834b53b1bcf7" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="537-544" hash="2c18839d08c2" blob="b57d400e44e3" */
     {
       n: 9,
       name: '收发',
       a: ['cr-in', 'cr-round', 'cr-deliver'],
       b: ['q-in', 'q-reply'],
-      iface: 'intakeFirstDelivery(table, message, onFirstDelivery) · ReplySender.reply(target, trigger, text, quote?)',
+      iface: 'intakeFirstDelivery(table, message, onFirstDelivery) · MessageLog.inbound(message, route) · ReplySender.reply(target, trigger, text, purpose, quote?)',
       convention: false,
       via: 'code',
-      text: '回执引用刚收到的那条，一轮的结果引用派出这一轮的那条；结果被动、主动都发不出去，连同要引用的消息 id 和组名记进这个私聊的没送达。',
+      text: '回执引用刚收到的那条，一轮的结果引用派出这一轮的那条；结果被动、主动都发不出去，连同要引用的消息 id 和组名记进这个私聊的没送达。连接与收发不认识任务组：收下的消息分到哪（inbound 的 route）、每条出站是哪一种、哪个组、第几轮（reply 的 purpose）由这里传过去，记进消息记录。',
     },
     /* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="339-356" hash="0415f2890ddc" blob="d94736558b46" */
     {

@@ -1,6 +1,6 @@
 /** 主动私聊主人的通知：服务 gwbQqBot.notify 与命令 qq-bot.notify 的实现，按通知 id 去重，去重记录存在共用的聊天表里 */
 import type { QqLog } from '../qq/qq-protocol.js'
-import type { SendC2c } from '../qq/reply-sender.js'
+import type { SendC2c } from '../qq/message-log.js'
 import type { ChatTable } from '../storage/chat-table.js'
 
 const NOTICE_MAX_CHARS = 600
@@ -34,7 +34,7 @@ export class OwnerNotifier {
     })
     if (fresh !== null) return fresh
     let delivered = false
-    try { delivered = (await this.deps.sendC2c(owner, text, undefined, undefined, undefined)).ok }
+    try { delivered = (await this.deps.sendC2c(owner, text, undefined, undefined, undefined, { kind: 'notice', notice: id, segment: { index: 1, total: 1 } })).ok }
     catch (error) { this.deps.log.warn(`通知 ${id} 发送失败：${String(error)}`) }
     if (delivered) {
       await table.serial(async () => {

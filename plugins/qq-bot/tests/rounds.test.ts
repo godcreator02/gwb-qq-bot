@@ -1,9 +1,12 @@
+import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import type { GwbZcodeApi } from '@godcreator/gwb-zcode'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PluginCommandRegistry } from '../src/dispatch/command-registry.js'
 import { ExecutorTable, type Executor } from '../src/dispatch/executors/executor.js'
 import { zcodeExecutor } from '../src/dispatch/executors/zcode.js'
+import { MessageLog, queryMessages } from '../src/qq/message-log.js'
 import type { IncomingMessage } from '../src/qq/qq-protocol.js'
 import { Rounds } from '../src/rounds.js'
 import { COLLAB_INSTRUCTIONS, ChatTable, loadBook } from '../src/storage/chat-table.js'
@@ -35,6 +38,7 @@ function fakeExecutor(id: string): FakeExecutor {
 }
 
 const roundsCreated: Rounds[] = []
+const messageDirs: string[] = []
 function setup(options: { defaultWorkspace?: string; stored?: unknown; registry?: PluginCommandRegistry } = {}) {
   let doc = options.stored
   const store = { read: async () => structuredClone(doc), write: async (value: unknown) => { doc = structuredClone(value) } }
@@ -46,23 +50,29 @@ function setup(options: { defaultWorkspace?: string; stored?: unknown; registry?
   const settings = { idleHours: 6 as unknown }
   const sent: { target: string; content: string; msgId: string | undefined; msgSeq: number | undefined; quote: string | undefined }[] = []
   const sendOk = { ok: true as const, id: 'sent' }
+  const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() }
+  const messageDir = fs.mkdtempSync(path.join(os.tmpdir(), 'qq-bot-messages-'))
+  messageDirs.push(messageDir)
+  const messages = new MessageLog({ dir: messageDir, appId: 'app-1', log })
+  const records = async () => { await messages.settle(); return [...(await queryMessages(messageDir, 'app-1', { limit: 500 })).records].reverse() }
   const deps = {
-    home: 'default', table, executors, registry,
+    home: 'default', table, executors, registry, messages,
     allowedOpenids: () => [OWNER, ALICE],
     ownerOpenid: () => OWNER,
     defaultWorkspace: () => options.defaultWorkspace ?? WORKSPACE,
     idleHours: () => settings.idleHours,
     sendC2c: vi.fn(async (target: string, content: string, msgId: string | undefined, msgSeq: number | undefined, quote: string | undefined): Promise<{ ok: true; id: string } | { ok: false; status: number; message: string }> => { sent.push({ target, content, msgId, msgSeq, quote }); return sendOk }),
-    log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+    log,
   }
   const rounds = new Rounds(deps)
   roundsCreated.push(rounds)
-  return { rounds, table, zcode, claudecode, sent, deps, registry, settings, store: () => doc }
+  return { rounds, table, zcode, claudecode, sent, deps, registry, settings, store: () => doc, records, messageDir }
 }
 afterEach(async () => {
   vi.useRealTimers()
   vi.restoreAllMocks()
   await Promise.all(roundsCreated.splice(0).map((r) => r.dispose()))
+  for (const dir of messageDirs.splice(0)) fs.rmSync(dir, { recursive: true, force: true })
 })
 
 let msgCounter = 0
@@ -570,6 +580,99 @@ describe('通知与重载', () => {
     await expect(second.rounds.report({ round: roundId, text: '重载后的结果' })).resolves.toEqual({ recorded: true, duplicate: false })
     await flush()
     expect(lastContent(second.sent)).toBe('【mmc · 第 1 轮】\n重载后的结果')
+  })
+})
+
+describe('消息记录', () => {
+  it('入站记正文全文与分到哪；回执与结果记种类、组名、本轮编号、被动回复挂在哪条上、引用、第几段与结果', async () => {
+    const { rounds, zcode, records } = setup()
+    const task = c2c('把 README 的错别字改掉')
+    await rounds.handleIncoming(task)
+    const roundId = roundIdOf(zcode.starts[0]!.prompt)
+    await rounds.report({ round: roundId, text: '改了 3 处' })
+    await flush()
+    const [inbound, receipt, result] = await records()
+    expect(inbound).toMatchObject({ direction: 'in', chat: `c2c:${OWNER}`, msgId: task.msgId, text: '把 README 的错别字改掉', route: 'group', group: '默认' })
+    expect(receipt).toMatchObject({
+      direction: 'out', chat: `c2c:${OWNER}`, kind: 'receipt', group: '默认', round: roundId, mode: 'passive', replyTo: task.msgId, msgSeq: 1,
+      quote: task.msgId, segment: { index: 1, total: 1 }, msgId: 'sent', result: { ok: true },
+    })
+    expect(receipt!.direction === 'out' && receipt!.text).toContain('已接收')
+    expect(result).toMatchObject({ kind: 'result', group: '默认', round: roundId, text: '【默认 · 第 1 轮】\n改了 3 处', msgSeq: 2 })
+    expect(Date.parse(inbound!.at)).not.toBeNaN()
+  })
+
+  it('白名单外的入站只记 openid 与正文前 40 字，标明被拒，不记全文', async () => {
+    const { rounds, records } = setup()
+    await rounds.handleIncoming(c2c(`${'甲'.repeat(40)}后面的不记`, 'stranger'))
+    const [rejected] = await records()
+    expect(rejected).toEqual({ at: expect.any(String) as string, direction: 'in', chat: 'c2c:stranger', msgId: expect.any(String) as string, route: 'rejected', excerpt: '甲'.repeat(40) })
+  })
+
+  it('没派出的入站记原因：没有指令、用法、重名之外的组派不出去、空消息、重复投递；对应的出站种类是 not-dispatched', async () => {
+    const { rounds, records } = setup()
+    await rounds.handleIncoming(c2c('/没有这个 做点事'))
+    await rounds.handleIncoming(c2c('/帮助 一下'))
+    await rounds.handleIncoming(c2c('帮我做', ALICE))
+    await rounds.handleIncoming(c2c('   '))
+    const repeated = c2c('/帮助')
+    await rounds.handleIncoming(repeated)
+    await rounds.handleIncoming(repeated)
+    const inbound = (await records()).filter((record) => record.direction === 'in')
+    expect(inbound).toMatchObject([
+      { route: 'not-dispatched', reason: 'unknown-command', command: '/没有这个' },
+      { route: 'not-dispatched', reason: 'usage', detail: '/帮助 后面不带别的文字，只发 /帮助' },
+      { route: 'not-dispatched', reason: 'group-unavailable', group: '默认', chat: `c2c:${ALICE}` },
+      { route: 'not-dispatched', reason: 'empty', text: '   ' },
+      { route: 'reserved', command: '/帮助' },
+      { route: 'not-dispatched', reason: 'duplicate', msgId: repeated.msgId },
+    ])
+    const kinds = (await records()).flatMap((record) => record.direction === 'out' ? [[record.kind, record.group ?? null]] : [])
+    expect(kinds).toEqual([['not-dispatched', null], ['not-dispatched', null], ['not-dispatched', '默认'], ['command-answer', null]])
+  })
+
+  it('出站失败记官方错误码与原话；被动发不出去改发主动，两次各记一条', async () => {
+    const { rounds, zcode, deps, records } = setup()
+    await rounds.handleIncoming(c2c('长任务'))
+    const roundId = roundIdOf(zcode.starts[0]!.prompt)
+    const refused = { ok: false as const, status: 400, code: 22009, message: '频控' }
+    deps.sendC2c.mockResolvedValueOnce(refused).mockResolvedValueOnce(refused)
+    await rounds.report({ round: roundId, text: '结果' })
+    await flush()
+    const results = (await records()).filter((record) => record.direction === 'out' && record.kind === 'result')
+    expect(results).toMatchObject([
+      { mode: 'passive', msgId: null, round: roundId, result: { ok: false, status: 400, code: 22009, message: '频控' } },
+      { mode: 'active', msgId: null, round: roundId, result: { ok: false, status: 400, code: 22009, message: '频控' } },
+    ])
+    expect(results[1]).not.toHaveProperty('replyTo')
+  })
+
+  it('分段发送的每段各记一条，标第几段', async () => {
+    const { rounds, zcode, records } = setup()
+    await rounds.handleIncoming(c2c('长任务'))
+    const lines = ['一'.repeat(600), '二'.repeat(600), '三'.repeat(600)]
+    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: lines.join('\n') })
+    await flush()
+    const results = (await records()).filter((record) => record.direction === 'out' && record.kind === 'result')
+    expect(results.map((record) => record.direction === 'out' && record.segment)).toEqual([{ index: 1, total: 3 }, { index: 2, total: 3 }, { index: 3, total: 3 }])
+    expect(results[2]).toMatchObject({ text: `(3/3) ${lines[2]}` })
+  })
+
+  it('主人通知记种类 notice 与通知 id，主动消息', async () => {
+    const { rounds, records } = setup()
+    await rounds.notify('collab-1', '新 MR')
+    expect(await records()).toMatchObject([{ direction: 'out', kind: 'notice', notice: 'collab-1', mode: 'active', text: '新 MR', result: { ok: true } }])
+  })
+
+  it('/状态 补发的结果记成 resend，带组名', async () => {
+    const { rounds, zcode, deps, records } = setup()
+    await rounds.handleIncoming(c2c('长任务'))
+    const refused = { ok: false as const, status: 400, message: '频控' }
+    deps.sendC2c.mockResolvedValueOnce(refused).mockResolvedValueOnce(refused)
+    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '长任务结果' })
+    await flush()
+    await rounds.handleIncoming(c2c('/状态'))
+    expect((await records()).at(-1)).toMatchObject({ kind: 'resend', group: '默认', text: '【默认】补发结果：\n长任务结果', result: { ok: true } })
   })
 })
 

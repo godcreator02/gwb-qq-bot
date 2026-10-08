@@ -20,13 +20,13 @@ full: true
 
 **2 入站与白名单**：网关把解析好的私聊消息交给装配，装配先用连接与收发里的白名单过一道，名单外的静默拒绝，通过的才交给派任务。三块之间的这个顺序写在装配里，三块自己互不 import：
 
-{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="48-52" hash="80acb3401eab" blob="c2b4c0d08570" */}
+{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="54-58" hash="80acb3401eab" blob="80fe8dc6f49c" */}
 
-**3 交给派任务与通知**：连上机器人时，装配建出派任务与通知两块，把聊天表、执行端表、插件注册表、读设置的函数和发消息的函数传进去。改了任何一块的构造参数，只动这里：
+**3 交给派任务与通知**：连上机器人时，装配建出派任务与通知两块，把聊天表、执行端表、插件注册表、消息记录、读设置的函数和发消息的函数传进去；发消息的函数先经消息记录包一层，所有出站都记得到。改了任何一块的构造参数，只动这里：
 
-{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="37-46" hash="98236e2c2f37" blob="c2b4c0d08570" */}
+{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="41-52" hash="a3f5f7caf161" blob="80fe8dc6f49c" */}
 
-**4 派任务用收发**：派任务收下消息时经连接与收发建私聊行、按消息 id 去重；回执、结果、用法说明也经它发出，由它按回复窗口选被动或主动、分段、带上引用。派任务只决定说什么、引用哪条。
+**4 派任务用收发**：派任务收下消息时经连接与收发建私聊行、按消息 id 去重；回执、结果、用法说明也经它发出，由它按回复窗口选被动或主动、分段、带上引用。派任务只决定说什么、引用哪条，并告诉它这条是哪一种出站、哪个组第几轮，给消息记录用。
 
 **5 发消息**：REST → QQ 开放平台。回执、结果、通知都从这里出去，一律纯文本；被动回复的窗口与次数是平台的硬限制，插件只做选择。
 
@@ -46,13 +46,15 @@ full: true
 
 **12 存盘**：整份表按 AppID 存成一份 gwb-data 文档，换机器人就是另一份：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="128-128" hash="3f4db5b01f24" blob="cb3f3cc19734" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="131-131" hash="3f4db5b01f24" blob="46b54b586aa9" */}
+
+**13 消息记录**：收到的每条私聊、发出的每条消息按 AppID、按月追加进 qq-bot 数据目录下的 JSONL 文件，留当月与前 3 个月，`qq-bot.messages` 查。连接与收发不认识任务组，分到哪、是哪一种出站由派任务作为参数传进来；写失败只记一行 warn，收发照常。见[连接与收发](/docs/qq)的「消息记录」。
 
 ## 各块对外能做什么
 
 | 块 | 目录 | 对外给什么 | 详见 |
 | --- | --- | --- | --- |
-| 连接与收发 | `src/qq/` | 网关连接与重连、access token、白名单与去重、按回复窗口发一段话、引用原消息、同步「/」指令面板 | [连接与收发](/docs/qq) |
+| 连接与收发 | `src/qq/` | 网关连接与重连、access token、白名单与去重、按回复窗口发一段话、引用原消息、同步「/」指令面板、消息记录 | [连接与收发](/docs/qq) |
 | 通知 | `src/notify/` | 主动私聊主人，按 id 去重 | [通知](/docs/notify) |
 | 派任务 | `src/dispatch/` | 斜杠命令分发、任务组与直接命令、会话与队列、一轮、回报、懒检查、执行端适配层 | [派任务](/docs/dispatch)、[一条消息分到哪](/docs/dispatch/routing) |
 | 聊天表 | `src/storage/` | 每个私聊每组一份状态，命令登记的组、通知去重、消息 id、被动回复次数 | [聊天表](/docs/dispatch/chat-table) |
@@ -65,6 +67,7 @@ full: true
 | 命令 | effect | 用途 | 哪一块 |
 | --- | --- | --- | --- |
 | `qq-bot.status` | read | 连接、各个私聊的绑定、每个任务组的会话、在做的一轮、排队与没送达的结果、最近被拒的 openid、「/」指令面板的同步情况（`panel`） | 装配 + 派任务 + 连接与收发 |
+| `qq-bot.messages` | read | 查消息记录：收到的私聊与发出的消息（含发送结果），按私聊、组、本轮编号、方向、时间筛，按时间倒序 | 装配 + 连接与收发 |
 | `qq-bot.reconnect` | write | 改完 AppID / AppSecret / 旧沙箱接口设置后重连 | 装配 |
 | `qq-bot.bind` / `unbind` | write | 设、解除一个私聊的默认组 | 派任务 |
 | `qq-bot.group.add` / `remove` / `list` | write / write / read | 登记、删掉、列出任务组 | 派任务 |
@@ -77,20 +80,20 @@ full: true
 
 前三项改完要 `qq-bot.reconnect`；其余每次用到时现读，改完即时生效：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="27-35" hash="6194f1a6627b" blob="81cfa322bfe9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="28-36" hash="6194f1a6627b" blob="46b54b586aa9" */}
 
 ## 依赖
 
 | 依赖 | 怎么接 | 用来做什么 | 缺了会怎样 |
 | --- | --- | --- | --- |
-| `gwbCommands`、`gwbSettings`、`gwbData` | 必需 inject | 命令、设置、聊天表 | 插件不加载 |
+| `gwbCommands`、`gwbSettings`、`gwbData` | 必需 inject | 命令、设置、聊天表、消息记录的数据目录 | 插件不加载 |
 | `gwbZcode`（gwb-zcode） | 可选 inject，peer 标 optional | ZCode 那份执行端实现 | 绑定、登记任务组报「没装」，派任务回「没装执行端 zcode」 |
 | `gwbClaudecode`（gwb-claudecode） | 可选 inject，peer 标 optional | Claude Code 那份执行端实现 | 同上 |
 | `gwbSkills` | 可选 inject | 登记说明书 `qq-bot` | agent 读不到说明书 |
 | `cordis` | peer | 服务基类 `Service` | — |
 | QQ 开放平台 | 外部服务 | WebSocket 收事件，REST 发消息 | 连不上时网关退避重连 |
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="47-47" hash="f3e25754b611" blob="81cfa322bfe9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="48-48" hash="f3e25754b611" blob="46b54b586aa9" */}
 
 下游插件（协作站、gitea-issues）依赖 qq-bot，qq-bot 不依赖它们：依赖只有它们 → qq-bot 一个方向，反过来写 peer 会成环、发版被拒。
 

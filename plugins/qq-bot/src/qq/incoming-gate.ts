@@ -1,5 +1,6 @@
-/** 入站私聊的两道关：白名单（名单外静默拒绝，只记日志与 recentRejected）与按消息 id 去重（网关重推不重复处理） */
+/** 入站私聊的两道关：白名单（名单外静默拒绝，只记日志、recentRejected 与消息记录）与按消息 id 去重（网关重推不重复处理） */
 import type { Chat, ChatTable } from '../storage/chat-table.js'
+import { REJECTED_EXCERPT_CHARS, type MessageLog } from './message-log.js'
 import type { IncomingMessage, QqLog } from './qq-protocol.js'
 
 const REJECTED_LIMIT = 10
@@ -7,13 +8,14 @@ const REJECTED_LIMIT = 10
 export class AllowedSenderGate {
   readonly recentRejected: { openid: string; at: string; excerpt: string }[] = []
 
-  constructor(private readonly deps: { allowedOpenids(): string[]; log: QqLog }) {}
+  constructor(private readonly deps: { allowedOpenids(): string[]; messages: MessageLog; log: QqLog }) {}
 
   /** 发言人在白名单里回 true；不在就记下 openid、回 false，绝不回消息 */
   admit(message: IncomingMessage): boolean {
     if (this.deps.allowedOpenids().includes(message.senderOpenid)) return true
-    this.recentRejected.push({ openid: message.senderOpenid, at: new Date().toISOString(), excerpt: message.content.slice(0, 40) })
+    this.recentRejected.push({ openid: message.senderOpenid, at: new Date().toISOString(), excerpt: message.content.slice(0, REJECTED_EXCERPT_CHARS) })
     if (this.recentRejected.length > REJECTED_LIMIT) this.recentRejected.shift()
+    this.deps.messages.rejected(message)
     this.deps.log.info(`拒绝白名单外的私聊消息，openid=${message.senderOpenid}`)
     return false
   }

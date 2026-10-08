@@ -15,6 +15,7 @@ import { ExecutorTable } from './dispatch/executors/executor.js'
 import { zcodeExecutor } from './dispatch/executors/zcode.js'
 import { commandNameProblem } from './dispatch/routing.js'
 import { CommandPanelSync, PANEL_MAX_OPENIDS, planPanelItems, type DesiredPanel } from './qq/command-panel.js'
+import { MessageLog, parseMessageQuery, queryMessages } from './qq/message-log.js'
 import { QqGateway } from './qq/qq-gateway.js'
 import { QqRestClient } from './qq/qq-rest.js'
 import { Rounds } from './rounds.js'
@@ -58,6 +59,8 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
   private rounds: Rounds | null = null
   /** 连上的那个机器人的聊天表，和 rounds 同时有、同时清 */
   private chatTable: ChatTable | null = null
+  /** 连上的那个机器人的消息记录，和 rounds 同时有、同时清；查询不要求连着，只在查之前等它写完 */
+  private messages: MessageLog | null = null
   private disposed = false
 
   constructor(ctx: GwbContext) {
@@ -132,6 +135,9 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
     if (table.droppedGroups > 0) log.info(`聊天表从第 1 版换成第 2 版：不再处理群聊，去掉了 ${table.droppedGroups} 个群聊，下次写盘生效`)
     if (table.migratedChats !== null) log.info(`聊天表换成第 3 版：${table.migratedChats} 个私聊的会话、在做的一轮和队列归进默认组，下次写盘生效`)
     this.chatTable = table
+    const messages = new MessageLog({ dir: ctx.gwbData.dir, appId, log })
+    messages.prune()
+    this.messages = messages
     this.rounds = new Rounds({
       home: path.basename(ctx.gwbKernel.dataDir),
       table,
@@ -142,6 +148,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
       defaultWorkspace: () => readString(this.setting('default-workspace')),
       idleHours: () => this.setting('idle-hours'),
       sendC2c: (openid, content, msgId, msgSeq, quote) => this.rest.sendC2c(openid, { content, msgId, msgSeq, quote }),
+      messages,
       log,
     })
     for (const command of this.rounds.conflictingCommands()) log.warn(`命令 ${command} 既是命令登记的任务组，又被插件注册了：派到它的消息会报重名，用 qq-bot.group.remove 删掉命令登记的那个`)
@@ -195,6 +202,17 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
       },
     )
     commands.register(
+      { name: 'qq-bot.messages', description: '查消息记录：机器人收到的每条私聊、发出的每条消息（含发送结果），按时间倒序；排查「结果发出去没有」先查它', effect: 'read',
+        usage: '{ chat?: string, group?: string, round?: string, direction?: "in" | "out", since?: string, limit?: number }，都可选、条件之间是「并且」。chat 是 qq-bot.status 里私聊的 id（c2c:<openid>）；group 是组名（默认组是「默认」）；round 是本轮编号；since 是 ISO 时间，只要这之后的；limit 1–500，缺省 50。回 { appId, records, more }：查的是设置 app-id 那个机器人的记录，不要求连着，没配 AppID 回 { appId: null, records: [], more: false }；records 按时间倒序，more 为 true 表示还有更早的符合条件的记录。每条有 at、direction、chat。入站（in）有 msgId、text 与 route：group（进了 group 那一组的队列）、reserved / direct（command 是哪条保留命令或直接命令）、not-dispatched（reason 是 empty / duplicate / unknown-command / usage / conflict / group-unavailable，可带 group、command、detail）；白名单外的 route 是 rejected，只有 excerpt（正文前 40 字）。出站（out）有 kind（receipt 已接收或排队 / result 一轮的结果 / resend /状态 补发 / notice 主人通知 / command-answer 指令的回答 / not-dispatched 没派出的说明）、group、round、notice（有的才有）、mode（passive 带 replyTo 与 msgSeq，或 active）、quote、segment { index, total }、text、msgId（发出去的消息 id，没发出去是 null）、result（{ ok: true } 或 { ok: false, status?, code?, message } 官方错误码与原话）；一段被动发不出去改发主动时记两条。记录按月存，留当月与前 3 个月。回执超过 MCP 单次 40000 字时报错，把 limit 改小或加条件再查' },
+      async (raw) => {
+        const query = parseMessageQuery(raw)
+        const appId = readString(this.setting('app-id'))
+        if (appId === '') return { ok: true, data: { appId: null, records: [], more: false } }
+        await this.messages?.settle()
+        return { ok: true, data: await queryMessages(this.providerContext.gwbData.dir, appId, query) }
+      },
+    )
+    commands.register(
       { name: 'qq-bot.reconnect', description: '改完 AppID / AppSecret / 旧沙箱接口设置后调它：断开当前网关连接并按新设置重连', usage: '无参数。AppID / AppSecret 没配置时报错，不连接', effect: 'write' },
       async () => {
         this.gateway.stop()
@@ -202,6 +220,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
         await this.rounds?.dispose()
         this.rounds = null
         this.chatTable = null
+        this.messages = null
         if (!(await this.connect())) throw new Error('AppID / AppSecret 没配置：先到设置的 qq-bot 分区填好再重连')
         return { ok: true, data: { gateway: this.gateway.currentState } }
       },

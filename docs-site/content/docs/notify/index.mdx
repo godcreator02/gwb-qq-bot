@@ -15,7 +15,7 @@ full: true
 
 {/* ref file="../plugins/qq-bot/src/api.ts" lines="6-10" hash="cca1aba051ff" blob="aa8532784480" */}
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="246-257" hash="ce1c07a01924" blob="cb3f3cc19734" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="265-276" hash="ce1c07a01924" blob="46b54b586aa9" */}
 
 QQ 还没连上（没配 AppID、或正在重连）时直接报错：通知要连上才能用，这和注册任务组不同。
 
@@ -24,14 +24,14 @@ QQ 还没连上（没配 AppID、或正在重连）时直接报错：通知要�
 主人是设置 `owner-openid`，必须也在 `allowed-openids` 里，没配好直接报错。同一个 id 只发一次：先在聊天表里记下 id 与正文、存盘，再发；发出去了才标成已送达。
 同一个 id、同一段正文再调回 `duplicate` 和当初是否送达；同一个 id 换了正文直接报错：
 
-{/* ref file="../plugins/qq-bot/src/notify/owner-notifier.ts" lines="19-46" hash="0d5551504142" blob="b847b35d1ef2" */}
+{/* ref file="../plugins/qq-bot/src/notify/owner-notifier.ts" lines="19-46" hash="8e52c9a3c615" blob="4da401bd59b4" */}
 
 发的是主动消息：不带 `msg_id`、不引用任何消息，受官方频控与用户「接收机器人主动消息」开关限制，额度的实测见[主动配额](/trajectory/2026-10-05-active-message-quota)。
-发送抛错只记一行警告、回 `delivered: false`。测试在 `tests/rounds.test.ts` 的「通知与重载」。
+发送抛错只记一行警告、回 `delivered: false`。每次发送连同结果记进消息记录，种类是 `notice`、带通知 id，`qq-bot.messages` 查得到。测试在 `tests/rounds.test.ts` 的「通知与重载」与「消息记录」。
 
 ## 依赖
 
-连接与收发（只用类型 `SendC2c` 与 `QqLog`，实际发送是装配传进来的 `QqRestClient.sendC2c`）；聊天表（去重记录 `notices`）；设置 `owner-openid`、`allowed-openids`（经装配传进来的函数现读）。
+连接与收发（只用类型 `SendC2c` 与 `QqLog`，实际发送是装配传进来、经消息记录包过一层的 `QqRestClient.sendC2c`）；聊天表（去重记录 `notices`）；设置 `owner-openid`、`allowed-openids`（经装配传进来的函数现读）。
 
 ## 不做的事
 

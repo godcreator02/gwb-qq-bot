@@ -7,8 +7,9 @@ import type { PluginCommandRegistry } from './dispatch/command-registry.js'
 import type { ExecutorTable } from './dispatch/executors/executor.js'
 import { OwnerNotifier } from './notify/owner-notifier.js'
 import { AllowedSenderGate } from './qq/incoming-gate.js'
+import type { MessageLog, RawSendC2c } from './qq/message-log.js'
 import type { IncomingMessage, QqLog } from './qq/qq-protocol.js'
-import { ReplySender, type SendC2c } from './qq/reply-sender.js'
+import { ReplySender } from './qq/reply-sender.js'
 import type { Chat, ChatTable, StoredTaskGroup } from './storage/chat-table.js'
 
 export interface RoundsDeps {
@@ -23,7 +24,9 @@ export interface RoundsDeps {
   defaultWorkspace(): string
   /** 设置 idle-hours 的原值 */
   idleHours(): unknown
-  sendC2c: SendC2c
+  sendC2c: RawSendC2c
+  /** 这个机器人的消息记录：入站经白名单与派任务记，出站经它包过的发消息函数记 */
+  messages: MessageLog
   log: QqLog
 }
 
@@ -32,17 +35,20 @@ export class Rounds {
   private readonly gate: AllowedSenderGate
   private readonly chatRounds: ChatRounds
   private readonly notifier: OwnerNotifier
+  private readonly messages: MessageLog
   private closing = false
 
   constructor(deps: RoundsDeps) {
-    this.gate = new AllowedSenderGate({ allowedOpenids: deps.allowedOpenids, log: deps.log })
+    this.messages = deps.messages
+    this.gate = new AllowedSenderGate({ allowedOpenids: deps.allowedOpenids, messages: deps.messages, log: deps.log })
     this.recentRejected = this.gate.recentRejected
-    const replies = new ReplySender({ table: deps.table, sendC2c: deps.sendC2c, log: deps.log })
+    const sendC2c = deps.messages.recordingSend(deps.sendC2c)
+    const replies = new ReplySender({ table: deps.table, sendC2c, log: deps.log })
     this.chatRounds = new ChatRounds({
       home: deps.home, table: deps.table, executors: deps.executors, registry: deps.registry,
-      ownerOpenid: deps.ownerOpenid, defaultWorkspace: deps.defaultWorkspace, idleHours: deps.idleHours, replies, log: deps.log,
+      ownerOpenid: deps.ownerOpenid, defaultWorkspace: deps.defaultWorkspace, idleHours: deps.idleHours, replies, messages: deps.messages, log: deps.log,
     })
-    this.notifier = new OwnerNotifier({ table: deps.table, allowedOpenids: deps.allowedOpenids, ownerOpenid: deps.ownerOpenid, sendC2c: deps.sendC2c, log: deps.log })
+    this.notifier = new OwnerNotifier({ table: deps.table, allowedOpenids: deps.allowedOpenids, ownerOpenid: deps.ownerOpenid, sendC2c, log: deps.log })
   }
 
   async handleIncoming(message: IncomingMessage): Promise<void> {
@@ -98,5 +104,6 @@ export class Rounds {
   async dispose(): Promise<void> {
     this.closing = true
     await this.chatRounds.dispose()
+    await this.messages.settle()
   }
 }

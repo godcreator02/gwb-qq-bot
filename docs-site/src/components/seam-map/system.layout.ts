@@ -30,6 +30,8 @@ export const systemLayout: SeamLayout = {
     gateway: cap(530, 528, 240),
     rest: cap(780, 528, 246),
     'gwb-data': cap(1074, 528, 132),
+    msglog: cap(54, 586, 466),
+    'gwb-msgfiles': cap(1074, 586, 132),
 
     'qqc-gw': cap(530, 748, 240),
     'qqc-api': cap(780, 748, 246),
@@ -42,8 +44,8 @@ export const systemLayout: SeamLayout = {
     exec: { x: 620, y: 290, w: 200, h: 150 },
     notify: { x: 840, y: 290, w: 200, h: 90 },
     storage: { x: 1060, y: 290, w: 160, h: 90 },
-    qq: { x: 40, y: 500, w: 1000, h: 96 },
-    gwb: { x: 1060, y: 500, w: 160, h: 88 },
+    qq: { x: 40, y: 500, w: 1000, h: 154 },
+    gwb: { x: 1060, y: 500, w: 160, h: 146 },
     qqc: { x: 516, y: 720, w: 524, h: 88 },
   },
   // 共用聊天表（11）只画通知那一段，派任务与连接与收发两端固定高亮时照样亮
@@ -60,6 +62,7 @@ export const systemLayout: SeamLayout = {
     '10': { d: 'M940,366 V528', badge: [940, 470] },
     '11': { d: 'M1026,342 H1074', badge: [1050, 342] },
     '12': { d: 'M1140,366 V528', badge: [1140, 447] },
+    '13': { d: 'M520,610 H1074', badge: [780, 610] },
   },
   entries: {
     person: { box: { x: 300, y: 730, w: 170, h: 36 }, arrow: [470, 748, 516, 748] },

@@ -13,9 +13,9 @@
  * @type {{ title: string, text: string, plugin: PluginSide, service: ServiceSide, phone: PhoneSide }[]}
  */
 /* ref file="../plugins/qq-bot/src/api.ts" lines="1-4" hash="7a652ae12fa1" blob="57a540937d16" */
-/* ref file="../plugins/qq-bot/src/index.ts" lines="52-52" hash="dc80592374cb" blob="81cfa322bfe9" */
+/* ref file="../plugins/qq-bot/src/index.ts" lines="53-53" hash="dc80592374cb" blob="46b54b586aa9" */
 /* ref file="../plugins/qq-bot/tests/command-registry.test.ts" lines="22-29" hash="b6246f684acf" blob="d9eafac0905c" */
-/* ref file="../plugins/qq-bot/tests/rounds.test.ts" lines="324-333" hash="3a4c4ce33761" blob="9f6ca5bc6d2b" */
+/* ref file="../plugins/qq-bot/tests/rounds.test.ts" lines="334-343" hash="3a4c4ce33761" blob="270a5bd61ba7" */
 export const steps = [
   {
     title: '协作站先启动',

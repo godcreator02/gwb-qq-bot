@@ -18,7 +18,8 @@ agent 做完调 `qq-bot.report` 发回原私聊；服务 `gwbQqBot` 给别的插
 - 执行端适配层（`src/dispatch/executors/`）是本插件私有的，接口按 qq-bot 要的定；执行端经 cordis 服务 inject，不按名字调命令
 - 不依赖协作站：协作站经 `gwbQqBot.registerTaskGroup` 注册自己的任务组，依赖只朝协作站 → qq-bot 一个方向（反过来写 peer 会成环、发版被拒）；qq-bot 里不写和协作站有关的代码，只有一处例外：聊天表从第 2 版迁移时，把旧的协作仓绑定（`collab: true`）换成提示词附加段（`src/storage/chat-table.ts` 的 `COLLAB_INSTRUCTIONS`）
 - 官方接口的回执在入口校验形状，不对就报错或丢弃，不猜字段：`expires_in` 官方回数字字符串、两种都收，这是照官方文档核对过的，不是放宽校验；`GET /v2/panels` 没有面板时实测只回 `{"is_end":true}`，`records`、`next_cursor` 缺省按空列表、空串，同样是核对过的契约
-- access token 与 AppSecret 不进日志、不进命令回执
+- access token 与 AppSecret 不进日志、不进消息记录、不进命令回执；消息正文只进消息记录（`src/qq/message-log.ts`，`qq-bot.messages` 查），不写进 gwb.log
+- 收发都经 `src/qq/` 记进消息记录：分到哪、是哪一种出站由调用方作为参数传进来，`qq/` 不认识任务组；记录是旁路，写失败只记一行 warn，不影响收发
 - 结果先发被动回复，被动发不出去或过了窗口只改发一次主动消息，再不行记进没送达等 /状态
 - 协议字段名、事件位值集中在 `src/qq/qq-protocol.ts`；接口报错先对下面的官方文档核对再改，改了在同一个提交里处理文档站 `content/docs/qq/` 的钉码
 - 服务、命令名、参数与回执形状是契约：改了同一个提交里改说明书正本（命令在 `content/docs/outputs/skills/qq-bot.mdx`，服务 `gwbQqBot` 在 `content/docs/outputs/skills/qq-bot-plugin-api.mdx`）并 render，按 gwb-release 判断升哪一位

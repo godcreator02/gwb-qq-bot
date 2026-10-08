@@ -1,6 +1,6 @@
 ---
 title: 连接与收发 qq/
-description: 和 QQ 开放平台打交道的全部：网关长连接、access token、白名单与去重、按被动回复窗口选路、引用原消息、长回复分段、单聊「/」指令面板的自动同步。不认识任务组，也不知道通知的存在
+description: 和 QQ 开放平台打交道的全部：网关长连接、access token、白名单与去重、按被动回复窗口选路、引用原消息、长回复分段、单聊「/」指令面板的自动同步、收发的每条消息的记录。不认识任务组，也不知道通知的存在
 full: true
 ---
 
@@ -32,15 +32,15 @@ full: true
 
 ### 入站两道关：白名单与去重
 
-白名单管的是发私聊的人。名单外的消息静默拒绝、只记日志与最近 10 条被拒的 openid，不给探测者任何反馈；名单每条消息现读设置，改了即时生效。
+白名单管的是发私聊的人。名单外的消息静默拒绝、只记日志、最近 10 条被拒的 openid 和消息记录（正文前 40 字），不给探测者任何反馈；名单每条消息现读设置，改了即时生效。
 官方 API 给的 openid 每个机器人各不相同、不是 QQ 号，首次配置从 `qq-bot.status` 的 `recentRejected` 里取：
 
-{/* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="12-19" hash="a25b4b0c3d73" blob="ed832dd08797" */}
+{/* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="13-21" hash="e1633982638a" blob="da543a94796c" */}
 
 第二道是聊天表里的去重，防的是重载、重连之后网关再推一次：在串行队列里建私聊行、记下消息 id，第一次见到才把同一步交给调用方改表，然后一起存盘。
 派任务把分发与入队写在这一步里，所以一条消息不会入队两次：
 
-{/* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="22-34" hash="117d111a6ff6" blob="ed832dd08797" */}
+{/* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="24-36" hash="117d111a6ff6" blob="da543a94796c" */}
 
 ### 回复：被动还是主动
 
@@ -50,7 +50,7 @@ full: true
 
 `ReplySender.reply` 把一段话按行切成 700 字以内的几段（多段加「(i/n)」），每段重新选一次路：选了被动就先在聊天表里记一次、存盘再发，`msg_seq` 不会重复；被动发不出去改发一次主动消息；主动也发不出去回 false，由调用方记进没送达：
 
-{/* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="49-65" hash="05a4d9ddbdc3" blob="3e1dda368b15" */}
+{/* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="46-64" hash="aa214ba2d732" blob="8455e3316792" */}
 
 ### 引用原消息
 
@@ -93,7 +93,7 @@ access token 提前 2 分钟刷新，几个请求同时要时共用一次换取�
 
 **给谁看**：`scope: "c2c"`、`target_type: "specific"`，用户是设置 `allowed-openids` 的前 20 个（建面板时官方单次最多 20 个），超出的列在 `panel.omittedTargets`。设置没有变化通知：每 30 秒在本地现算一次该有的面板，和上次同步时不同才排同步，不调接口。没配 AppID、还没连上时不同步，原因写在 `panel.notSyncing`：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="81-88" hash="70a35eead6bb" blob="cb3f3cc19734" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="84-91" hash="70a35eead6bb" blob="46b54b586aa9" */}
 
 **出错**：「面板操作进行中」（40030009）隔 5 秒重试一次；别的错误、或重试还是进行中，都不再重试，原话记进 `panel.error` 与日志，等下次变化或重连再同步。回执形状不对时报错里带上回执原文的 JSON（最多 500 字，面板接口的回执里没有凭据），对着它核对官方字段：
 
@@ -105,6 +105,44 @@ qq-bot 自己卸载、断开都不删面板：每次重载都删了重建，会�
 
 测试在 `tests/command-panel.test.ts`（条目、按标记增删改、防抖、注册与撤掉、白名单变化、重试与报错），请求形状在 `tests/qq-rest.test.ts`。官方接口文档地址列在仓根 AGENTS.md。
 
+### 消息记录
+
+`message-log.ts` 把机器人收到的每条私聊、发出的每条消息各记一行，`qq-bot.messages` 查。排查「结果发出去没有」「那条消息分到哪了」先查它，不翻 gwb.log。
+
+**存在哪**：qq-bot 在这个 home 里的数据目录（`gwbData.dir`，和聊天表那份文档同一个目录），按机器人、按月各一个 JSONL 文件 `messages-<AppID>-<YYYY-MM>.jsonl`，月份按 UTC 算，只追加。不用 gwb-data 的文档：文档每次整份重写，不适合一直增长的东西。连上机器人时建出记录对象并清理一次旧文件：
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="138-140" hash="226b180a9194" blob="46b54b586aa9" */}
+
+**谁来记**：所有入站与出站都经过这个目录，记录也只在这里写；可这个目录不认识任务组，「分到哪」「是哪一种出站、哪个组、第几轮」由调用方作为参数传进来。白名单外的由白名单记；收下的由派任务算好分到哪再记，空消息、聊天表判出的重复投递也各记一条（同一条连接里网关自己去重丢掉的不记）：
+
+{/* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="46-53" hash="b4e0fcf23f21" blob="1b247976864d" */}
+
+出站不靠每个调用方记得去记：接线把 `QqRestClient.sendC2c` 交给 `recordingSend` 包一层，包出来的才交给发回复与通知，每次发完（成功、官方回失败、抛错）记一条再原样交回。`ReplySender.reply` 多一个用途参数，加上第几段传下去，所以分段发送的每段各一条；被动发不出去改发主动时也是两条：
+
+{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="45-51" hash="a46bd8157429" blob="80fe8dc6f49c" */}
+
+**记什么**：每条有时间、方向、私聊 id（`c2c:<openid>`，和 `qq-bot.status` 的相同）与消息 id。入站记正文全文与分到哪；白名单外的只记正文前 40 字、标明被拒，不给探测者的话留全文。出站记正文全文、种类、组名与本轮编号（有的才有）、被动（挂在哪条消息上、`msg_seq`）还是主动、引用的消息、第几段、结果（成功带发出去的消息 id，失败带官方错误码与原话）：
+
+{/* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="64-79" hash="1cbd47593834" blob="1b247976864d" */}
+
+出站种类按代码里实际有的出站定，一共六种：
+
+{/* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="11-24" hash="d564f172f9b9" blob="1b247976864d" */}
+
+**写失败不影响收发**：写入排成一条队按顺序做，收发不等它；写失败只记一行 warn（不带正文），这是有意的降级，记录是旁路。测试在 `tests/message-log.test.ts`（按月分文件、清理、写失败、发送抛错、查询）与 `tests/rounds.test.ts` 的「消息记录」（入站、被拒、没派出的原因、出站成功与失败、分段、通知、补发）：
+
+{/* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="191-207" hash="38a4a5f4002f" blob="1b247976864d" */}
+
+**保留**：当月与前 3 个月的文件留着，更早的删掉（所有机器人的都算），删了几个记一行日志。连上时清理一次，记录跨进新的月份时再清理一次，不另开定时器：
+
+{/* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="173-184" hash="2f5c52fc5ba0" blob="1b247976864d" */}
+
+**查询**：`qq-bot.messages` 按设置 `app-id` 那个机器人查，不要求连着，没配 AppID 回空列表；查之前先等排着的写入做完。从最新的月份倒着读、按条件筛，找够 `limit` 条就停，`more` 说明还有更早的。回执超过 MCP 单次 40000 字（按两格缩进的 JSON 算）就报错，让调用方把 `limit` 改小或加条件，不截断。文件里有读不懂的行也报错，指出哪个文件第几行：
+
+{/* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="283-312" hash="2ead2772be9a" blob="1b247976864d" */}
+
+**为什么不进 gwb.log**：gwb.log 是这个 home 里内核、插件、页面共用的日志，正文进去就和别的插件的日志混在一起，没法按私聊、组、轮次查，也没法单独清理。所以 gwb.log 里照旧只有事件类型、序号、openid 与报错，正文只进消息记录。取舍见[消息记录单独存](/trajectory/2026-10-08-qq-message-log)。
+
 ## 接口
 
 这一块对外给的就是这些，调用方都在插件里：
@@ -115,7 +153,8 @@ qq-bot 自己卸载、断开都不删面板：每次重载都删了重建，会�
 | `QqRestClient`（`sendC2c` / `getAccessToken` / `resetAuth` / `fetchGatewayUrl`，指令面板的 `listC2cPanels` / `createC2cPanel` / `updatePanel` / `deletePanel` / `panelOpenids` / `changePanelTargets`）、`QqApiError` | `qq-rest.ts` | 装配建出；`sendC2c` 作为发消息的函数传给通知与回复；面板那几个交给 `CommandPanelSync` |
 | `CommandPanelSync`（`schedule` / `startWatching` / `status` / `dispose`）、`planPanelItems`、`PANEL_MAX_OPENIDS`、类型 `PanelCandidate` | `command-panel.ts` | 装配建出、排同步、给 `qq-bot.status`；派任务只用类型 `PanelCandidate` |
 | `AllowedSenderGate`、`intakeFirstDelivery` | `incoming-gate.ts` | 接线过白名单；派任务收下消息 |
-| `ReplySender`、类型 `SendC2c` | `reply-sender.ts` | 接线建出、交给派任务；通知只用类型 |
+| `ReplySender` | `reply-sender.ts` | 接线建出、交给派任务 |
+| `MessageLog`（`inbound` / `rejected` / `recordingSend` / `prune` / `settle`）、`queryMessages`、`parseMessageQuery`，类型 `SendC2c`、`RawSendC2c`、`OutboundPurpose`、`InboundRoute` | `message-log.ts` | 插件入口建出、给 `qq-bot.messages` 查；接线用它包发消息的函数；派任务记入站、给出站写用途；通知只用类型 |
 | `chooseReplyRoute` | `reply-window.ts` | `ReplySender` |
 | `IncomingMessage`、`QqLog`、`isRecord` 与协议常量 | `qq-protocol.ts` | 全插件 |
 
@@ -123,11 +162,11 @@ qq-bot 自己卸载、断开都不删面板：每次重载都删了重建，会�
 
 ## 依赖
 
-QQ 开放平台（网关、发消息与指令面板的 REST 接口）；聊天表（近期消息 id、被动回复次数，都在串行队列里改）。不依赖 gwb 的任何服务：凭据与沙箱开关由装配经函数传进来，每次现读。
+QQ 开放平台（网关、发消息与指令面板的 REST 接口）；聊天表（近期消息 id、被动回复次数，都在串行队列里改）；消息记录写进的数据目录。不依赖 gwb 的任何服务：凭据与沙箱开关由装配经函数传进来，每次现读；数据目录的路径也由装配传进来。
 
 ## 不做的事
 
 - **不处理群聊**：群事件只记事件类型，不解析、不回消息，见[只处理私聊](/trajectory/2026-10-07-private-chat-only)
 - **不重发**：被动发不出去只改发一次主动消息，再不行交给调用方记没送达
 - **不删指令面板**：qq-bot 卸载、断开时面板留着，下次连上接着改同一个，见[自动同步「/」面板](/trajectory/2026-10-08-qq-command-panel-auto-sync)
-- **不记原始载荷、不记凭据**：日志里只有事件类型与序号，access token 与 AppSecret 不进日志、不进命令回执
+- **gwb.log 里不记原始载荷与正文、哪里都不记凭据**：gwb.log 里只有事件类型、序号与 openid，消息正文只进消息记录；access token 与 AppSecret 不进日志、不进消息记录、不进命令回执，见[消息记录单独存](/trajectory/2026-10-08-qq-message-log)
