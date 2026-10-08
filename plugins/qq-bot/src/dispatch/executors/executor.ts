@@ -2,6 +2,9 @@
  * qq-bot 的执行端适配层：接口按 qq-bot 自己要的两件事定，每个执行端一份实现。
  * 实现在对应的执行端服务出现时登记、消失时撤掉；接口私有，不与别的应用统一。
  */
+/** 有适配实现的执行端名；任务组只能选这几个，装没装到派任务时才查 */
+export const EXECUTOR_IDS = ['zcode', 'claudecode'] as const
+
 export interface Executor {
   /** 聊天绑定里存的执行端名 */
   id: string
