@@ -91,6 +91,17 @@ describe('QQ 官方 REST 请求', () => {
     await expect(rest.listC2cPanels('')).rejects.toThrow('GET /v2/panels?scope=c2c&limit=50 回执形状不对：{"records":"oops"}')
   })
 
+  it('没有面板时官方只回 {"is_end":true}（实测）：按空列表读；records 不是数组、is_end 不是布尔值照旧报错带原文', async () => {
+    const pages = [{ is_end: true }, { records: {}, is_end: true }, { records: [] }]
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.endsWith('/app/getAppAccessToken')
+      ? Response.json({ access_token: 'test-token', expires_in: 7200 })
+      : Response.json(pages.shift())))
+    const rest = new QqRestClient(() => 'app', () => 'secret', () => false, log)
+    expect(await rest.listC2cPanels('')).toEqual({ records: [], nextCursor: '', isEnd: true })
+    await expect(rest.listC2cPanels('')).rejects.toThrow('回执形状不对：{"records":{},"is_end":true}')
+    await expect(rest.listC2cPanels('')).rejects.toThrow('回执形状不对：{"records":[]}')
+  })
+
   it('指令面板回执形状不对时报错带上回执原文，超过 500 字截短', async () => {
     const replies: Record<string, unknown> = {
       'GET /v2/panels?scope=c2c&limit=50': { data: [], long: 'x'.repeat(600) },

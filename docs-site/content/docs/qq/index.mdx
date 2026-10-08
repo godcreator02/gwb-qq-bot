@@ -85,7 +85,9 @@ access token 提前 2 分钟刷新，几个请求同时要时共用一次换取�
 
 {/* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="54-72" hash="91f2fba84bca" blob="a061ff8fbfd0" */}
 
-**始终改同一个面板**：备注里写固定标记 `gwb-qq-bot 自动同步`（备注不对用户展示），`GET /v2/panels?scope=c2c` 按标记认出自己的面板。找不到就 `POST` 新建，白名单为空时不建；找到多个留列表里的第一个、其余删掉；条目没变不调 `PUT`。`PUT` 只覆盖条目与备注、不动能看到面板的用户，用户另经 `PUT /v2/panels/{panel_id}/target` 按差集增删：
+**始终改同一个面板**：备注里写固定标记 `gwb-qq-bot 自动同步`（备注不对用户展示），`GET /v2/panels?scope=c2c` 按标记认出自己的面板。找不到就 `POST` 新建，白名单为空时不建；找到多个留列表里的第一个、其余删掉；条目没变不调 `PUT`。`PUT` 只覆盖条目与备注、不动能看到面板的用户，用户另经 `PUT /v2/panels/{panel_id}/target` 按差集增删。一个面板都没有时，官方的列表实测只回 `{"is_end":true}`，省略 `records` 与 `next_cursor`，按空列表、空串读，这是核对过的契约，不是放宽校验：
+
+{/* ref file="../plugins/qq-bot/src/qq/qq-protocol.ts" lines="102-111" hash="97e660912903" blob="053e274b13f5" */}
 
 {/* ref file="../plugins/qq-bot/src/qq/command-panel.ts" lines="104-136" hash="6160f942edf9" blob="a061ff8fbfd0" */}
 

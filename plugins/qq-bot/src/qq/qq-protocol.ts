@@ -101,10 +101,11 @@ function readPanelRecord(raw: unknown): PanelRecord | null {
 
 /** GET /v2/panels 的回执；形状不对回 null，由调用方报错 */
 export function readPanelPage(raw: unknown): PanelPage | null {
-  if (!isRecord(raw) || !Array.isArray(raw['records'])) return null
-  const nextCursor = raw['next_cursor'] ?? '', isEnd = raw['is_end']
-  if (typeof nextCursor !== 'string' || typeof isEnd !== 'boolean') return null
-  const records = raw['records'].map(readPanelRecord)
+  if (!isRecord(raw)) return null
+  // 实测：一个面板都没有时官方只回 {"is_end":true}，省略 records 与 next_cursor；缺省按空列表、空串是核对过的契约，不是放宽校验
+  const rawRecords = raw['records'] ?? [], nextCursor = raw['next_cursor'] ?? '', isEnd = raw['is_end']
+  if (!Array.isArray(rawRecords) || typeof nextCursor !== 'string' || typeof isEnd !== 'boolean') return null
+  const records = rawRecords.map(readPanelRecord)
   if (records.some((record) => record === null)) return null
   return { records: records as PanelRecord[], nextCursor, isEnd }
 }
