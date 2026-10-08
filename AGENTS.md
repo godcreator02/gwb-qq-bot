@@ -17,8 +17,19 @@ agent 做完调 `qq-bot.report` 发回原私聊；服务 `gwbQqBot` 给别的插
 - 官方接口的回执在入口校验形状，不对就报错或丢弃，不猜字段：`expires_in` 官方回数字字符串、两种都收，是核对过的契约不是兜底
 - access token 与 AppSecret 不进日志、不进命令回执
 - 结果先发被动回复，被动发不出去或过了窗口只改发一次主动消息，再不行记进没送达等 /状态
-- 协议字段名、事件位值集中在 `src/qq-protocol.ts`；接口报错先对官方文档核对再改，改了同步插件页钉码
+- 协议字段名、事件位值集中在 `src/qq-protocol.ts`；接口报错先对下面的官方文档核对再改，改了同步插件页钉码
 - 服务、命令名、参数与回执形状是契约：改了同一个提交里改正本 `content/docs/outputs/skills/qq-bot.mdx` 并 render，按 gwb-release 判断升哪一位
+
+## QQ 官方文档
+
+- 文档首页：https://bot.q.qq.com/wiki/ ；管理端（配机器人、白名单、指令）：https://q.qq.com
+- 指令与快捷菜单（只能在管理端手动配，没有接口）：https://bot.q.qq.com/wiki/#_9-1-2-指令配置
+- 获取 access token：https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html
+- WebSocket 网关：https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html
+- 消息收发规则（被动回复窗口、主动消息限额）：https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/overview.html
+- 单聊消息事件：https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html
+- 发送单聊消息：https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html
+- 接口变更记录：https://bot.q.qq.com/wiki/develop/api-v2/changelog.html
 
 ## 怎么跑
 
