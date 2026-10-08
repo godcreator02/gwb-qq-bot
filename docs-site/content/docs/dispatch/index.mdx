@@ -129,6 +129,8 @@ full: true
 | `qq-bot.group.list` | 无 | 全部任务组（默认组按各私聊的绑定列）与直接命令，标明来源 |
 | `qq-bot.report` | `{round, text}` | 执行任务的 agent 交这一轮的结果 |
 
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="178-206" hash="5d1278602b3a" blob="030d7ded07d1" */}
+
 私聊在机器人收到它的第一条消息后才出现在 `qq-bot.status` 里，`bind` 用那里的 `id`（`c2c:<openid>`）。参数只收列出的键，多给、少给、空串都直接报错。
 绑定、改绑、解绑只看默认组：默认组还有在做或排队的任务时拒绝，别的组不受影响；改绑后默认组下一条开新会话：
 
