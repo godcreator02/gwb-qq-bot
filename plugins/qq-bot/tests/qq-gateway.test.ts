@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { QqGateway } from '../src/qq-gateway.js'
-import type { QqRestClient } from '../src/qq-rest.js'
+import { QqGateway } from '../src/qq/qq-gateway.js'
+import type { QqRestClient } from '../src/qq/qq-rest.js'
 
 class Socket extends EventTarget {
   static instances: Socket[] = []

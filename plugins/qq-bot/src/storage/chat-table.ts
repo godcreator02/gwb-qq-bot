@@ -1,5 +1,5 @@
-/** 聊天表：每个私聊一行，连同主人通知的去重与近期消息 id，按 AppID 整份存成一份文档 */
-import { isRecord } from './qq-protocol.js'
+/** 聊天表：每个私聊一行，连同主人通知的去重与近期消息 id，按 AppID 整份存成一份文档；连接与收发、通知、派任务三块共用 */
+import { isRecord } from '../qq/qq-protocol.js'
 
 /** 触发这一轮的那条消息：被动回复要带它的 msgId，窗口从收到时算；已用的被动回复次数记在 Book.replies */
 export interface Trigger {

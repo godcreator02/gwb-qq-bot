@@ -53,15 +53,15 @@ agent 做完自己调 `qq-bot.report` → 结果按被动回复窗口发回原�
 **提示词**：任务原文后面附两段：来源（QQ 私聊、发言人、工作区，协作仓另写一句改动经 `collab.submit` 提交）与本轮回报说明。
 回报说明写的是 home 名，不写 MCP 服务名——每个 gwb MCP 服务的说明里都写着它连的是哪个 home，agent 照着选，两个 home 各自派的活不会报到另一个 home：
 
-{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="181-196" hash="4848df9ae829" blob="d5c550bb4d85" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="168-183" hash="4848df9ae829" blob="d5c550bb4d85" */}
 
 **回报**：本轮编号只用来对上是哪一轮，不当凭证。同一轮同一段话重交回 `duplicate`，已经结束的轮次交来不同的话拒绝；回执先交回，投递与下一轮在后台做，agent 不用等自己的回报发完：
 
-{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="216-231" hash="8566de8130e5" blob="d5c550bb4d85" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="203-218" hash="8566de8130e5" blob="d5c550bb4d85" */}
 
 **懒检查**：没有后台轮询。这一轮还没回报，而人发了 `/状态` 或又来一条消息时，才经适配层的 `check` 问一次执行端；做完了却没回报，就按「执行端已结束、没有收到回报」收尾，附上最后的回答，再开下一轮：
 
-{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="106-126" hash="bbf3eff083a4" blob="d5c550bb4d85" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="93-113" hash="bbf3eff083a4" blob="d5c550bb4d85" */}
 
 测试：`tests/rounds.test.ts`，覆盖派出与回报、排队续会话、懒检查、派单失败、白名单、绑定、窗口外改主动消息、未送达补发、通知去重与重载、聊天表从第 1 版换成第 2 版。
 
@@ -69,32 +69,32 @@ agent 做完自己调 `qq-bot.report` → 结果按被动回复窗口发回原�
 
 一个私聊一行。显式绑定写在 `binding`；主人私聊的默认绑定按设置现算、不写进来。会话号随执行端走，换执行端、改绑、`/新会话` 时清空：
 
-{/* ref file="../plugins/qq-bot/src/chats.ts" lines="38-55" hash="8546a9cd8055" blob="cbc1e1e5ddec" */}
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="38-55" hash="8546a9cd8055" blob="cbc1e1e5ddec" */}
 
 整份表按 AppID 存成一份 gwb-data 文档 `chats-<AppID>`，换机器人就是另一份，记录里不写 home 与 AppID。另外记着主人通知的去重、近期处理过的消息 id（网关重推不重复派单）、
 每条触发消息已用掉的被动回复次数——`msg_seq` 不能重复，次数先记进表里再发：
 
-{/* ref file="../plugins/qq-bot/src/chats.ts" lines="63-71" hash="4c96fd455d24" blob="cbc1e1e5ddec" */}
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="63-71" hash="4c96fd455d24" blob="cbc1e1e5ddec" */}
 
 所有改表的操作经同一条串行队列；调执行端、发 QQ 消息在队列外面做，一个聊天慢不会卡住别的聊天。磁盘上的表形状不对直接报错，不按缺省值往下跑。
 
 现在的表是第 2 版。第 1 版还有群聊，每行带 `scene`；读到第 1 版时去掉群聊那几行、私聊去掉 `scene`，私聊的绑定、会话与没送达的结果照留，日志记一行去掉了几个群聊，下次写盘就是第 2 版：
 
-{/* ref file="../plugins/qq-bot/src/chats.ts" lines="87-114" hash="879dabaebf4f" blob="cbc1e1e5ddec" */}
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="87-114" hash="879dabaebf4f" blob="cbc1e1e5ddec" */}
 
 ## 执行端适配层
 
 qq-bot 自己定两件事：`start` 开一轮、交回会话号；`check` 问一次做完没有。每个执行端一份实现，在对应的执行端服务出现时登记、消失时撤掉：
 
-{/* ref file="../plugins/qq-bot/src/executors/executor.ts" lines="5-14" hash="1322be235ac9" blob="45f4a05b0a01" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/executors/executor.ts" lines="5-14" hash="1322be235ac9" blob="45f4a05b0a01" */}
 
 {/* ref file="../plugins/qq-bot/src/index.ts" lines="81-82" hash="a61a9dfa9f35" blob="10341bf4c429" */}
 
 ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来（只取回答末尾 600 字，ZCode 的回答里混着工具调用记录）；Claude Code 那份翻译 `sessionId`、`status`、`text`：
 
-{/* ref file="../plugins/qq-bot/src/executors/zcode.ts" hash="d11c007634c4" blob="ae6736976bc2" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/executors/zcode.ts" hash="d11c007634c4" blob="ae6736976bc2" */}
 
-{/* ref file="../plugins/qq-bot/src/executors/claudecode.ts" hash="55246b44ba95" blob="cffbea3f2763" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/executors/claudecode.ts" hash="55246b44ba95" blob="cffbea3f2763" */}
 
 ## QQ 协议一层
 
@@ -105,7 +105,7 @@ ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来
 
 ### 回复路怎么选
 
-{/* ref file="../plugins/qq-bot/src/reply-window.ts" lines="1-25" hash="9a3354b64365" blob="c063025593d7" */}
+{/* ref file="../plugins/qq-bot/src/qq/reply-window.ts" lines="1-25" hash="9a3354b64365" blob="c063025593d7" */}
 
 窗口与次数是腾讯侧的硬限制（单聊 60 分钟、每条触发消息 4 次），插件只做选择：窗口内、次数没用完走被动回复；窗口外、次数用完或被动发不出去，改发一次主动消息；主动也发不出去，记进没送达、等人发 `/状态` 补发。
 测试在 `tests/reply-window.test.ts`。
@@ -115,19 +115,19 @@ ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来
 每条回复都带 `message_reference`，在 QQ 里显示成引用它所回答的那条消息：回执引用刚收到的那条，一轮的结果引用派出这一轮的那条，排队、结果交叉出现时也看得出哪条结果对应哪条任务。
 「挂在哪条消息上」（`msg_id`，决定被动回复的窗口与次数）和「引用哪条」是两件事：没发出去的结果连同要引用的消息 id 记进没送达，`/状态` 补发时被动回复挂在这条 `/状态` 上，引用的仍是当初那条任务：
 
-{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="242-245" hash="e4df7400cfe1" blob="d5c550bb4d85" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="229-232" hash="e4df7400cfe1" blob="d5c550bb4d85" */}
 
 引用取不到原消息时照常发正文、只是不带引用（`ignore_get_message_error: true`），结果本身比引用要紧。单聊的被动回复、被动回复引用另一条更早的消息、主动消息带引用，都正常显示成引用（2026-10-07 在机器人 B 上实测）。
 
 ### 订阅哪些事件
 
-{/* ref file="../plugins/qq-bot/src/qq-protocol.ts" lines="19-24" hash="705a04f44a90" blob="6a6bf8eff594" */}
+{/* ref file="../plugins/qq-bot/src/qq/qq-protocol.ts" lines="19-24" hash="705a04f44a90" blob="6a6bf8eff594" */}
 
 单聊事件 `C2C_MESSAGE_CREATE` 在官方的 `GROUP_AND_C2C_EVENT (1 << 25)` 这一位里，订了它群事件也会跟着到达：群事件只记一行事件类型，不进任务；频道事件不订阅。网关在解析和白名单之前记录事件类型，不记录原始载荷。
 
 ### REST 与环境
 
-{/* ref file="../plugins/qq-bot/src/qq-rest.ts" hash="60884f70bc28" blob="3a4012a87ac1" */}
+{/* ref file="../plugins/qq-bot/src/qq/qq-rest.ts" hash="60884f70bc28" blob="3a4012a87ac1" */}
 
 鉴权与业务接口用 `api.bot.qq.com`；`sandbox=true` 只兼容旧 `sandbox.api.sgroup.qq.com`。私聊一律发纯文本（`msg_type:0`），回复请求显式转成 `msg_id` / `msg_seq`，业务错误兼容 `err_code` 与 `code`。测试在 `tests/qq-rest.test.ts` 与 `tests/qq-gateway.test.ts`。
 

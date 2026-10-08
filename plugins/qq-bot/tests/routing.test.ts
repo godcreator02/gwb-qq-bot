@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { matchCommand, normalizeIncoming, splitForSend, tailExcerpt } from '../src/routing.js'
+import { matchCommand, normalizeIncoming, tailExcerpt } from '../src/dispatch/routing.js'
+import { splitForSend } from '../src/qq/reply-sender.js'
 
 describe('normalizeIncoming', () => {
   it('统一换行、去首尾空白', () => {

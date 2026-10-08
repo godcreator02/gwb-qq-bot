@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { C2C_PASSIVE_WINDOW_MS, chooseReplyRoute } from '../src/reply-window.js'
+import { C2C_PASSIVE_WINDOW_MS, chooseReplyRoute } from '../src/qq/reply-window.js'
 
 const NOW = 1_700_000_000_000
 

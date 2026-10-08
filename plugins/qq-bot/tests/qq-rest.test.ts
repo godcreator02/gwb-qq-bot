@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { QqRestClient } from '../src/qq-rest.js'
+import { QqRestClient } from '../src/qq/qq-rest.js'
 
 afterEach(() => vi.unstubAllGlobals())
 

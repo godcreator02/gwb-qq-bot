@@ -1,4 +1,4 @@
-/** 入站文本的归一与指令识别、出站长文本的分段与末尾摘录——全是纯函数，测试在 tests/routing.test.ts */
+/** 入站文本的归一与指令识别、长文本的末尾摘录——全是纯函数，测试在 tests/routing.test.ts（出站分段在 qq/reply-sender.ts） */
 
 export const COMMAND_HELP = '/帮助'
 export const COMMAND_STATUS = '/状态'
@@ -26,40 +26,6 @@ export function matchCommand(text: string): BotCommand | null {
     if (text === literal) return name
   }
   return null
-}
-
-/**
- * 把长回复切成能逐条发送的段：按行累积，放不下就出一段；单行超长才按字符硬切。
- * 多段时每段开头加 (i/n) 标记
- */
-export function splitForSend(text: string, maxLen: number): string[] {
-  const segments: string[] = []
-  let current = ''
-  const flush = (): void => {
-    if (current !== '') {
-      segments.push(current)
-      current = ''
-    }
-  }
-  for (const line of text.split('\n')) {
-    if (line.length > maxLen) {
-      flush()
-      for (let start = 0; start < line.length; start += maxLen) {
-        segments.push(line.slice(start, start + maxLen))
-      }
-      continue
-    }
-    const candidate = current === '' ? line : `${current}\n${line}`
-    if (candidate.length > maxLen) {
-      flush()
-      current = line
-    } else {
-      current = candidate
-    }
-  }
-  flush()
-  if (segments.length <= 1) return segments
-  return segments.map((segment, index) => `(${index + 1}/${segments.length}) ${segment}`)
 }
 
 /** 只留末尾 maxChars 个字符，前面被省掉的部分注明字数；收尾的总结在末尾，看它最有用 */

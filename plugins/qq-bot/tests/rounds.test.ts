@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ChatTable, loadBook } from '../src/chats.js'
-import { ExecutorTable, type Executor } from '../src/executors/executor.js'
-import type { IncomingMessage } from '../src/qq-protocol.js'
+import { ExecutorTable, type Executor } from '../src/dispatch/executors/executor.js'
+import type { IncomingMessage } from '../src/qq/qq-protocol.js'
 import { Rounds } from '../src/rounds.js'
+import { ChatTable, loadBook } from '../src/storage/chat-table.js'
 
 const OWNER = 'owner-openid'
 const ALICE = 'alice-openid'
