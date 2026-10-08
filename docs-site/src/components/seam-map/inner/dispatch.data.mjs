@@ -124,7 +124,7 @@ export const dispatchGraph = defineSeamGraph({
       pkg: 'src/storage/',
       role: null,
       outside: true,
-      blurb: '私聊行里按组名记会话、在做的一轮、队列、上一轮的结果与上一条任务的时间；另记命令登记的任务组。',
+      blurb: '私聊行里按组名记会话、在做的一轮、队列、上一轮的结果与上一条任务的时间；另记命令登记的任务组，以及已经让 ZCode 打开过的工作区。',
       caps: [{ id: 'st', name: '每个私聊每组一份状态', ident: 'ChatTable.serial · groupState · findRound' }],
     },
   ],
@@ -207,17 +207,17 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '派出与懒检查都按这一轮记下的执行端名取实现；没装就抛「没装执行端」，派出时这一轮作废、原话回给私聊。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/executors/zcode.ts" lines="7-20" hash="28bb6d6420bf" blob="ae6736976bc2" */
+    /* ref file="../plugins/qq-bot/src/dispatch/executors/zcode.ts" lines="15-43" hash="f3cf227ae739" blob="e778e5e1b4b3" */
     /* ref file="../plugins/qq-bot/src/dispatch/executors/claudecode.ts" lines="4-17" hash="e58c31dd8765" blob="cffbea3f2763" */
     {
       n: 8,
       name: '执行端插件',
       a: ['ex-zc', 'ex-cc'],
       b: ['x-zc', 'x-cc'],
-      iface: 'gwbZcode.create / send / status（taskId、roundIsOver、replies）；gwbClaudecode.create / send / status（sessionId、status、text）',
+      iface: 'gwbZcode.open / create / send / status（taskId、roundIsOver、replies）；gwbClaudecode.create / send / status（sessionId、status、text）',
       convention: false,
       via: 'code',
-      text: '两个执行端的形状不同，翻译只在这一层：会话号是 taskId 或 sessionId；ZCode 的回答里混着工具调用记录，只取末尾 600 字。',
+      text: '两个执行端的形状不同，翻译只在这一层：会话号是 taskId 或 sessionId；ZCode 的回答里混着工具调用记录，只取末尾 600 字。ZCode 侧栏只列打开过的工作区：聊天表里没记过的工作区，开一轮前先 open 一次，成功才记下（记录由装配接到聊天表上）；open 失败按派出失败处理。',
     },
     /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="532-539" hash="dd9baa90ed01" blob="834b53b1bcf7" */
     {
@@ -230,7 +230,7 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '回执引用刚收到的那条，一轮的结果引用派出这一轮的那条；结果被动、主动都发不出去，连同要引用的消息 id 和组名记进这个私聊的没送达。',
     },
-    /* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="329-346" hash="0415f2890ddc" blob="962753da084a" */
+    /* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="339-356" hash="0415f2890ddc" blob="d94736558b46" */
     {
       n: 10,
       name: '聊天表',

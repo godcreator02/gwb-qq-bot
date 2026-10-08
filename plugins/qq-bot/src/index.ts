@@ -56,6 +56,8 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
   /** 连上的那个机器人；入站与出站用同一份，改设置在 reconnect 时一起生效 */
   private active: { appId: string; secret: string; sandbox: boolean } = { appId: '', secret: '', sandbox: false }
   private rounds: Rounds | null = null
+  /** 连上的那个机器人的聊天表，和 rounds 同时有、同时清 */
+  private chatTable: ChatTable | null = null
   private disposed = false
 
   constructor(ctx: GwbContext) {
@@ -97,7 +99,11 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
       return () => { for (const undefine of undefineAll) undefine() }
     })
     // 执行端适配层：哪个执行端插件装着，哪份实现才登记；卸了自动撤掉
-    ctx.inject(['gwbZcode'], (scoped) => { scoped.effect(() => this.executors.register(zcodeExecutor(scoped.gwbZcode))) })
+    const zcodeOpenedWorkspaces = {
+      has: (workspace: string) => this.requireChatTable().zcodeWorkspaceOpened(workspace),
+      remember: (workspace: string) => this.requireChatTable().rememberZcodeWorkspaceOpened(workspace),
+    }
+    ctx.inject(['gwbZcode'], (scoped) => { scoped.effect(() => this.executors.register(zcodeExecutor(scoped.gwbZcode, zcodeOpenedWorkspaces))) })
     ctx.inject(['gwbClaudecode'], (scoped) => { scoped.effect(() => this.executors.register(claudecodeExecutor(scoped.gwbClaudecode))) })
     this.registerCommands()
     // 插件卸载时它的注册已经经它自己的 ctx.effect 撤掉，这里只听注册表的变化；白名单没有变化通知，靠定时在本地比对
@@ -125,6 +131,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
     const log = ctx.logger(PLUGIN_NAME)
     if (table.droppedGroups > 0) log.info(`聊天表从第 1 版换成第 2 版：不再处理群聊，去掉了 ${table.droppedGroups} 个群聊，下次写盘生效`)
     if (table.migratedChats !== null) log.info(`聊天表换成第 3 版：${table.migratedChats} 个私聊的会话、在做的一轮和队列归进默认组，下次写盘生效`)
+    this.chatTable = table
     this.rounds = new Rounds({
       home: path.basename(ctx.gwbKernel.dataDir),
       table,
@@ -145,6 +152,11 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
   private requireRounds(): Rounds {
     if (this.rounds === null) throw new Error('QQ 机器人还没连上：先在设置的 qq-bot 分区填 AppID / AppSecret，再调 qq-bot.reconnect')
     return this.rounds
+  }
+
+  private requireChatTable(): ChatTable {
+    if (this.chatTable === null) throw new Error('QQ 机器人还没连上：先在设置的 qq-bot 分区填 AppID / AppSecret，再调 qq-bot.reconnect')
+    return this.chatTable
   }
 
   notify(id: string, text: string): Promise<{ delivered: boolean; duplicate: boolean }> {
@@ -189,6 +201,7 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
         this.rest.resetAuth()
         await this.rounds?.dispose()
         this.rounds = null
+        this.chatTable = null
         if (!(await this.connect())) throw new Error('AppID / AppSecret 没配置：先到设置的 qq-bot 分区填好再重连')
         return { ok: true, data: { gateway: this.gateway.currentState } }
       },

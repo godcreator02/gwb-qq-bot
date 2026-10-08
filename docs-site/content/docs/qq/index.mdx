@@ -93,7 +93,7 @@ access token 提前 2 分钟刷新，几个请求同时要时共用一次换取�
 
 **给谁看**：`scope: "c2c"`、`target_type: "specific"`，用户是设置 `allowed-openids` 的前 20 个（建面板时官方单次最多 20 个），超出的列在 `panel.omittedTargets`。设置没有变化通知：每 30 秒在本地现算一次该有的面板，和上次同步时不同才排同步，不调接口。没配 AppID、还没连上时不同步，原因写在 `panel.notSyncing`：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="79-86" hash="70a35eead6bb" blob="81cfa322bfe9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="81-88" hash="70a35eead6bb" blob="cb3f3cc19734" */}
 
 **出错**：「面板操作进行中」（40030009）隔 5 秒重试一次；别的错误、或重试还是进行中，都不再重试，原话记进 `panel.error` 与日志，等下次变化或重连再同步。回执形状不对时报错里带上回执原文的 JSON（最多 500 字，面板接口的回执里没有凭据），对着它核对官方字段：
 

@@ -285,7 +285,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '近期消息 id 最多记 2000 条，被动回复次数最多记 500 条消息，超了丢最早的。次数先记进表、存盘，再发请求。',
     },
-    /* ref file="../plugins/qq-bot/src/index.ts" lines="79-86" hash="70a35eead6bb" blob="81cfa322bfe9" */
+    /* ref file="../plugins/qq-bot/src/index.ts" lines="81-88" hash="70a35eead6bb" blob="cb3f3cc19734" */
     {
       n: 13,
       name: '排同步',

@@ -110,6 +110,8 @@ export interface Book {
   seen: string[]
   /** 每条触发消息已用掉的被动回复次数（msg_seq 递增、不能重复） */
   replies: Record<string, number>
+  /** 已经让 ZCode 打开过的工作区：ZCode 侧栏的「项目」只列打开过的，没打开过的派单前先打开一次。只增不减 */
+  zcodeOpenedWorkspaces: string[]
 }
 
 const SEEN_LIMIT = 2000
@@ -124,7 +126,7 @@ export const DEFAULT_GROUP_LABEL = '默认'
 
 export const chatIdOf = (target: string): string => `c2c:${target}`
 
-const emptyBook = (): Book => ({ version: 3, chats: [], groups: [], notices: [], seen: [], replies: {} })
+const emptyBook = (): Book => ({ version: 3, chats: [], groups: [], notices: [], seen: [], replies: {}, zcodeOpenedWorkspaces: [] })
 
 export const emptyGroupState = (): GroupState => ({ session: null, round: null, queue: [], lastClosed: null, lastTaskAt: null })
 
@@ -152,6 +154,14 @@ function requireChatShape(chat: unknown): void {
     throw shapeError(3)
   }
   for (const state of Object.values(chat['groups'])) requireGroupStateShape(state)
+}
+
+/** 第 3 版里可以没有这一项：没有就是还没让 ZCode 打开过任何工作区；有就必须是字符串列表 */
+function zcodeOpenedWorkspacesOf(raw: Record<string, unknown>): string[] {
+  if (!('zcodeOpenedWorkspaces' in raw)) return []
+  const opened = raw['zcodeOpenedWorkspaces']
+  if (!Array.isArray(opened) || !opened.every(isText)) throw new Error('QQ 聊天表第 3 版的 zcodeOpenedWorkspaces 不是字符串列表，停止处理')
+  return opened
 }
 
 function requireStoredGroupShape(group: unknown): void {
@@ -232,7 +242,7 @@ export function loadBook(raw: unknown): LoadedBook {
     if (!Array.isArray(raw['groups'])) throw new Error('QQ 聊天表第 3 版缺 groups，停止处理')
     for (const chat of raw['chats']) requireChatShape(chat)
     for (const group of raw['groups']) requireStoredGroupShape(group)
-    return { book: raw as unknown as Book, droppedGroups: 0, migratedChats: null }
+    return { book: { ...(raw as unknown as Book), zcodeOpenedWorkspaces: zcodeOpenedWorkspacesOf(raw) }, droppedGroups: 0, migratedChats: null }
   }
   let flatChats: Record<string, unknown>[]
   let droppedGroups = 0
@@ -246,7 +256,7 @@ export function loadBook(raw: unknown): LoadedBook {
     flatChats = raw['chats'] as Record<string, unknown>[]
   }
   const chats = flatChats.map(chatFromVersion2)
-  const book: Book = { version: 3, chats, groups: [], notices: raw['notices'] as Notice[], seen: raw['seen'] as string[], replies: raw['replies'] as Record<string, number> }
+  const book: Book = { version: 3, chats, groups: [], notices: raw['notices'] as Notice[], seen: raw['seen'] as string[], replies: raw['replies'] as Record<string, number>, zcodeOpenedWorkspaces: [] }
   return { book, droppedGroups, migratedChats: chats.length }
 }
 
@@ -343,5 +353,18 @@ export class ChatTable {
       }
     }
     return undefined
+  }
+
+  zcodeWorkspaceOpened(workspace: string): boolean {
+    return this.book.zcodeOpenedWorkspaces.includes(workspace)
+  }
+
+  /** 记下 ZCode 已经打开过这个工作区并写盘；只增不减 */
+  rememberZcodeWorkspaceOpened(workspace: string): Promise<void> {
+    return this.serial(async () => {
+      if (this.book.zcodeOpenedWorkspaces.includes(workspace)) return
+      this.book.zcodeOpenedWorkspaces.push(workspace)
+      await this.save()
+    })
   }
 }

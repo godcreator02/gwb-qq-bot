@@ -182,10 +182,10 @@ const seams = [
     name: '派给执行端',
     a: ['executors'],
     b: ['zc', 'cc'],
-    iface: 'inject gwbZcode：create / send / status；inject gwbClaudecode：create / send / status',
+    iface: 'inject gwbZcode：open / create / send / status；inject gwbClaudecode：create / send / status',
     convention: false,
     via: 'code',
-    text: '适配层把 qq-bot 自己要的两件事（start 开一轮、check 问做完没有）翻译成各执行端服务原样的方法。某个执行端插件改了服务方法，只动这里对应的那份实现。',
+    text: '适配层把 qq-bot 自己要的两件事（start 开一轮、check 问做完没有）翻译成各执行端服务原样的方法。ZCode 那份第一次派到一个工作区时先 open，让会话出现在 ZCode 侧栏里。某个执行端插件改了服务方法，只动这里对应的那份实现。',
   },
   {
     n: 7,
@@ -230,7 +230,7 @@ const seams = [
     via: 'code',
     text: '通知只 import 连接与收发的类型；真正发消息的函数由装配传进来，就是 QqRestClient.sendC2c。通知不经回复窗口，一律是主动消息。',
   },
-  /* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="253-279" hash="22ba087acb83" blob="962753da084a" */
+  /* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="263-289" hash="22ba087acb83" blob="27e96639d11f" */
   {
     n: 11,
     name: '共用聊天表',
@@ -241,7 +241,7 @@ const seams = [
     via: 'code',
     text: '派任务读写私聊行与命令登记的组，通知读写去重记录，连接与收发记近期消息 id 和被动回复用掉的次数。所有改表的操作经同一条串行队列；调执行端、发 QQ 消息在队列外面做，一个组慢不会卡住别的组。',
   },
-  /* ref file="../plugins/qq-bot/src/index.ts" lines="122-122" hash="3f4db5b01f24" blob="81cfa322bfe9" */
+  /* ref file="../plugins/qq-bot/src/index.ts" lines="128-128" hash="3f4db5b01f24" blob="cb3f3cc19734" */
   {
     n: 12,
     name: '存盘',

@@ -1,7 +1,9 @@
 import path from 'node:path'
+import type { GwbZcodeApi } from '@godcreator/gwb-zcode'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PluginCommandRegistry } from '../src/dispatch/command-registry.js'
 import { ExecutorTable, type Executor } from '../src/dispatch/executors/executor.js'
+import { zcodeExecutor } from '../src/dispatch/executors/zcode.js'
 import type { IncomingMessage } from '../src/qq/qq-protocol.js'
 import { Rounds } from '../src/rounds.js'
 import { COLLAB_INSTRUCTIONS, ChatTable, loadBook } from '../src/storage/chat-table.js'
@@ -139,6 +141,22 @@ describe('一轮：派出、回报、发回', () => {
     zcode.failStart = null
     await rounds.handleIncoming(c2c('再来'))
     expect(zcode.starts).toHaveLength(1)
+  })
+
+  it('ZCode 打开没打开过的工作区失败：不建会话、不记下，原话带组名回给私聊，这一轮作废', async () => {
+    const { rounds, sent, table, deps } = setup()
+    const created: unknown[] = []
+    const zcodeApi = {
+      async open() { throw new Error('应有一个工作区窗口，实际 0 个') },
+      async create(input: unknown) { created.push(input); return { taskId: 'task-1' } },
+    }
+    const opened = { has: (workspace: string) => table.zcodeWorkspaceOpened(workspace), remember: (workspace: string) => table.rememberZcodeWorkspaceOpened(workspace) }
+    deps.executors.register(zcodeExecutor(zcodeApi as unknown as GwbZcodeApi, opened))
+    await rounds.handleIncoming(c2c('任务'))
+    expect(lastContent(sent)).toBe(`【默认】派单失败：让 ZCode 打开工作区 ${WORKSPACE} 失败，这一轮没有发出：应有一个工作区窗口，实际 0 个`)
+    expect(created).toEqual([])
+    expect(table.book.zcodeOpenedWorkspaces).toEqual([])
+    expect(table.find(`c2c:${OWNER}`)?.groups['']?.round).toBeNull()
   })
 })
 
@@ -614,6 +632,15 @@ describe('聊天表的版本', () => {
     await flush()
     expect(lastContent(sent)).toBe('【默认 · 第 1 轮】\n迁移前派出的')
     expect(store()).toMatchObject({ version: 3, groups: [] })
+  })
+
+  it('第 3 版没有 zcodeOpenedWorkspaces 读成空列表，有就原样读回；从第 1、2 版迁过来的也是空列表；不是字符串列表停止处理', () => {
+    const version3 = { version: 3, chats: [], groups: [], notices: [], seen: [], replies: {} }
+    expect(loadBook(version3).book.zcodeOpenedWorkspaces).toEqual([])
+    expect(loadBook({ ...version3, zcodeOpenedWorkspaces: [WORKSPACE] }).book.zcodeOpenedWorkspaces).toEqual([WORKSPACE])
+    expect(loadBook({ version: 2, chats: [], notices: [], seen: [], replies: {} }).book.zcodeOpenedWorkspaces).toEqual([])
+    expect(() => loadBook({ ...version3, zcodeOpenedWorkspaces: [1] })).toThrow('zcodeOpenedWorkspaces 不是字符串列表')
+    expect(() => loadBook({ ...version3, zcodeOpenedWorkspaces: null })).toThrow('zcodeOpenedWorkspaces 不是字符串列表')
   })
 
   it('第 2 版里还带着 scene、第 1 版里 scene 认不出、版本号不认识、第 3 版缺 groups，都停止处理', () => {

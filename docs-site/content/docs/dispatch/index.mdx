@@ -45,7 +45,7 @@ full: true
 
 规则只有这一份：两个注册方法校验命令名调它，服务方法 `commandNameProblem` 也原样转给它。下游插件要在注册之前先校验收到的命令名（比如人给项目起的 QQ 命令），就调这个服务方法，不自己抄一份规则。它是服务方法、包里不导出这个函数，见[命令名规则做成服务方法](/trajectory/2026-10-08-command-name-rule-as-service-method)：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="162-164" hash="d78a97ecf1fc" blob="81cfa322bfe9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="174-176" hash="d78a97ecf1fc" blob="cb3f3cc19734" */}
 
 命令以工作台里注册的为准，`/帮助` 按此刻注册的现算。手机私聊里打「/」弹出的指令面板也跟着它自动同步：放哪些、什么顺序由这里算——任务组（命令登记的在前，称呼作说明）、直接命令（它的说明）、`/新会话`、`/状态`、`/帮助`，默认组没有命令不进面板；官方的上限与接口调用在[连接与收发](/docs/qq)。见[自动同步「/」面板](/trajectory/2026-10-08-qq-command-panel-auto-sync)：
 
@@ -116,9 +116,9 @@ full: true
 
 注册方的插件包名从调用方的上下文里取，`qq-bot.group.list` 里标出来；取不到就不写。插件在聊天表读回之前注册了和命令登记的组同名的命令时，注册当下查不出重名：连上时日志记一行，派到这个命令的消息回重名、不派出：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="166-170" hash="546b78ce018c" blob="81cfa322bfe9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="178-182" hash="546b78ce018c" blob="cb3f3cc19734" */}
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="140-140" hash="38256210d620" blob="81cfa322bfe9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="147-147" hash="38256210d620" blob="cb3f3cc19734" */}
 
 ## 命令
 
@@ -131,7 +131,7 @@ full: true
 | `qq-bot.group.list` | 无 | 全部任务组（默认组按各私聊的绑定列）与直接命令，标明来源 |
 | `qq-bot.report` | `{round, text}` | 执行任务的 agent 交这一轮的结果 |
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="196-232" hash="c447f90b6a27" blob="81cfa322bfe9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="209-245" hash="c447f90b6a27" blob="cb3f3cc19734" */}
 
 私聊在机器人收到它的第一条消息后才出现在 `qq-bot.status` 里，`bind` 用那里的 `id`（`c2c:<openid>`）。参数只收列出的键，多给、少给、空串都直接报错。
 绑定、改绑、解绑只看默认组：默认组还有在做或排队的任务时拒绝，别的组不受影响；改绑后默认组下一条开新会话：
@@ -148,20 +148,26 @@ qq-bot 自己定两件事：`start` 开一轮、交回会话号；`check` 问一
 
 {/* ref file="../plugins/qq-bot/src/dispatch/executors/executor.ts" lines="5-17" hash="9a1b60d04dec" blob="2914407123d2" */}
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="100-101" hash="a61a9dfa9f35" blob="81cfa322bfe9" */}
+ZCode 那份要的「这个工作区让 ZCode 打开过没有」由装配接到聊天表上，适配层不 import 聊天表：
 
-ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来（只取回答末尾 600 字，ZCode 的回答里混着工具调用记录）；Claude Code 那份翻译 `sessionId`、`status`、`text`：
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="101-107" hash="b3c4b36a6a59" blob="cb3f3cc19734" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/executors/zcode.ts" hash="d11c007634c4" blob="ae6736976bc2" */}
+Claude Code 那份翻译 `sessionId`、`status`、`text`：
 
 {/* ref file="../plugins/qq-bot/src/dispatch/executors/claudecode.ts" hash="55246b44ba95" blob="cffbea3f2763" */}
+
+ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来（只取回答末尾 600 字，ZCode 的回答里混着工具调用记录）。
+
+ZCode 侧栏的「项目」只列在 ZCode 里打开过的工作区，派到没打开过的工作区的会话在侧栏里找不到。所以 ZCode 那份开一轮之前先看聊天表里记没记过这个工作区：没记过就调 `gwbZcode.open` 让 ZCode 打开它（这一次会把 ZCode 窗口切过去），打开成功才记下，再建会话或接着发；记过的直接建会话或接着发，不再切窗口。`open` 失败按派出失败处理：原话回给私聊、这一轮作废、不记下，下次派到这里再打开一次。打开过的工作区记在哪见[聊天表](/docs/dispatch/chat-table)，为什么不每次都切见[每个工作区只打开一次](/trajectory/2026-10-08-zcode-open-workspace-once)：
+
+{/* ref file="../plugins/qq-bot/src/dispatch/executors/zcode.ts" hash="8351afbc93e5" blob="e778e5e1b4b3" */}
 
 执行端经 cordis 服务 inject，不按名字调命令。
 
 ## 测试
 
 `tests/rounds.test.ts` 覆盖派出与回报、排队续会话、懒检查、派出失败、白名单、分发、任务组的登记与删除、两个组同时在做、`/新会话 组名`、空闲开新会话、直接命令、绑定、窗口外改主动消息、没送达补发、通知去重与重载、聊天表从第 1、2 版换成第 3 版；
-分发与命令名规则在 `tests/routing.test.ts`，会话选择在 `tests/group-session.test.ts`，注册表在 `tests/command-registry.test.ts`，面板里放哪些命令在 `tests/command-panel.test.ts`。
+分发与命令名规则在 `tests/routing.test.ts`，会话选择在 `tests/group-session.test.ts`，注册表在 `tests/command-registry.test.ts`，面板里放哪些命令在 `tests/command-panel.test.ts`，ZCode 那份每个工作区只打开一次在 `tests/zcode-executor.test.ts`。
 
 ## 不做的事
 
@@ -172,3 +178,4 @@ ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来
 - **不从 QQ 回到旧会话**：在电脑上接，见[按命令分任务组](/trajectory/2026-10-08-slash-command-task-groups)
 - **不写和协作站有关的代码**：协作项目由协作站自己注册任务组，见[协作项目注册任务组](/trajectory/2026-10-08-collab-registers-project-groups)
 - **不解析 agent 回答的内容**：回报正文原样发回，最多 2000 字，超了让 agent 缩短
+- **不探测 ZCode 里还有没有这个项目**：打开过的工作区只增不减，人后来在 ZCode 里把项目移除了，之后派过去的会话又看不见，要在电脑上再打开一次，见[每个工作区只打开一次](/trajectory/2026-10-08-zcode-open-workspace-once)

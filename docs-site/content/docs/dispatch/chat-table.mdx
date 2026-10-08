@@ -9,11 +9,11 @@ description: 三块共用的一份表：每个私聊一行、行里按任务组�
 
 整份表按 AppID 存成一份 gwb-data 文档 `chats-<AppID>`，换机器人就是另一份；记录里不写 home 与 AppID：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="122-127" hash="d0a8a0ad4676" blob="81cfa322bfe9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="128-133" hash="d0a8a0ad4676" blob="cb3f3cc19734" */}
 
 ## 形状
 
-一份表就是一个 `Book`：私聊行、命令登记的任务组、通知去重、近期处理过的消息 id、每条触发消息已用掉的被动回复次数。谁读写哪一项：
+一份表就是一个 `Book`：私聊行、命令登记的任务组、通知去重、近期处理过的消息 id、每条触发消息已用掉的被动回复次数、已经让 ZCode 打开过的工作区。谁读写哪一项：
 
 | 项 | 谁用 | 上限 |
 | --- | --- | --- |
@@ -22,8 +22,9 @@ description: 三块共用的一份表：每个私聊一行、行里按任务组�
 | `notices` | 通知 | — |
 | `seen` | 连接与收发（网关重推不重复派出） | 2000 条，超了丢最早的 |
 | `replies` | 连接与收发（`msg_seq` 不能重复，次数先记再发） | 500 条消息，超了丢最早的 |
+| `zcodeOpenedWorkspaces` | 派任务的 ZCode 那份执行端实现（每个工作区只让 ZCode 打开一次） | 不设上限，只增不减 |
 
-{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="103-113" hash="ed0cd7d50e86" blob="962753da084a" */}
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="103-115" hash="04fb70582b67" blob="27e96639d11f" */}
 
 一个私聊一行，id 是 `c2c:<openid>`。显式绑定写在 `binding`，设的是默认组；主人私聊的默认绑定按设置现算、不写进来。
 行里按组名各记一份状态，默认组的键是空串，一个组第一次有任务时才建出它的那一份：会话、在做的一轮、队列、上一轮的结果（同一轮重交回报用它判重）、上一条任务开始或收尾的时间（算空闲多久用）。
@@ -39,11 +40,15 @@ description: 三块共用的一份表：每个私聊一行、行里按任务组�
 
 所有改表的操作经同一条串行队列，改完在队列里存盘；调执行端、发 QQ 消息、执行直接命令都在队列外面做，一个组慢不会卡住别的组。写盘失败记下来，之后的操作一律报这个错：
 
-{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="253-279" hash="22ba087acb83" blob="962753da084a" */}
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="263-289" hash="22ba087acb83" blob="27e96639d11f" */}
+
+ZCode 打开过的工作区按原样的路径字符串比对，打开成功后才在队列里记下并存盘；同一个工作区记一次，记下以后不删。人后来在 ZCode 里把这个项目移除了，这里照样记着，派过去的会话又看不见，要在电脑上再打开一次：
+
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="358-369" hash="12c895ee565d" blob="d94736558b46" */}
 
 回报按本轮编号在所有私聊的所有组里找，在做的或刚收尾的那一轮都算：
 
-{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="338-346" hash="d2c10191b0ad" blob="962753da084a" */}
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="348-356" hash="d2c10191b0ad" blob="d94736558b46" */}
 
 ## 读回与迁移
 
@@ -52,11 +57,14 @@ description: 三块共用的一份表：每个私聊一行、行里按任务组�
 - **第 1 版**还有群聊：去掉群聊那几行，私聊去掉 `scene`，换成第 2 版的行
 - **第 2 版**每个私聊只有一份会话与队列：会话、在做的一轮、队列、上一轮的结果归进默认组，没送达的结果补上组名「默认」。第 2 版的会话没记工作区，取在做那一轮的、再取绑定的，都没有就不留这个会话；也没记轮数，从这里重新数
 - 绑定上 `collab` 为 true 的，换成一段任务组要求「先读 gwb 说明书 collab」；qq-bot 里和协作站有关的只剩这一句迁移
+- 第 3 版里可以没有 `zcodeOpenedWorkspaces`：没有就按空列表读（还没让 ZCode 打开过任何工作区），版本号不变；有就必须是字符串列表，否则停止处理。从第 1、2 版迁过来的也是空列表
 
-{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="222-251" hash="006f3657535d" blob="962753da084a" */}
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="159-165" hash="001f50afd6ae" blob="27e96639d11f" */}
 
-{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="178-212" hash="78c1baa7c188" blob="962753da084a" */}
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="232-261" hash="a02099b504c3" blob="d94736558b46" */}
 
-{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="118-119" hash="10a659d9c130" blob="962753da084a" */}
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="188-222" hash="78c1baa7c188" blob="27e96639d11f" */}
+
+{/* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="120-121" hash="10a659d9c130" blob="27e96639d11f" */}
 
 迁了几个私聊、去掉了几个群聊，连上时日志各记一行。测试在 `tests/rounds.test.ts` 的「聊天表的版本」。
