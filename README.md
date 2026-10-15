@@ -7,7 +7,8 @@
 配置步骤、QQ 里的指令、官方接口的限制，都在随包说明书 `plugins/qq-bot/skills/qq-bot/SKILL.md`；别的插件怎么经服务 `gwbQqBot` 用它，在 `plugins/qq-bot/skills/qq-bot-plugin-api/SKILL.md`。
 
 仓是 pnpm workspace：**仓根是一个不发布的 private 包，自己没有代码**（`pnpm build` / `pnpm check`
-都递归到各成员包），插件放在 `plugins/qq-bot/`。包发到插件包 `package.json` 里 `publishConfig.registry` 写的源，装进 home。
+都递归到各成员包），插件放在 `plugins/qq-bot/`。包公开发在 npmjs（`publishConfig.registry` 写的源）：`devkit.release` 把包文件挂到 GitHub release 上，
+由仓根的 `.github/workflows/publish.yml` 经 trusted publishing 发出去。仓本身是 GitHub 上的私有仓 `godcreator02/gwb-qq-bot`：`probes/` 的实验记录里有真实机器人的 AppID 与 openid。
 
 ## 结构
 
@@ -27,7 +28,7 @@
 
 - 插件在隔离 home 里验证：`devkit.dev {"home":"<home 名>","dir":"<仓根>","packages":["plugins/qq-bot"]}`；
   全链路（QQ → 执行端 → QQ）用专用测试机器人实测，步骤见 skill「qq-bot」
-- 发版 `devkit.release {"dir":"<仓根>","packages":["plugins/qq-bot"]}`，升版本号前读说明书「gwb-release」
+- 发版 `devkit.release {"dir":"<仓根>","packages":["plugins/qq-bot"]}`，先把提交推到 GitHub；本机 `@godcreator` 还指向 gitea 团队源的过渡期另加 `alsoPublishTo` 写上那个源。升版本号前读说明书「gwb-release」
 
 写插件读 skill「gwb-devkit」。
 
