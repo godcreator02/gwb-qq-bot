@@ -6,7 +6,7 @@ full: true
 
 这个仓做一个 gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`），提供一个服务 `gwbQqBot`。它做两件方向相反的事：
 
-- **派任务**：人 → 工作台 → agent → 人。私聊里的一句话按斜杠命令分到一个任务组，交给组的执行端（ZCode 或 Claude Code）在组的目录里做，agent 做完调 `qq-bot.report`，结果发回原私聊
+- **派任务**：人 → 工作台 → agent → 人。私聊里的一句话按斜杠命令分到一个任务组，交给 claude-agent 在组的目录里做，这一轮结束后把 agent 的最后一条回复发回原私聊
 - **通知**：工作台 → 人。别的插件调 `notify` 主动私聊主人，只发不收
 
 两件事共用一条网关连接、一套白名单和发消息的规则，所以是一个插件，源码分成三块：连接与收发、通知、派任务，外加三块共用的聊天表和把它们接起来的装配。
@@ -20,35 +20,33 @@ full: true
 
 **2 入站与白名单**：网关把解析好的私聊消息交给装配，装配先用连接与收发里的白名单过一道，名单外的静默拒绝，通过的才交给派任务。三块之间的这个顺序写在装配里，三块自己互不 import：
 
-{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="54-58" hash="80acb3401eab" blob="80fe8dc6f49c" */}
+{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="53-57" hash="80acb3401eab" blob="b6110e59a544" */}
 
-**3 交给派任务与通知**：连上机器人时，装配建出派任务与通知两块，把聊天表、执行端表、插件注册表、消息记录、读设置的函数和发消息的函数传进去；发消息的函数先经消息记录包一层，所有出站都记得到。改了任何一块的构造参数，只动这里：
+**3 交给派任务与通知**：连上机器人时，装配建出派任务与通知两块，把聊天表、取 claude-agent 的函数、插件注册表、消息记录、读设置的函数和发消息的函数传进去；发消息的函数先经消息记录包一层，所有出站都记得到。改了任何一块的构造参数，只动这里：
 
-{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="41-52" hash="a3f5f7caf161" blob="80fe8dc6f49c" */}
+{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="40-51" hash="acef7e81e903" blob="b6110e59a544" */}
 
 **4 派任务用收发**：派任务收下消息时经连接与收发建私聊行、按消息 id 去重；回执、结果、用法说明也经它发出，由它按回复窗口选被动或主动、分段、带上引用。派任务只决定说什么、引用哪条，并告诉它这条是哪一种出站、哪个组第几轮，给消息记录用。
 
 **5 发消息**：REST → QQ 开放平台。回执、结果、通知都从这里出去，一律按原生 markdown 发（`msg_type: 2`），手机上渲染成标题、列表、代码块；被动回复的窗口与次数是平台的硬限制，插件只做选择。
 
-**6 派给执行端**：派任务的执行端适配层把「开一轮」「问一次做完没有」翻译成 gwb-zcode、gwb-claudecode 各自服务的方法。执行端插件改了服务方法，只动适配层里对应的那份，见[派任务](/docs/dispatch)。
+**6 交给 claude-agent**：派任务可选注入 gwb-claude-agent 的服务，`create` / `send` 开一轮、`waitRound` 等它结束、`status` 读进度；这一轮结束后把 agent 的最后一条回复原样发回，agent 不调任何命令回报。用哪个模型是 claude-agent 的设置 `default-model`，qq-bot 不选，见[派任务](/docs/dispatch)。
 
-**7 回报**：agent 做完自己经 gwb MCP 入口调 `qq-bot.report {round, text}`。本轮编号只用来对上是哪一轮，不当凭证。
+**7 下游插件**：别的插件 inject `gwbQqBot`。四个方法就是给它们的全部接口——`notify` 主动私聊主人，`registerTaskGroup` / `registerCommand` 注册任务组与直接命令，`commandNameProblem` 在注册之前按同一条规则校验命令名：
 
-**8 下游插件**：别的插件 inject `gwbQqBot`。四个方法就是给它们的全部接口——`notify` 主动私聊主人，`registerTaskGroup` / `registerCommand` 注册任务组与直接命令，`commandNameProblem` 在注册之前按同一条规则校验命令名：
+{/* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="96c128331633" blob="95de2ebe0a38" */}
 
-{/* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="d2352d37a281" blob="c44b0ca39f56" */}
+**8 注册表在服务上**：插件注册的组与直接命令存在服务对象上，没配 AppID 时照样能注册，换机器人重连也不丢。注册表一变，装配就排一次同步，注册的命令自动出现在手机私聊的「/」指令面板里，见[连接与收发](/docs/qq)的「指令面板」。
 
-**9 注册表在服务上**：插件注册的组与直接命令存在服务对象上，没配 AppID 时照样能注册，换机器人重连也不丢。注册表一变，装配就排一次同步，注册的命令自动出现在手机私聊的「/」指令面板里，见[连接与收发](/docs/qq)的「指令面板」。
+**9 通知发主动消息**：通知只 import 连接与收发的类型，发消息的函数由装配传进来；不经回复窗口，不引用消息。
 
-**10 通知发主动消息**：通知只 import 连接与收发的类型，发消息的函数由装配传进来；不经回复窗口，不引用消息。
+**10 共用聊天表**：派任务读写私聊行与命令登记的组，通知读写去重记录，连接与收发记近期消息 id 和被动回复用掉的次数。所有改表的操作经同一条串行队列，形状与迁移见[聊天表](/docs/dispatch/chat-table)。
 
-**11 共用聊天表**：派任务读写私聊行与命令登记的组，通知读写去重记录，连接与收发记近期消息 id 和被动回复用掉的次数。所有改表的操作经同一条串行队列，形状与迁移见[聊天表](/docs/dispatch/chat-table)。
+**11 存盘**：整份表按 AppID 存成一份 gwb-data 文档，换机器人就是另一份：
 
-**12 存盘**：整份表按 AppID 存成一份 gwb-data 文档，换机器人就是另一份：
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="127-127" hash="3f4db5b01f24" blob="20c8b227e0e7" */}
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="131-131" hash="3f4db5b01f24" blob="46b54b586aa9" */}
-
-**13 消息记录**：收到的每条私聊、发出的每条消息按 AppID、按月追加进 qq-bot 数据目录下的 JSONL 文件，留当月与前 3 个月，`qq-bot.messages` 查。连接与收发不认识任务组，分到哪、是哪一种出站由派任务作为参数传进来；写失败只记一行 warn，收发照常。见[连接与收发](/docs/qq)的「消息记录」。
+**12 消息记录**：收到的每条私聊、发出的每条消息按 AppID、按月追加进 qq-bot 数据目录下的 JSONL 文件，留当月与前 3 个月，`qq-bot.messages` 查。连接与收发不认识任务组，分到哪、是哪一种出站由派任务作为参数传进来；写失败只记一行 warn，收发照常。见[连接与收发](/docs/qq)的「消息记录」。
 
 ## 各块对外能做什么
 
@@ -56,9 +54,9 @@ full: true
 | --- | --- | --- | --- |
 | 连接与收发 | `src/qq/` | 网关连接与重连、access token、白名单与去重、按回复窗口发一段话、引用原消息、同步「/」指令面板、消息记录 | [连接与收发](/docs/qq) |
 | 通知 | `src/notify/` | 主动私聊主人，按 id 去重 | [通知](/docs/notify) |
-| 派任务 | `src/dispatch/` | 斜杠命令分发、任务组与直接命令、会话与队列、一轮、回报、懒检查、执行端适配层 | [派任务](/docs/dispatch)、[一条消息分到哪](/docs/dispatch/routing) |
+| 派任务 | `src/dispatch/` | 斜杠命令分发、任务组与直接命令、会话与队列、一轮（交给 claude-agent、等结束、发回最后一条回复） | [派任务](/docs/dispatch)、[一条消息分到哪](/docs/dispatch/routing) |
 | 聊天表 | `src/storage/` | 每个私聊每组一份状态，命令登记的组、通知去重、消息 id、被动回复次数 | [聊天表](/docs/dispatch/chat-table) |
-| 装配 | `src/index.ts`、`src/rounds.ts` | 服务 `gwbQqBot`、`qq-bot.*` 命令、设置、执行端登记、连接生命周期 | 本页 |
+| 装配 | `src/index.ts`、`src/rounds.ts` | 服务 `gwbQqBot`、`qq-bot.*` 命令、设置、可选注入 claude-agent、连接生命周期 | 本页 |
 
 依赖方向只有一种：通知 → 连接与收发，派任务 → 连接与收发，三块 → 聊天表，装配 → 全部。`qq/` 不 import `notify/`、`dispatch/`，`notify/` 与 `dispatch/` 互不 import。
 
@@ -71,7 +69,6 @@ full: true
 | `qq-bot.reconnect` | write | 改完 AppID / AppSecret / 旧沙箱接口设置后重连 | 装配 |
 | `qq-bot.bind` / `unbind` | write | 设、解除一个私聊的默认组 | 派任务 |
 | `qq-bot.group.add` / `remove` / `list` | write / write / read | 登记、删掉、列出任务组 | 派任务 |
-| `qq-bot.report` | external | 执行任务的 agent 交这一轮的结果 | 派任务 |
 | `qq-bot.notify` | external | 把服务方法 `notify` 做成命令给 agent 用 | 通知 |
 
 参数与回执逐条写在命令的 usage 与随包说明书 `qq-bot` 里，契约讲解在各块的页上。
@@ -80,20 +77,21 @@ full: true
 
 前三项改完要 `qq-bot.reconnect`；其余每次用到时现读，改完即时生效：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="28-36" hash="6194f1a6627b" blob="46b54b586aa9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="23-31" hash="d626a0056aaa" blob="20c8b227e0e7" */}
 
 ## 依赖
 
 | 依赖 | 怎么接 | 用来做什么 | 缺了会怎样 |
 | --- | --- | --- | --- |
 | `gwbCommands`、`gwbSettings`、`gwbData` | 必需 inject | 命令、设置、聊天表、消息记录的数据目录 | 插件不加载 |
-| `gwbZcode`（gwb-zcode） | 可选 inject，peer 标 optional | ZCode 那份执行端实现 | 绑定、登记任务组报「没装」，派任务回「没装执行端 zcode」 |
-| `gwbClaudecode`（gwb-claudecode） | 可选 inject，peer 标 optional | Claude Code 那份执行端实现 | 同上 |
+| `gwbClaudeAgent`（gwb-claude-agent） | 可选 inject，peer 标 optional | 开一轮、等它结束、读进度 | 能收消息、回 `/帮助` 与直接命令；任务派不出去，回执写明装哪个插件 |
 | `gwbSkills` | 可选 inject | 登记说明书 `qq-bot` | agent 读不到说明书 |
 | `cordis` | peer | 服务基类 `Service` | — |
 | QQ 开放平台 | 外部服务 | WebSocket 收事件，REST 发消息 | 连不上时网关退避重连 |
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="48-48" hash="f3e25754b611" blob="46b54b586aa9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="43-43" hash="f3e25754b611" blob="20c8b227e0e7" */}
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="98-106" hash="5a96b3d4c903" blob="20c8b227e0e7" */}
 
 下游插件（协作站、gitea-issues）依赖 qq-bot，qq-bot 不依赖它们：依赖只有它们 → qq-bot 一个方向，反过来写 peer 会成环、发版被拒。
 
@@ -103,11 +101,11 @@ full: true
 - **不处理群聊**：群事件只记事件类型，见[只处理私聊](/trajectory/2026-10-07-private-chat-only)
 - **不删「/」指令面板**：注册的命令经官方接口自动同步进手机私聊的「/」面板；qq-bot 卸载、断开时面板留着，下次连上接着改同一个，见[自动同步「/」面板](/trajectory/2026-10-08-qq-command-panel-auto-sync)
 - **不写和协作站有关的代码**：协作站自己注册任务组，见[协作项目注册任务组](/trajectory/2026-10-08-collab-registers-project-groups)
-- **不轮询执行端**：只在人问起时做一次懒检查，见[按聊天重写](/trajectory/2026-10-07-rebuild-around-chats)
-- **不自动重发**：派出失败、执行端中断都把原话告诉人，结果被动发不出去只改发一次主动消息，见[按聊天重写](/trajectory/2026-10-07-rebuild-around-chats)
+- **不选执行端、不选模型**：一律交给 claude-agent，模型是它的设置；从 QQ 换模型就发一条任务让 agent 改那项设置，见[执行统一交给 claude-agent](/trajectory/2026-10-15-claude-agent-only)
+- **不自动重发**：派出失败、这一轮失败都把原话告诉人，结果被动发不出去只改发一次主动消息，见[按聊天重写](/trajectory/2026-10-07-rebuild-around-chats)
 - **不锁工作区、不回到旧会话**：两个组指向同一个目录也同时做；旧会话要接着做就在电脑上接，见[按命令分任务组](/trajectory/2026-10-08-slash-command-task-groups)
 - **不做随手记**：在等日志插件提供追加的服务，见[路线](/future/roadmap)
-- **不做界面、不解析 agent 回答的内容**：状态经 `qq-bot.status` 查；回报正文原样发回，最多 5000 字
+- **不做界面、不解析 agent 回答的内容**：状态经 `qq-bot.status` 查；最后一条回复原样发回，见[去掉回报命令](/trajectory/2026-10-15-final-reply-instead-of-report)
 
 ## 这个站怎么分
 

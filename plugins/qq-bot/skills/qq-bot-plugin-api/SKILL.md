@@ -7,7 +7,7 @@ description: 写或改一个要用 qq-bot 的插件时读：经服务 gwbQqBot �
 
 别的插件经服务 `gwbQqBot` 用 qq-bot，不按名字调 `qq-bot.*` 命令。服务的全部方法与参数：
 
-```ts title="../plugins/qq-bot/src/api.ts:1-62"
+```ts title="../plugins/qq-bot/src/api.ts:1-60"
 /**
  * 服务 ctx.gwbQqBot：经 QQ 机器人主动私聊这台机器的主人，给私聊注册任务组与直接命令。要用就 inject `gwbQqBot`（可有可无时用 ctx.inject）。
  * QQ 还没连上（没配 AppID）时也能注册；notify 要连上才能用。
@@ -19,10 +19,10 @@ export interface GwbQqBotApi {
    */
   notify(id: string, text: string): Promise<{ delivered: boolean; duplicate: boolean }>
   /**
-   * 注册一个任务组：私聊里发 `<command> 正文`，正文交给 agent 在 workspace 里做，每个私聊各记一个会话。
+   * 注册一个任务组：私聊里发 `<command> 正文`，正文交给 claude-agent 在 workspace 里做（模型是 claude-agent 的设置 default-model），每个私聊各记一个会话。
    * 交回撤掉注册的函数，包在 ctx.effect 里，插件卸载或重载时自动撤掉：`ctx.effect(() => ctx.gwbQqBot.registerTaskGroup({...}))`。
-   * 命令名不合规则（见 TaskGroupDefinition.command）、与已有命令重名、workspace 不是已存在目录的绝对路径，都抛异常。
-   * 不检查执行端装没装：派任务时没装，就把原因回给私聊
+   * 命令名不合规则（见 TaskGroupDefinition.command）、与已有命令重名、workspace 不是已存在目录的绝对路径、带了认不出的键，都抛异常。
+   * 不检查 claude-agent 装没装：派任务时没装，就把原因回给私聊
    */
   registerTaskGroup(definition: TaskGroupDefinition): () => void
   /**
@@ -47,8 +47,6 @@ export interface TaskGroupDefinition {
   title: string
   /** agent 干活的目录，已存在目录的绝对路径 */
   workspace: string
-  /** 执行端：zcode 或 claudecode */
-  agent: 'zcode' | 'claudecode'
   /** 原样附在任务说明的「[任务组要求]」一段里 */
   instructions?: string
   /** 空闲超过这么多小时，下一条任务开新会话；不给就用设置 idle-hours。正数 */
@@ -79,7 +77,7 @@ export interface DirectCommandDefinition {
 
    ```ts
    ctx.inject(['gwbQqBot'], (scoped) => {
-     scoped.effect(() => scoped.gwbQqBot.registerTaskGroup({ command: '/mmc', title: '混合型 MMC 样机', workspace: 'D:\\…\\hybrid-mmc', agent: 'zcode' }))
+     scoped.effect(() => scoped.gwbQqBot.registerTaskGroup({ command: '/mmc', title: '混合型 MMC 样机', workspace: 'D:\\…\\hybrid-mmc' }))
    })
    ```
 
@@ -92,8 +90,8 @@ qq-bot 重载时，注册表随旧的服务对象一起没了，依赖 gwbQqBot 
 
 ## 任务组还是直接命令
 
-- **要 agent 在目录里动手、要接着上次的会话**：`registerTaskGroup`。派出以后跟 `qq-bot.group.add` 登记的组一样排队、开会话；
-  结果由 agent 调 `qq-bot.report` 直接发回私聊，注册方拿不到
+- **要 agent 在目录里动手、要接着上次的会话**：`registerTaskGroup`。派出以后跟 `qq-bot.group.add` 登记的组一样排队、开会话，交给 claude-agent 做；
+  这一轮的最后一条回复直接发回私聊，注册方拿不到。定义里不写执行端、模型，带了认不出的键（比如 `agent`）当场抛异常
 - **答案当场算得出**：`registerCommand`。`handle` 交回的文字按被动回复发回，不排队、不派给 agent；抛错时原话回给私聊
 - 注册的命令自动进出手机私聊的「/」指令面板，不用另外调；面板放不下的命令照常能用，原因在 `qq-bot.status` 的 `panel.omitted`
 

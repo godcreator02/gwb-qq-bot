@@ -49,7 +49,7 @@ export const checks = [
     ],
   },
   /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="57-60" hash="e44af8487631" blob="4ba17a7cf705" */
-  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="110-117" hash="80f91ccbf8f6" blob="b57d400e44e3" */
+  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="128-135" hash="80f91ccbf8f6" blob="1bae6e1bce18" */
   {
     id: 'registered',
     q: '第一段和哪个注册过的命令完全相同？',
@@ -77,10 +77,10 @@ export const checks = [
  * reply 是机器人回的话（… 表示省略的部分）
  * @type {{ id: string, label: string, message: string, path: [string, string][], result: string, reply: string, text: string }[]}
  */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="167-183" hash="7f3c999f20d6" blob="b57d400e44e3" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="280-283" hash="9a1d9ac5281c" blob="b57d400e44e3" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="119-121" hash="bc908f85b40a" blob="b57d400e44e3" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="434-434" hash="a257d34f29d3" blob="b57d400e44e3" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="185-201" hash="d668dffdf506" blob="1bae6e1bce18" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="291-295" hash="6a3fde136fdc" blob="1bae6e1bce18" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="137-139" hash="bc908f85b40a" blob="1bae6e1bce18" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="458-458" hash="81c78c829052" blob="1bae6e1bce18" */
 /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="50-54" hash="ccfeea48248d" blob="4ba17a7cf705" */
 /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="61-61" hash="5e8ed20c9310" blob="4ba17a7cf705" */
 export const cases = [
@@ -90,8 +90,8 @@ export const cases = [
     message: '帮我看下今天的日志',
     path: [['slash', '不是']],
     result: 'default-task',
-    reply: '【默认】已接收，交给 ZCode 在「个人空间」里做，做完回你。\n会话 a1b2 · 第 3 轮',
-    text: '不以「/」开头，第一道就分完：进默认组的队列。默认组没有在做的一轮就马上派出，回执开头写组名，第二行是会话号末 4 位和这个会话的第几轮。',
+    reply: '【默认】已接收，在「个人空间」里做，做完回你。\n会话 a1b2 · 第 3 轮 · 模型 glm',
+    text: '不以「/」开头，第一道就分完：进默认组的队列。默认组没有在做的一轮就马上派出，回执开头写组名，第二行是会话号末 4 位、这个会话的第几轮和用的模型。',
   },
   {
     id: 'group',
@@ -99,7 +99,7 @@ export const cases = [
     message: '/mmc 把 DSP 的采样频率改成 20k',
     path: [['slash', '是'], ['reserved', '不是'], ['fresh', '不是'], ['registered', '任务组 /mmc'], ['body', '有']],
     result: 'group-task',
-    reply: '【mmc】已接收，交给 Claude Code 在「混合型 MMC 样机」里做，做完回你。\n会话 9f3c · 第 1 轮',
+    reply: '【mmc】已接收，在「混合型 MMC 样机」里做，做完回你。\n会话 9f3c · 第 1 轮 · 模型 glm',
     text: '第一段 /mmc 是一个任务组的命令，后面的「把 DSP 的采样频率改成 20k」是任务正文，进 mmc 组自己的队列。mmc 组和默认组各排各的，可以同时在做。',
   },
   {
@@ -135,7 +135,7 @@ export const cases = [
     message: '/新会话',
     path: [['slash', '是'], ['reserved', '不是'], ['fresh', '后面没字']],
     result: 'fresh-default',
-    reply: '【默认】下一条起用新会话；在做的这一轮照常回报。',
+    reply: '【默认】下一条起用新会话；在做的这一轮做完照常发回。',
     text: '清掉默认组记着的会话，下一条任务开新会话；在做的那一轮不受影响。',
   },
   {
@@ -144,7 +144,7 @@ export const cases = [
     message: '/新会话 mmc',
     path: [['slash', '是'], ['reserved', '不是'], ['fresh', '一个组名']],
     result: 'fresh-group',
-    reply: '【mmc】下一条起用新会话；在做的这一轮照常回报。',
+    reply: '【mmc】下一条起用新会话；在做的这一轮做完照常发回。',
     text: '组名是命令去掉斜杠。只清 mmc 组的会话，别的组照常接着用。写了不存在的组名，回一句并列出可用的组名。',
   },
   {
@@ -154,7 +154,7 @@ export const cases = [
     path: [['slash', '是'], ['reserved', '/状态']],
     result: 'status',
     reply: '【默认】空闲\n【mmc】还在做第 1 轮。最新的回答末尾：\n……',
-    text: '有没送达的结果就只补发它们；没有就逐组报：空闲，或在做第几轮、排队几条。在做的组顺带问一次执行端，做完了却没回报的就收尾发回最后的回答。',
+    text: '有没送达的结果就只补发它们；没有就逐组报：空闲，或在做第几轮、排队几条。在做的组附上 claude-agent 交回的最近一段回答末尾。',
   },
   {
     id: 'help',
@@ -162,7 +162,7 @@ export const cases = [
     message: '/帮助',
     path: [['slash', '是'], ['reserved', '/帮助']],
     result: 'help',
-    reply: 'QQ → 本机 agent。直接发的文字进默认组（「个人空间」，交给 ZCode）；……\n保留指令：……\n任务组（发「命令 任务」）：\n/mmc — 混合型 MMC 样机\n直接命令：\n/血糖 — 查最近的血糖',
+    reply: 'QQ → 本机 agent。直接发的文字进默认组（「个人空间」）；……\n保留指令：……\n任务组（发「命令 任务」）：\n/mmc — 混合型 MMC 样机\n直接命令：\n/血糖 — 查最近的血糖',
     text: '内容按此刻注册的现算：保留命令、全部任务组、全部直接命令。插件卸掉了，它注册的命令下一次就不在列表里。',
   },
   {

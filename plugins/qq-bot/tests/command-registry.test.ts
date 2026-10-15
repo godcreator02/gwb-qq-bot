@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { PluginCommandRegistry } from '../src/dispatch/command-registry.js'
 
 const WORKSPACE = process.cwd()
-const MMC = { command: '/mmc', title: '混合型 MMC 样机', workspace: WORKSPACE, agent: 'claudecode' as const }
+const MMC = { command: '/mmc', title: '混合型 MMC 样机', workspace: WORKSPACE }
 const BLOOD = { command: '/血糖', description: '查最近的血糖', handle: async () => '5.6' }
 const fromCollab = { plugin: '@godcreator/gwb-collab', storedGroupCommands: [] }
 
@@ -28,7 +28,7 @@ describe('registerTaskGroup', () => {
     expect(registry.group('/mmc')?.definition.title).toBe('新的')
   })
 
-  it('命令名不合规则、重名、工作区不对、执行端名认不出、不认识的键都抛异常；不查执行端装没装', () => {
+  it('命令名不合规则、重名、工作区不对、不认识的键（含已经删掉的 agent）都抛异常', () => {
     const registry = new PluginCommandRegistry()
     registry.registerTaskGroup(MMC, fromCollab)
     registry.registerCommand(BLOOD, { plugin: undefined, storedGroupCommands: [] })
@@ -40,7 +40,7 @@ describe('registerTaskGroup', () => {
     expect(() => registry.registerTaskGroup({ ...MMC, command: '/m m' }, fromCollab)).toThrow('不能含空白')
     expect(() => registry.registerTaskGroup({ ...MMC, command: '/x', workspace: 'relative' }, fromCollab)).toThrow('绝对路径')
     expect(() => registry.registerTaskGroup({ ...MMC, command: '/x', workspace: path.join(WORKSPACE, 'no-such-dir') }, fromCollab)).toThrow('已存在目录')
-    expect(() => registry.registerTaskGroup({ ...MMC, command: '/x', agent: 'codex' as never }, fromCollab)).toThrow('agent 只能是')
+    expect(() => registry.registerTaskGroup({ ...MMC, command: '/x', agent: 'codex' as never }, fromCollab)).toThrow('不认识参数 agent')
     expect(() => registry.registerTaskGroup({ ...MMC, command: '/x', idleHours: -1 }, fromCollab)).toThrow('idleHours 要是正数')
     expect(() => registry.registerTaskGroup({ ...MMC, command: '/x', collab: true } as never, fromCollab)).toThrow('不认识参数 collab')
   })

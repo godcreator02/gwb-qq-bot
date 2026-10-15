@@ -2,9 +2,9 @@
  * 连上一个机器人以后，把三块接起来：入站私聊先过 qq/ 的白名单，再交给 dispatch/ 派任务；notify 交给 notify/。
  * 通知与派任务互不 import，只在这里汇合
  */
+import type { GwbClaudeAgentApi } from '@godcreator/gwb-claude-agent'
 import { ChatRounds } from './dispatch/chat-rounds.js'
 import type { PluginCommandRegistry } from './dispatch/command-registry.js'
-import type { ExecutorTable } from './dispatch/executors/executor.js'
 import { OwnerNotifier } from './notify/owner-notifier.js'
 import { AllowedSenderGate } from './qq/incoming-gate.js'
 import type { MessageLog, RawSendC2c } from './qq/message-log.js'
@@ -13,10 +13,9 @@ import { ReplySender } from './qq/reply-sender.js'
 import type { Chat, ChatTable, StoredTaskGroup } from './storage/chat-table.js'
 
 export interface RoundsDeps {
-  /** gwb home 名，写进提示词，agent 按它选连回哪个 MCP 服务 */
-  home: string
   table: ChatTable
-  executors: ExecutorTable
+  /** 此刻装着的 claude-agent 服务，没装是 null */
+  agent(): GwbClaudeAgentApi | null
   /** 插件注册的任务组与直接命令，放在服务上，换机器人重连时不丢 */
   registry: PluginCommandRegistry
   allowedOpenids(): string[]
@@ -45,7 +44,7 @@ export class Rounds {
     const sendC2c = deps.messages.recordingSend(deps.sendC2c)
     const replies = new ReplySender({ table: deps.table, sendC2c, log: deps.log })
     this.chatRounds = new ChatRounds({
-      home: deps.home, table: deps.table, executors: deps.executors, registry: deps.registry,
+      table: deps.table, agent: deps.agent, registry: deps.registry,
       ownerOpenid: deps.ownerOpenid, defaultWorkspace: deps.defaultWorkspace, idleHours: deps.idleHours, replies, messages: deps.messages, log: deps.log,
     })
     this.notifier = new OwnerNotifier({ table: deps.table, allowedOpenids: deps.allowedOpenids, ownerOpenid: deps.ownerOpenid, sendC2c, log: deps.log })
@@ -57,8 +56,9 @@ export class Rounds {
     await this.chatRounds.handleAdmitted(message)
   }
 
-  report(raw: unknown): Promise<{ recorded: true; duplicate: boolean }> {
-    return this.chatRounds.report(raw)
+  /** 连上以后、claude-agent 重新装上以后各调一次：在做的轮次接着等它结束 */
+  resumeWaiting(): void {
+    if (!this.closing) this.chatRounds.resumeWaiting()
   }
 
   bind(raw: unknown): Promise<Chat> {

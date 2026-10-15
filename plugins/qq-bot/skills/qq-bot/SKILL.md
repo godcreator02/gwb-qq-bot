@@ -1,31 +1,25 @@
 ---
 name: qq-bot
-description: 配置 QQ 机器人、绑定私聊、登记任务组、查任务状态、诊断消息没回应时读；QQ 派来的任务做完怎么回报也在这里。写插件要用 qq-bot 读 qq-bot-plugin-api。
+description: 配置 QQ 机器人、绑定私聊、登记任务组、换 QQ 任务用的模型、查任务状态、诊断消息没回应时读。写插件要用 qq-bot 读 qq-bot-plugin-api。
 ---
 
 # QQ 机器人 → 本机 agent
 
-gwb 插件 `@godcreator/gwb-qq-bot`：保持一条到 QQ 开放平台 WebSocket 网关的长连接，收私聊消息，按斜杠命令分到任务组，交给组的执行端（ZCode 或 Claude Code），
-agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每个人在自己的 home 里配自己的机器人，群里 @ 机器人不处理。
-命令：`qq-bot.status`、`qq-bot.messages`、`qq-bot.bind`、`qq-bot.unbind`、`qq-bot.group.add`、`qq-bot.group.remove`、`qq-bot.group.list`、`qq-bot.report`、`qq-bot.notify`、`qq-bot.reconnect`；参数与回执用 `search {"prefix":"qq-bot."}` 看 usage。
+gwb 插件 `@godcreator/gwb-qq-bot`：保持一条到 QQ 开放平台 WebSocket 网关的长连接，收私聊消息，按斜杠命令分到任务组，交给 claude-agent（插件 `@godcreator/gwb-claude-agent`）在组的目录里做，
+这一轮结束后把 agent 的最后一条回复发回原私聊。只处理私聊：每个人在自己的 home 里配自己的机器人，群里 @ 机器人不处理。
+命令：`qq-bot.status`、`qq-bot.messages`、`qq-bot.bind`、`qq-bot.unbind`、`qq-bot.group.add`、`qq-bot.group.remove`、`qq-bot.group.list`、`qq-bot.notify`、`qq-bot.reconnect`；参数与回执用 `search {"prefix":"qq-bot."}` 看 usage。
 
-## 你是执行 QQ 任务的 agent：怎么回报
+## 你是执行 QQ 任务的 agent
 
-任务说明末尾有一段「[本轮回报]」，写着本轮编号和 home 名；有「[任务组要求]」一段的照它做。做完后：
-
-1. 找连到那个 home 的 gwb MCP 服务（每个服务的说明里写着「你连上的是 home「…」」），调 `run {"command":"qq-bot.report","args":{"round":"<本轮编号>","text":"<给手机看的结果>"}}`
-2. `text` 写给人在手机上看：做了什么、结果怎样、要人补什么信息，300 字以内；正文按 markdown 渲染，可以用列表、粗体、行内代码（上限 5000，超了会被拒，缩短后用同一个编号再交）
-3. 一轮只报一次；调用超时就用同样的参数再调一次，别换内容
-
-**完成判据**：回执 `{ recorded: true }`。`duplicate: true` 表示这一轮已经记下过同样的结果。
-
+任务说明末尾有「[QQ 任务来源]」与「[最后一条回复]」两段，有「[任务组要求]」一段的照它做。这一轮你的**最后一条回复**会原样发回 QQ：用 markdown 写给人在手机上看，说清做了什么、结果怎样、要人补什么信息，5000 字以内。不用调任何命令回报。
 ## 配置（设置的 qq-bot 分区）
 
 1. 在 QQ 开放平台（q.qq.com）创建机器人，拿 AppID 与 AppSecret；新版后台在「开发设置 → 开发体验号码」添加自己的 QQ
 2. 填 `app-id`、`app-secret`（secret 由凭据保管，不经会话）；`sandbox` 保持 false（true 只兼容旧沙箱接口）
 3. `default-workspace` 填主人私聊默认组的工作区（绝对路径）；`idle-hours` 是任务组空闲多少小时后下一条开新会话，缺省 6
-4. 调 `qq-bot.reconnect` 连接
-5. 手机 QQ 给机器人发一条私聊 → `qq-bot.status` 的 `recentRejected` 里出现你的 openid → 填进 `allowed-openids`，同一个填进 `owner-openid`（openid 每个机器人各不相同，不是 QQ 号；白名单改了即时生效）
+4. 装上 claude-agent 并按说明书 `claude-agent-setup` 配好；没装时任务派不出去（`qq-bot.status` 的 `claudeAgentInstalled`）
+5. 调 `qq-bot.reconnect` 连接
+6. 手机 QQ 给机器人发一条私聊 → `qq-bot.status` 的 `recentRejected` 里出现你的 openid → 填进 `allowed-openids`，同一个填进 `owner-openid`（openid 每个机器人各不相同，不是 QQ 号；白名单改了即时生效）
 
 **完成判据**：`qq-bot.status` 的 `gateway` 是 `open`；私聊发 `/帮助` 收到指令列表。
 
@@ -35,7 +29,7 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 
 直接发的文字进**默认组**，`/<组命令> 任务` 进对应的组。每个私聊的每个组各有一个会话和一条队列：同一组一次做一件，不同的组可以同时做。
 
-- **默认组**：每个私聊一个，由绑定设；主人私聊没绑时用 `default-workspace`、交给 ZCode
+- **默认组**：每个私聊一个，由绑定设；主人私聊没绑时用 `default-workspace`
 - **命令登记的组**：给常用目录用，白名单里的每个私聊都能用，存在聊天表里（要先连上 QQ）
 - **插件注册的组**：别的插件经服务 `gwbQqBot` 注册，插件卸载时自动撤掉
 
@@ -45,8 +39,7 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 
 1. 在私聊发 `/帮助`
 2. `qq-bot.status` 的 `chats` 里找到这个私聊的 `id`（`c2c:<openid>`）
-3. `qq-bot.bind {"chat":"<id>","workspace":"<目录绝对路径>","title":"<回执里叫它的名字>","agent":"zcode"}`
-   - `agent` 可选 `zcode`（缺省）或 `claudecode`，必须是装着的执行端；`qq-bot.status` 的 `executors` 列着装了哪些
+3. `qq-bot.bind {"chat":"<id>","workspace":"<目录绝对路径>","title":"<回执里叫它的名字>"}`
    - `instructions` 可选：原样附在任务说明的「[任务组要求]」一段里
 4. 读回 `qq-bot.status` 核对 `binding`
 
@@ -54,7 +47,7 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 
 ### 登记、删掉任务组
 
-1. `qq-bot.group.add {"command":"/论文","title":"学位论文","workspace":"<目录绝对路径>","agent":"zcode"}`，可选 `instructions`、`idleHours`（正数，不给用设置 `idle-hours`）
+1. `qq-bot.group.add {"command":"/论文","title":"学位论文","workspace":"<目录绝对路径>"}`，可选 `instructions`、`idleHours`（正数，不给用设置 `idle-hours`）
 2. `qq-bot.group.list` 核对：每个组带 `source`（`default` / `command` / `plugin`）
 
 `qq-bot.group.remove {"command":"/论文"}` 只删命令登记的组；插件注册的由那个插件撤掉。这个组在任何私聊里还有在做或排队的任务时拒绝。
@@ -65,16 +58,26 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 
 写在插件代码里，经服务 `gwbQqBot`，不用命令：读说明书 `qq-bot-plugin-api`。
 
+## 换 QQ 任务用的模型
+
+qq-bot 不选模型：新会话用 claude-agent 的设置 `default-model`。人在 QQ 里让你换模型时：
+
+1. `claude-agent.setup-status` 看有哪几份模型配置（`models` 的 `name`）、各自的 token 填了没有
+2. `settings.set {"section":"claude-agent","key":"default-model","value":"<配置名>"}`；token 没填就停下，请人到设置界面填
+3. 告诉人：会话建立时就定下了模型，已有的会话不换，各组发 `/新会话` 后下一条才用新模型
+
+**完成判据**：下一条任务的回执里「模型」写的是新配置名。
+
 ## QQ 里的指令
 
-- 直接发任务文本：进默认组，在绑定的目录里真的执行，权限遵循所选执行端（ZCode 完全访问、Claude Code bypassPermissions）
+- 直接发任务文本：进默认组，在绑定的目录里真的执行，权限照 claude-agent 的设置
 - `/<组命令> 任务`：进那一组；只发组命令不写任务回用法
 - `/状态`：补发没送达的结果；没有就逐组报空闲，或在做第几轮、排队几条
 - `/新会话`：默认组下一条起开新会话；`/新会话 <组名>` 对那一组
 - `/帮助`：列出保留命令、全部任务组和直接命令
 - 以 `/` 开头但不是任何指令：回「没有指令」，不派出
 
-回执与结果开头写组名，回执里带一行「会话 a1b2 · 第 3 轮」（会话号的末 4 位、这个会话的第几轮）。一个组空闲超过它的空闲时长，下一条开新会话，回执写明「已开新会话（空闲超过 N 小时）」。
+回执与结果开头写组名，回执里带一行「会话 a1b2 · 第 3 轮 · 模型 glm」（会话号的末 4 位、这个会话的第几轮、用的模型）。一个组空闲超过它的空闲时长，下一条开新会话，回执写明「已开新会话（空闲超过 N 小时）」。
 
 ## 查消息记录
 
@@ -91,11 +94,10 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 - 结果发出去没有、那条消息分到哪了：先按上一节查 `qq-bot.messages`，再往下看
 - `qq-bot.status` 看 `gateway`（stopped 没配置或没连接，connecting 在重连，open 正常）与 `recentRejected`（白名单外的人）
 - 凭据错误看工作台日志里「拿 access token 失败」；日志先记「QQ 入站事件：…」再处理，没有这条就查连接与平台投递
-- 回「派单失败：…」：原话就是执行端的报错（比如 ZCode 没开、开了多个工作区窗口、让 ZCode 打开工作区失败、执行端没装）；可能已经发出去了的原话里会写，去执行端侧栏看，别直接重发
-- 电脑上 ZCode 侧栏里找不到 QQ 派的会话：侧栏的「项目」只列在 ZCode 里打开过的工作区。qq-bot 第一次派到一个工作区时让 ZCode 打开它（窗口会切过去这一次），记下以后不再打开；人后来在 ZCode 里把这个项目移除了，就要 `zcode.open {"workspace":"<目录绝对路径>"}` 再打开一次
+- 回「派单失败：…」：原话就是 claude-agent 的报错（比如没装、没配 `sdk-dir`、模型的 token 没填）；照 `claude-agent.setup-status` 修好再发。接着用旧会话时失败，发 `/新会话` 再发
+- 回「这一轮没有做完：…」：claude-agent 这一轮失败了（到了轮数上限、模型报错、它自己重载），原因在后面；要做就再发一次
 - 回「这条没有派出：设置 idle-hours 要是正数」：到设置里改成正数
 - 回「指令 /xxx 同时是命令登记的任务组和……」：插件注册了和命令登记的组同名的命令，用 `qq-bot.group.remove` 删掉命令登记的那个
-- agent 做完了却没回报：发 `/状态`，qq-bot 会问一次执行端，做完了就把最后的回答发回来并接着做那一组排队的下一条
 - 结果被动、主动都没发出去（频控、关了主动消息）：发 `/状态` 补发
 - 「/」面板里少了命令或没弹出：看 `qq-bot.status` 的 `panel`——`notSyncing` 是不同步的原因（没配机器人、没连上），`omitted` 是没放进面板的命令与原因，`omittedTargets` 是白名单超出 20 个看不到面板的人，`error` 是最近一次同步失败的原话（下次命令变化或 `qq-bot.reconnect` 时再同步）
 

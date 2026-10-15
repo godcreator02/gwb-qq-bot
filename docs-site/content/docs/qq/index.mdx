@@ -48,7 +48,7 @@ full: true
 
 {/* ref file="../plugins/qq-bot/src/qq/reply-window.ts" hash="9a3354b64365" blob="c063025593d7" */}
 
-`ReplySender.reply` 把一段话按行切成 5000 字以内的几段（多段加「(i/n)」；回报与通知的上限也是 5000 字，接近 5000 字的结果加上开头「【组名 · 第 n 轮】」那一行才会分成两段；在代码块中间切开会让渲染出错），每段重新选一次路：选了被动就先在聊天表里记一次、存盘再发，`msg_seq` 不会重复；被动发不出去改发一次主动消息；主动也发不出去回 false，由调用方记进没送达：
+`ReplySender.reply` 把一段话按行切成 5000 字以内的几段（多段加「(i/n)」；提示词要求最后一条回复在 5000 字以内、通知的上限也是 5000 字，接近 5000 字的结果加上开头「【组名 · 第 n 轮】」那一行才会分成两段；在代码块中间切开会让渲染出错），每段重新选一次路：选了被动就先在聊天表里记一次、存盘再发，`msg_seq` 不会重复；被动发不出去改发一次主动消息；主动也发不出去回 false，由调用方记进没送达：
 
 {/* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="47-65" hash="aa214ba2d732" blob="806a680979b2" */}
 
@@ -93,7 +93,7 @@ access token 提前 2 分钟刷新，几个请求同时要时共用一次换取�
 
 **给谁看**：`scope: "c2c"`、`target_type: "specific"`，用户是设置 `allowed-openids` 的前 20 个（建面板时官方单次最多 20 个），超出的列在 `panel.omittedTargets`。设置没有变化通知：每 30 秒在本地现算一次该有的面板，和上次同步时不同才排同步，不调接口。没配 AppID、还没连上时不同步，原因写在 `panel.notSyncing`：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="84-91" hash="70a35eead6bb" blob="46b54b586aa9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="78-85" hash="70a35eead6bb" blob="20c8b227e0e7" */}
 
 **出错**：「面板操作进行中」（40030009）隔 5 秒重试一次；别的错误、或重试还是进行中，都不再重试，原话记进 `panel.error` 与日志，等下次变化或重连再同步。回执形状不对时报错里带上回执原文的 JSON（最多 500 字，面板接口的回执里没有凭据），对着它核对官方字段：
 
@@ -111,7 +111,7 @@ qq-bot 自己卸载、断开都不删面板：每次重载都删了重建，会�
 
 **存在哪**：qq-bot 在这个 home 里的数据目录（`gwbData.dir`，和聊天表那份文档同一个目录），按机器人、按月各一个 JSONL 文件 `messages-<AppID>-<YYYY-MM>.jsonl`，月份按 UTC 算，只追加。不用 gwb-data 的文档：文档每次整份重写，不适合一直增长的东西。连上机器人时建出记录对象并清理一次旧文件：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="138-140" hash="226b180a9194" blob="46b54b586aa9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="134-136" hash="226b180a9194" blob="20c8b227e0e7" */}
 
 **谁来记**：所有入站与出站都经过这个目录，记录也只在这里写；可这个目录不认识任务组，「分到哪」「是哪一种出站、哪个组、第几轮」由调用方作为参数传进来。白名单外的由白名单记；收下的由派任务算好分到哪再记，空消息、聊天表判出的重复投递也各记一条（同一条连接里网关自己去重丢掉的不记）：
 
@@ -119,7 +119,7 @@ qq-bot 自己卸载、断开都不删面板：每次重载都删了重建，会�
 
 出站不靠每个调用方记得去记：接线把 `QqRestClient.sendC2c` 交给 `recordingSend` 包一层，包出来的才交给发回复与通知，每次发完（成功、官方回失败、抛错）记一条再原样交回。`ReplySender.reply` 多一个用途参数，加上第几段传下去，所以分段发送的每段各一条；被动发不出去改发主动时也是两条：
 
-{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="45-51" hash="a46bd8157429" blob="80fe8dc6f49c" */}
+{/* ref file="../plugins/qq-bot/src/rounds.ts" lines="44-50" hash="6bc7e091a12d" blob="b6110e59a544" */}
 
 **记什么**：每条有时间、方向、私聊 id（`c2c:<openid>`，和 `qq-bot.status` 的相同）与消息 id。入站记正文全文与分到哪；白名单外的只记正文前 40 字、标明被拒，不给探测者的话留全文。出站记正文全文、种类、组名与本轮编号（有的才有）、被动（回复的是哪条消息、`msg_seq`）还是主动、引用的消息、第几段、结果（成功带发出去的消息 id，失败带官方错误码与原话）：
 
@@ -127,7 +127,7 @@ qq-bot 自己卸载、断开都不删面板：每次重载都删了重建，会�
 
 出站种类按代码里实际有的出站定，一共六种：
 
-{/* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="11-24" hash="d564f172f9b9" blob="1b247976864d" */}
+{/* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="11-24" hash="c1b1475362fc" blob="f01dd82e33b7" */}
 
 **写失败不影响收发**：写入排成一条队按顺序做，收发不等它；写失败只记一行 warn（不带正文），这是有意的降级，记录是旁路。测试在 `tests/message-log.test.ts`（按月分文件、清理、写失败、发送抛错、查询）与 `tests/rounds.test.ts` 的「消息记录」（入站、被拒、没派出的原因、出站成功与失败、分段、通知、补发）：
 

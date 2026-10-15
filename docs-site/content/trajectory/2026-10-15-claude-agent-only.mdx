@@ -1,0 +1,28 @@
+---
+born-at: 2026-10-15T22:50
+type: choice
+parent: [2026-10-05-gwb-qq-bot-root]
+label: 执行统一交给 claude-agent
+domain: 派任务
+---
+
+## 背景
+
+到 0.7.10 为止，任务组和绑定都要写执行端（`agent`：`zcode` 或 `claudecode`），qq-bot 里有一层执行端适配层，每个执行端一份实现；ZCode 那份还要记哪些工作区让 ZCode 打开过。
+用户 10-15 想直接用 Claude Agent SDK 加 GLM 模型，不再用 ZCode，并问过能不能从 QQ 选模型。随后说：「不需要从qqbot选模型和执行端，这个应该就是一个配置，让qqbot唤起一个agent任务改设置就行了，不要集成在qqbot内部。」
+
+## 结论与边界
+
+0.8.0 起任务一律交给 gwb-claude-agent，qq-bot 不再有执行端的概念：`qq-bot.bind`、`qq-bot.group.add`、`registerTaskGroup` 都去掉 `agent`，带了就当认不出的键报错；执行端适配层、ZCode 打开过的工作区一起删掉。
+模型是 claude-agent 自己的设置 `default-model`，qq-bot 不读也不选。从 QQ 换模型，就发一条普通任务让 agent 改那项设置；会话建立时就定下了模型，所以改完要 `/新会话` 才生效。回执第二行写 claude-agent 交回的模型名，手机上看得出用的哪个。
+
+claude-agent 是可选注入（用户选的推荐项）：没装时 qq-bot 照常加载、能收消息、能回 `/帮助` 与直接命令，任务派不出去，回执写明装哪个插件。否掉的是写进必需的 `inject`：那样没装 claude-agent 时整个插件不加载，连通知也发不出去。
+
+聊天表升到第 4 版：执行端名去掉，旧执行端的会话一律作废（各组下一条开新会话），队列与没送达的结果照留。旧版里有在做的一轮就报错停下，写明先装回 0.7.x 等它做完再升级（用户选的推荐项）。否掉的是把那一轮直接作废：ZCode 那边还在跑，作废了它的结果就没人发回来，人也不知道。
+
+边界：只接了 claude-agent 一个执行端，以后要再接别的，要重新加回「这一组交给谁」的字段。
+
+## 依据
+
+- 用户 10-15 的原话见上；方案确认时的原话：「按这个方案做，两条都用推荐：迁移遇到在做的一轮报错停下；claude-agent 可选注入。」
+- `plugins/qq-bot/tests/rounds.test.ts` 的「聊天表的版本」与「一轮：派出、等结束、发回最后一条回复」

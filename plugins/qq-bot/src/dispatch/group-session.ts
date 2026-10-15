@@ -6,15 +6,15 @@ const HOUR_MS = 60 * 60 * 1000
 export type SessionChoice =
   /** 接着用这个会话 */
   | { kind: 'reuse'; session: GroupSession }
-  /** 开新会话：没有会话（还没做过、/新会话 清掉了）、或执行端与工作区变了 */
+  /** 开新会话：没有会话（还没做过、/新会话 清掉了）、或工作区变了 */
   | { kind: 'fresh' }
   /** 开新会话：这一组空闲超过 idleHours 小时，回执里写明 */
   | { kind: 'idle'; idleHours: number }
 
-/** 下一轮的会话：有会话、执行端与工作区没变、空闲没超过 idleHours 就接着用 */
-export function chooseSession(state: GroupState, group: { agent: string; workspace: string }, now: number, idleHours: number): SessionChoice {
+/** 下一轮的会话：有会话、工作区没变、空闲没超过 idleHours 就接着用 */
+export function chooseSession(state: GroupState, group: { workspace: string }, now: number, idleHours: number): SessionChoice {
   const session = state.session
-  if (session === null || session.agent !== group.agent || session.workspace !== group.workspace) return { kind: 'fresh' }
+  if (session === null || session.workspace !== group.workspace) return { kind: 'fresh' }
   if (state.lastTaskAt !== null && now - Date.parse(state.lastTaskAt) > idleHours * HOUR_MS) return { kind: 'idle', idleHours }
   return { kind: 'reuse', session }
 }

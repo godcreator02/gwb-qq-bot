@@ -1,11 +1,9 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import type { GwbZcodeApi } from '@godcreator/gwb-zcode'
+import type { ClaudeAgentRoundInput, ClaudeAgentSession, GwbClaudeAgentApi } from '@godcreator/gwb-claude-agent'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PluginCommandRegistry } from '../src/dispatch/command-registry.js'
-import { ExecutorTable, type Executor } from '../src/dispatch/executors/executor.js'
-import { zcodeExecutor } from '../src/dispatch/executors/zcode.js'
 import { MessageLog, queryMessages } from '../src/qq/message-log.js'
 import type { IncomingMessage } from '../src/qq/qq-protocol.js'
 import { Rounds } from '../src/rounds.js'
@@ -17,35 +15,60 @@ const WORKSPACE = process.cwd()
 const MMC_WORKSPACE = path.join(process.cwd(), 'tests')
 const HOUR = 60 * 60 * 1000
 
-interface FakeExecutor extends Executor {
-  starts: { workspace: string; session: string | null; prompt: string }[]
-  over: boolean
-  reply: string
-  failStart: Error | null
-}
+type Ended = Pick<ClaudeAgentSession, 'status' | 'text'>
 
-function fakeExecutor(id: string): FakeExecutor {
-  const executor: FakeExecutor = {
-    id, title: id === 'zcode' ? 'ZCode' : 'Claude Code', starts: [], over: false, reply: '', failStart: null,
-    async start(input) {
-      if (executor.failStart !== null) throw executor.failStart
-      executor.starts.push(input)
-      return input.session ?? `${id}-session-${executor.starts.length}`
+/** 假的 claude-agent：记下每次 create / send，测试用 finish 让某一轮结束 */
+class FakeAgent {
+  starts: { workspace: string; session: string | null; prompt: string; sessionId: string; round: number }[] = []
+  failStart: Error | null = null
+  failWait: Error | null = null
+  model: string | null = 'glm'
+  progressText: string | null = null
+  private readonly roundsOf = new Map<string, number>()
+  private readonly ended = new Map<string, Ended>()
+  private readonly waiters = new Map<string, (ended: Ended) => void>()
+
+  readonly api = {
+    create: async ({ workspace, prompt }: { workspace: string; prompt: string }) => this.start(workspace, null, prompt),
+    send: async ({ workspace, sessionId, prompt }: { workspace: string; sessionId: string; prompt: string }) => this.start(workspace, sessionId, prompt),
+    status: async ({ workspace, sessionId }: { workspace: string; sessionId: string }) => ({
+      sessionId, workspace, model: this.model, round: this.roundsOf.get(sessionId) ?? 0, status: 'running' as const, text: '',
+      progress: { toolCalls: 1, lastTool: 'Read', lastText: this.progressText },
+    }),
+    waitRound: async (input: ClaudeAgentRoundInput): Promise<ClaudeAgentSession> => {
+      if (this.failWait !== null) throw this.failWait
+      const key = `${input.sessionId}#${input.round}`
+      const ended = this.ended.get(key) ?? await new Promise<Ended>((resolve) => { this.waiters.set(key, resolve) })
+      return { sessionId: input.sessionId, workspace: input.workspace, model: this.model, round: input.round, ...ended }
     },
-    async check() { return { over: executor.over, reply: executor.reply } },
+  } as unknown as GwbClaudeAgentApi
+
+  private async start(workspace: string, session: string | null, prompt: string) {
+    if (this.failStart !== null) throw this.failStart
+    const sessionId = session ?? `agent-session-${this.starts.length + 1}`
+    const round = (this.roundsOf.get(sessionId) ?? 0) + 1
+    this.roundsOf.set(sessionId, round)
+    this.starts.push({ workspace, session, prompt, sessionId, round })
+    return { sessionId, round, model: this.model, accepted: true as const }
   }
-  return executor
+
+  /** 让第 index 次派出的那一轮结束 */
+  finish(index: number, text: string, status: Ended['status'] = 'completed'): void {
+    const started = this.starts[index]!
+    const key = `${started.sessionId}#${started.round}`
+    this.ended.set(key, { status, text })
+    this.waiters.get(key)?.({ status, text })
+  }
 }
 
 const roundsCreated: Rounds[] = []
 const messageDirs: string[] = []
-function setup(options: { defaultWorkspace?: string; stored?: unknown; registry?: PluginCommandRegistry } = {}) {
+function setup(options: { defaultWorkspace?: string; stored?: unknown; registry?: PluginCommandRegistry; agent?: FakeAgent | null } = {}) {
   let doc = options.stored
   const store = { read: async () => structuredClone(doc), write: async (value: unknown) => { doc = structuredClone(value) } }
   const table = new ChatTable(store)
-  const executors = new ExecutorTable()
-  const zcode = fakeExecutor('zcode'), claudecode = fakeExecutor('claudecode')
-  executors.register(zcode); executors.register(claudecode)
+  const agent = options.agent === undefined ? new FakeAgent() : options.agent
+  const installed = { agent }
   const registry = options.registry ?? new PluginCommandRegistry()
   const settings = { idleHours: 6 as unknown }
   const sent: { target: string; content: string; msgId: string | undefined; msgSeq: number | undefined; quote: string | undefined }[] = []
@@ -56,7 +79,8 @@ function setup(options: { defaultWorkspace?: string; stored?: unknown; registry?
   const messages = new MessageLog({ dir: messageDir, appId: 'app-1', log })
   const records = async () => { await messages.settle(); return [...(await queryMessages(messageDir, 'app-1', { limit: 500 })).records].reverse() }
   const deps = {
-    home: 'default', table, executors, registry, messages,
+    table, registry, messages,
+    agent: () => installed.agent?.api ?? null,
     allowedOpenids: () => [OWNER, ALICE],
     ownerOpenid: () => OWNER,
     defaultWorkspace: () => options.defaultWorkspace ?? WORKSPACE,
@@ -66,7 +90,8 @@ function setup(options: { defaultWorkspace?: string; stored?: unknown; registry?
   }
   const rounds = new Rounds(deps)
   roundsCreated.push(rounds)
-  return { rounds, table, zcode, claudecode, sent, deps, registry, settings, store: () => doc, records, messageDir }
+  const roundIdOf = (chat: string, group = ''): string => table.find(chat)!.groups[group]!.round!.id
+  return { rounds, table, agent: agent!, installed, sent, deps, registry, settings, store: () => doc, records, messageDir, log, roundIdOf }
 }
 afterEach(async () => {
   vi.useRealTimers()
@@ -79,157 +104,131 @@ let msgCounter = 0
 function c2c(content: string, sender = OWNER): IncomingMessage {
   return { msgId: `m${++msgCounter}`, senderOpenid: sender, content }
 }
-const roundIdOf = (prompt: string): string => /本轮编号 (r-[0-9a-f]+)/u.exec(prompt)![1]!
-const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0))
-const MMC = { command: '/mmc', title: '混合型 MMC 样机', workspace: MMC_WORKSPACE, agent: 'claudecode' as const }
+const OWNER_CHAT = `c2c:${OWNER}`
+const MMC = { command: '/mmc', title: '混合型 MMC 样机', workspace: MMC_WORKSPACE }
 const lastContent = (sent: { content: string }[]): string => sent.at(-1)!.content
 
-describe('一轮：派出、回报、发回', () => {
-  it('主人私聊直接发的文字进默认组：提示词带本轮编号与 home 名；回执带组名与会话行；结果开头写组名与轮数，msg_seq 接着「已接收」往下数', async () => {
-    const { rounds, zcode, sent, table } = setup()
+describe('一轮：派出、等结束、发回最后一条回复', () => {
+  it('主人私聊直接发的文字进默认组：提示词要求最后一条回复写 markdown、不调命令回报；回执带会话、轮数与模型；结果开头写组名与轮数', async () => {
+    const { rounds, agent, sent, table } = setup()
     const message = c2c('把 README 的错别字改掉')
     await rounds.handleIncoming(message)
-    expect(zcode.starts).toHaveLength(1)
-    expect(zcode.starts[0]).toMatchObject({ workspace: WORKSPACE, session: null })
-    expect(zcode.starts[0]!.prompt).toContain('把 README 的错别字改掉')
-    expect(zcode.starts[0]!.prompt).toContain('任务组「个人空间」')
-    expect(zcode.starts[0]!.prompt).toContain('gwb home「default」')
-    expect(zcode.starts[0]!.prompt).toContain('qq-bot.report')
-    expect(zcode.starts[0]!.prompt).not.toContain('[任务组要求]')
-    expect(sent.at(-1)).toMatchObject({ content: '【默认】已接收，交给 ZCode 在「个人空间」里做，做完回你。\n会话 on-1 · 第 1 轮', msgId: message.msgId, msgSeq: 1, quote: message.msgId })
-    const roundId = roundIdOf(zcode.starts[0]!.prompt)
-    await expect(rounds.report({ round: roundId, text: '改了 3 处错别字' })).resolves.toEqual({ recorded: true, duplicate: false })
-    await flush()
-    expect(sent.at(-1)).toMatchObject({ content: '【默认 · 第 1 轮】\n改了 3 处错别字', msgId: message.msgId, msgSeq: 2, quote: message.msgId })
-    expect(table.find(`c2c:${OWNER}`)?.groups['']?.round).toBeNull()
+    expect(agent.starts).toHaveLength(1)
+    expect(agent.starts[0]).toMatchObject({ workspace: WORKSPACE, session: null })
+    const prompt = agent.starts[0]!.prompt
+    expect(prompt).toMatch(/^把 README 的错别字改掉\n/u)
+    expect(prompt).toContain('任务组「个人空间」')
+    expect(prompt).toContain('[最后一条回复]\n这一轮你的最后一条回复会原样发回 QQ，给人在手机上看：用 markdown 写')
+    expect(prompt).toContain('5000 字以内')
+    expect(prompt).not.toContain('qq-bot.report')
+    expect(prompt).not.toContain('[任务组要求]')
+    expect(sent.at(-1)).toMatchObject({ content: '【默认】已接收，在「个人空间」里做，做完回你。\n会话 on-1 · 第 1 轮 · 模型 glm', msgId: message.msgId, msgSeq: 1, quote: message.msgId })
+    agent.finish(0, '## 改好了\n- 改了 3 处错别字')
+    await vi.waitFor(() => expect(sent.at(-1)).toMatchObject({ content: '【默认 · 第 1 轮】\n## 改好了\n- 改了 3 处错别字', msgId: message.msgId, msgSeq: 2, quote: message.msgId }))
+    expect(table.find(OWNER_CHAT)?.groups['']?.round).toBeNull()
   })
 
-  it('同一轮同一段话重交回 duplicate；换了内容、不认识的编号、超长都拒绝', async () => {
-    const { rounds, zcode } = setup()
-    await rounds.handleIncoming(c2c('任务'))
-    const roundId = roundIdOf(zcode.starts[0]!.prompt)
-    await rounds.report({ round: roundId, text: '做完了' })
-    await expect(rounds.report({ round: roundId, text: '做完了' })).resolves.toEqual({ recorded: true, duplicate: true })
-    await expect(rounds.report({ round: roundId, text: '另一个结果' })).rejects.toThrow('已经结束')
-    await expect(rounds.report({ round: 'r-000000000000', text: '结果' })).rejects.toThrow('不认识本轮编号')
-    await expect(rounds.report({ round: roundId, text: 'x'.repeat(5001) })).rejects.toThrow('最多 5000 字')
-    await expect(rounds.report({ round: roundId, text: '结果', state: 'completed' })).rejects.toThrow('不认识参数 state')
-  })
-
-  it('同一组一次一轮：第二条排队，回报后自动开下一轮，接着用同一个会话、轮数加一', async () => {
-    const { rounds, zcode, sent } = setup()
+  it('这一轮失败、最后一条回复是空的、等的时候出错：都把原因发回，这一轮收尾', async () => {
+    const { rounds, agent, sent, table } = setup()
     await rounds.handleIncoming(c2c('第一件'))
-    zcode.over = false
+    agent.finish(0, '到了轮数上限', 'failed')
+    await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认 · 第 1 轮】\n这一轮没有做完：到了轮数上限'))
     await rounds.handleIncoming(c2c('第二件'))
-    expect(zcode.starts).toHaveLength(1)
+    agent.finish(1, '   ')
+    await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认 · 第 2 轮】\n这一轮做完了，但最后一条回复是空的。'))
+    agent.failWait = new Error('这条会话最新的是第 4 轮')
+    await rounds.handleIncoming(c2c('第三件'))
+    await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认 · 第 3 轮】\n等这一轮结束时出错：这条会话最新的是第 4 轮'))
+    expect(table.find(OWNER_CHAT)?.groups['']?.round).toBeNull()
+  })
+
+  it('同一组一次一轮：第二条排队，这一轮结束后自动开下一轮，接着用同一个会话、轮数加一', async () => {
+    const { rounds, agent, sent } = setup()
+    await rounds.handleIncoming(c2c('第一件'))
+    await rounds.handleIncoming(c2c('第二件'))
+    expect(agent.starts).toHaveLength(1)
     expect(lastContent(sent)).toBe('【默认】上一条还在做，这条排在第 1 个，做完自动开始。')
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '第一件做完' })
-    await vi.waitFor(() => expect(zcode.starts).toHaveLength(2))
-    expect(zcode.starts[1]).toMatchObject({ session: 'zcode-session-1' })
-    expect(zcode.starts[1]!.prompt).toContain('第二件')
+    agent.finish(0, '第一件做完')
+    await vi.waitFor(() => expect(agent.starts).toHaveLength(2))
+    expect(agent.starts[1]).toMatchObject({ session: 'agent-session-1' })
+    expect(agent.starts[1]!.prompt).toMatch(/^第二件\n/u)
     await vi.waitFor(() => expect(lastContent(sent)).toContain('会话 on-1 · 第 2 轮'))
+    expect(sent.some((each) => each.content === '【默认 · 第 1 轮】\n第一件做完')).toBe(true)
   })
 
-  it('懒检查：上一轮没回报，又来新消息时问一次执行端，做完了就收尾发回最后的回答、再开新一轮', async () => {
-    const { rounds, zcode, sent } = setup()
-    await rounds.handleIncoming(c2c('第一件'))
-    zcode.over = true; zcode.reply = 'agent 最后说的话'
-    await rounds.handleIncoming(c2c('第二件'))
-    expect(sent.some((each) => each.content.startsWith('【默认 · 第 1 轮】') && each.content.includes('没有收到回报') && each.content.includes('agent 最后说的话'))).toBe(true)
-    expect(zcode.starts).toHaveLength(2)
-    expect(zcode.starts[1]!.prompt).toContain('第二件')
-    expect(lastContent(sent)).toContain('已接收')
-    expect(sent.some((each) => each.content.includes('排在第'))).toBe(false)
-  })
-
-  it('派单失败：原话带组名回给私聊，这一轮作废，下一条照常派', async () => {
-    const { rounds, zcode, sent, table } = setup()
-    zcode.failStart = new Error('应有一个 ZCode 主进程，实际 0 个')
+  it('派单失败：原话带组名回给私聊，这一轮作废，下一条照常派；接着用旧会话失败时提示 /新会话', async () => {
+    const { rounds, agent, sent, table } = setup()
+    agent.failStart = new Error('没配设置 sdk-dir')
     await rounds.handleIncoming(c2c('任务'))
-    expect(lastContent(sent)).toContain('【默认】派单失败：应有一个 ZCode 主进程')
-    expect(table.find(`c2c:${OWNER}`)?.groups['']?.round).toBeNull()
-    zcode.failStart = null
+    expect(lastContent(sent)).toBe('【默认】派单失败：没配设置 sdk-dir')
+    expect(table.find(OWNER_CHAT)?.groups['']?.round).toBeNull()
+    agent.failStart = null
     await rounds.handleIncoming(c2c('再来'))
-    expect(zcode.starts).toHaveLength(1)
+    expect(agent.starts).toHaveLength(1)
+    agent.finish(0, '好了')
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('第 1 轮】\n好了'))
+    agent.failStart = new Error('不是本 home、这个工作区的 claude-agent 会话')
+    await rounds.handleIncoming(c2c('第三件'))
+    expect(lastContent(sent)).toBe('【默认】派单失败：不是本 home、这个工作区的 claude-agent 会话\n接着用的是会话 on-1；要换新会话就发 /新会话')
   })
 
-  it('ZCode 打开没打开过的工作区失败：不建会话、不记下，原话带组名回给私聊，这一轮作废', async () => {
-    const { rounds, sent, table, deps } = setup()
-    const created: unknown[] = []
-    const zcodeApi = {
-      async open() { throw new Error('应有一个工作区窗口，实际 0 个') },
-      async create(input: unknown) { created.push(input); return { taskId: 'task-1' } },
-    }
-    const opened = { has: (workspace: string) => table.zcodeWorkspaceOpened(workspace), remember: (workspace: string) => table.rememberZcodeWorkspaceOpened(workspace) }
-    deps.executors.register(zcodeExecutor(zcodeApi as unknown as GwbZcodeApi, opened))
+  it('没装 claude-agent：派单失败写明装哪个插件，不派出', async () => {
+    const { rounds, sent, table } = setup({ agent: null })
     await rounds.handleIncoming(c2c('任务'))
-    expect(lastContent(sent)).toBe(`【默认】派单失败：让 ZCode 打开工作区 ${WORKSPACE} 失败，这一轮没有发出：应有一个工作区窗口，实际 0 个`)
-    expect(created).toEqual([])
-    expect(table.book.zcodeOpenedWorkspaces).toEqual([])
-    expect(table.find(`c2c:${OWNER}`)?.groups['']?.round).toBeNull()
+    expect(lastContent(sent)).toBe('【默认】派单失败：没装 claude-agent（插件 @godcreator/gwb-claude-agent），装上之后再发')
+    expect(table.find(OWNER_CHAT)?.groups['']?.round).toBeNull()
   })
 })
 
 describe('入站与分发', () => {
   it('白名单外拒绝并记下 openid；重推的同一条消息不处理', async () => {
-    const { rounds, zcode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     await rounds.handleIncoming(c2c('任务', 'stranger'))
     expect(rounds.recentRejected).toMatchObject([{ openid: 'stranger' }])
     const message = c2c('任务')
     await rounds.handleIncoming(message)
     await rounds.handleIncoming(message)
-    expect(zcode.starts).toHaveLength(1)
+    expect(agent.starts).toHaveLength(1)
     expect(sent.filter((each) => each.content.includes('已接收'))).toHaveLength(1)
   })
 
   it('不是主人、又没绑定的私聊，直接发的文字回一句怎么绑，不派出；/帮助 回保留命令', async () => {
-    const { rounds, zcode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     await rounds.handleIncoming(c2c('帮我做', ALICE))
     expect(lastContent(sent)).toContain('【默认】这个私聊还没绑定工作区')
     expect(lastContent(sent)).toContain('qq-bot.bind')
     await rounds.handleIncoming(c2c('/帮助', ALICE))
     expect(lastContent(sent)).toContain('/状态 — ')
     expect(lastContent(sent)).toContain('/新会话 [组名]')
-    expect(zcode.starts).toHaveLength(0)
+    expect(agent.starts).toHaveLength(0)
   })
 
-  it('/帮助 按此刻注册的现算：任务组列「命令 — 称呼」，直接命令列「命令 — 说明」', async () => {
+  it('/帮助 按此刻注册的现算：默认组写称呼，任务组列「命令 — 称呼」，直接命令列「命令 — 说明」', async () => {
     const { rounds, sent, registry } = setup()
-    await rounds.addGroup({ command: '/论文', title: '学位论文', workspace: WORKSPACE, agent: 'zcode' })
+    await rounds.addGroup({ command: '/论文', title: '学位论文', workspace: WORKSPACE })
     registry.registerTaskGroup(MMC, { plugin: '@godcreator/gwb-collab', storedGroupCommands: [] })
     registry.registerCommand({ command: '/血糖', description: '查最近的血糖', handle: async () => '5.6' }, { plugin: undefined, storedGroupCommands: [] })
     await rounds.handleIncoming(c2c('/帮助'))
     const help = lastContent(sent)
-    expect(help).toContain('直接发的文字进默认组（「个人空间」，交给 ZCode）')
+    expect(help).toContain('直接发的文字进默认组（「个人空间」）')
     expect(help).toContain('/论文 — 学位论文')
     expect(help).toContain('/mmc — 混合型 MMC 样机')
     expect(help).toContain('/血糖 — 查最近的血糖')
   })
 
-  it('/帮助 里默认组的执行端写显示名，没装的写 id 并注明没装', async () => {
-    const { rounds, sent, deps } = setup()
-    await rounds.handleIncoming(c2c('/帮助', ALICE))
-    await rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: '混合型 MMC 样机', agent: 'claudecode' })
-    await rounds.handleIncoming(c2c('/帮助', ALICE))
-    expect(lastContent(sent)).toContain('直接发的文字进默认组（「混合型 MMC 样机」，交给 Claude Code）')
-    deps.executors.register({ ...deps.executors.get('claudecode') })()
-    await rounds.handleIncoming(c2c('/帮助', ALICE))
-    expect(lastContent(sent)).toContain('直接发的文字进默认组（「混合型 MMC 样机」，交给 claudecode（没装））')
-  })
-
   it('以 / 开头却不是任何命令：回「没有指令」并附上帮助列表，不派出', async () => {
-    const { rounds, zcode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     await rounds.addGroup(MMC)
     await rounds.handleIncoming(c2c('/mmcc 改一下参数'))
     expect(lastContent(sent)).toMatch(/^没有指令 \/mmcc，这条没有派出。\n/u)
     expect(lastContent(sent)).toContain('/mmc — 混合型 MMC 样机')
     await rounds.handleIncoming(c2c('/帮助一下'))
     expect(lastContent(sent)).toContain('没有指令 /帮助一下')
-    expect(zcode.starts).toHaveLength(0)
+    expect(agent.starts).toHaveLength(0)
   })
 
   it('保留命令后面带了别的文字、只发组命令没正文、/新会话 后面不止一个组名：都回用法，不派出', async () => {
-    const { rounds, zcode, claudecode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     await rounds.addGroup(MMC)
     await rounds.handleIncoming(c2c('/帮助 一下'))
     expect(lastContent(sent)).toContain('/帮助 后面不带别的文字')
@@ -239,54 +238,51 @@ describe('入站与分发', () => {
     expect(lastContent(sent)).toBe('用法：/mmc <任务>，命令后面空一格写要做的事')
     await rounds.handleIncoming(c2c('/新会话 mmc 默认'))
     expect(lastContent(sent)).toContain('组名只有一个')
-    expect(zcode.starts).toHaveLength(0)
-    expect(claudecode.starts).toHaveLength(0)
+    expect(agent.starts).toHaveLength(0)
   })
 
   it('组命令按第一个空白切分：全角空格、换行都算，正文是命令后面的部分', async () => {
-    const { rounds, claudecode } = setup()
+    const { rounds, agent } = setup()
     await rounds.addGroup(MMC)
     await rounds.handleIncoming(c2c('/mmc　把 DSP 的采样频率改成 20k'))
-    expect(claudecode.starts[0]!.prompt).toMatch(/^把 DSP 的采样频率改成 20k\n/u)
-    expect(claudecode.starts[0]!.prompt).not.toContain('/mmc')
+    expect(agent.starts[0]!.prompt).toMatch(/^把 DSP 的采样频率改成 20k\n/u)
+    expect(agent.starts[0]!.prompt).not.toContain('/mmc')
   })
 })
 
 describe('任务组', () => {
   it('命令登记的组：没绑定的私聊也能用；提示词写组的称呼、工作区与组要求；回执与结果开头写组名', async () => {
-    const { rounds, claudecode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     await expect(rounds.addGroup({ ...MMC, instructions: '先读 skill collab' })).resolves.toEqual({ ...MMC, instructions: '先读 skill collab' })
     const task = c2c('/mmc 改一下仿真参数', ALICE)
     await rounds.handleIncoming(task)
-    expect(claudecode.starts[0]).toMatchObject({ workspace: MMC_WORKSPACE, session: null })
-    const prompt = claudecode.starts[0]!.prompt
+    expect(agent.starts[0]).toMatchObject({ workspace: MMC_WORKSPACE, session: null })
+    const prompt = agent.starts[0]!.prompt
     expect(prompt).toContain(`任务组「混合型 MMC 样机」。在工作区 ${MMC_WORKSPACE} 里做`)
     expect(prompt).toContain('[任务组要求]\n先读 skill collab\n')
-    expect(lastContent(sent)).toBe('【mmc】已接收，交给 Claude Code 在「混合型 MMC 样机」里做，做完回你。\n会话 on-1 · 第 1 轮')
-    await rounds.report({ round: roundIdOf(prompt), text: '参数改好了' })
-    await flush()
-    expect(sent.at(-1)).toMatchObject({ content: '【mmc · 第 1 轮】\n参数改好了', quote: task.msgId })
+    expect(lastContent(sent)).toBe('【mmc】已接收，在「混合型 MMC 样机」里做，做完回你。\n会话 on-1 · 第 1 轮 · 模型 glm')
+    agent.finish(0, '参数改好了')
+    await vi.waitFor(() => expect(sent.at(-1)).toMatchObject({ content: '【mmc · 第 1 轮】\n参数改好了', quote: task.msgId }))
   })
 
-  it('两个组可以同时在跑，各自排队；report 按本轮编号在所有组里找', async () => {
-    const { rounds, zcode, claudecode, sent } = setup()
+  it('两个组可以同时在跑，各自排队、各自结束', async () => {
+    const { rounds, agent, sent } = setup()
     await rounds.addGroup(MMC)
     await rounds.handleIncoming(c2c('日常的事'))
     await rounds.handleIncoming(c2c('/mmc 样机的事'))
-    expect(zcode.starts).toHaveLength(1)
-    expect(claudecode.starts).toHaveLength(1)
+    expect(agent.starts).toHaveLength(2)
     await rounds.handleIncoming(c2c('/mmc 样机的第二件事'))
     expect(lastContent(sent)).toBe('【mmc】上一条还在做，这条排在第 1 个，做完自动开始。')
-    await rounds.report({ round: roundIdOf(claudecode.starts[0]!.prompt), text: '样机做完' })
-    await vi.waitFor(() => expect(claudecode.starts).toHaveLength(2))
+    agent.finish(1, '样机做完')
+    await vi.waitFor(() => expect(agent.starts).toHaveLength(3))
+    expect(agent.starts[2]).toMatchObject({ session: 'agent-session-2', workspace: MMC_WORKSPACE })
     expect(sent.some((each) => each.content === '【mmc · 第 1 轮】\n样机做完')).toBe(true)
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '日常做完' })
-    await flush()
-    expect(sent.some((each) => each.content === '【默认 · 第 1 轮】\n日常做完')).toBe(true)
+    agent.finish(0, '日常做完')
+    await vi.waitFor(() => expect(sent.some((each) => each.content === '【默认 · 第 1 轮】\n日常做完')).toBe(true))
   })
 
-  it('group.add 的命令名不合规则、重名、执行端没装、目录不对、不认识的键都报错', async () => {
-    const { rounds, registry, deps } = setup()
+  it('group.add 的命令名不合规则、重名、目录不对、不认识的键（含已经删掉的 agent）都报错', async () => {
+    const { rounds, registry } = setup()
     registry.registerCommand({ command: '/血糖', description: '查血糖', handle: async () => '' }, { plugin: '@godcreator/gwb-cgm', storedGroupCommands: [] })
     await rounds.addGroup(MMC)
     await expect(rounds.addGroup({ ...MMC, command: '/新会话' })).rejects.toThrow('保留命令')
@@ -295,23 +291,21 @@ describe('任务组', () => {
     await expect(rounds.addGroup({ ...MMC, command: '/一二三四五六七八九' })).rejects.toThrow('太长')
     await expect(rounds.addGroup({ ...MMC, command: '/a b' })).rejects.toThrow('不能含空白')
     await expect(rounds.addGroup({ ...MMC, command: '/x', workspace: 'relative' })).rejects.toThrow('绝对路径')
-    await expect(rounds.addGroup({ ...MMC, command: '/x', agent: 'codex' })).rejects.toThrow('agent 只能是 zcode、claudecode')
     await expect(rounds.addGroup({ ...MMC, command: '/x', idleHours: 0 })).rejects.toThrow('idleHours 要是正数')
+    await expect(rounds.addGroup({ ...MMC, command: '/x', agent: 'zcode' })).rejects.toThrow('不认识参数 agent')
     await expect(rounds.addGroup({ ...MMC, command: '/x', collab: true })).rejects.toThrow('不认识参数 collab')
-    deps.executors.register({ ...deps.executors.get('zcode'), id: 'zcode' })()
-    await expect(rounds.addGroup({ ...MMC, command: '/x', agent: 'zcode' })).rejects.toThrow('执行端 zcode 没装')
   })
 
   it('group.remove：只删命令登记的组，插件注册的报错写明来源；有任务在做或排队时拒绝', async () => {
-    const { rounds, registry, zcode } = setup()
+    const { rounds, registry, agent, sent } = setup()
     registry.registerTaskGroup({ ...MMC, command: '/sst' }, { plugin: '@godcreator/gwb-collab', storedGroupCommands: [] })
     await expect(rounds.removeGroup({ command: '/sst' })).rejects.toThrow('/sst 是插件 @godcreator/gwb-collab 注册的任务组，不能用命令删')
     await expect(rounds.removeGroup({ command: '/没有' })).rejects.toThrow('没有命令登记的任务组 /没有')
-    await rounds.addGroup({ ...MMC, command: '/论文', agent: 'zcode' })
+    await rounds.addGroup({ ...MMC, command: '/论文' })
     await rounds.handleIncoming(c2c('/论文 改摘要'))
     await expect(rounds.removeGroup({ command: '/论文' })).rejects.toThrow('还有在做或排队的任务')
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '改好了' })
-    await flush()
+    agent.finish(0, '改好了')
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('改好了'))
     await expect(rounds.removeGroup({ command: '/论文' })).resolves.toMatchObject({ command: '/论文' })
     await expect(rounds.listGroups()).resolves.toMatchObject({ groups: [{ source: 'default' }, { command: '/sst' }] })
   })
@@ -319,27 +313,28 @@ describe('任务组', () => {
   it('group.list 列出三种来源的组与直接命令，插件注册的写插件名、取不到就不写', async () => {
     const { rounds, registry } = setup()
     await rounds.handleIncoming(c2c('/帮助', ALICE))
-    await rounds.addGroup({ ...MMC, command: '/论文', agent: 'zcode' })
+    await rounds.addGroup({ ...MMC, command: '/论文' })
     registry.registerTaskGroup(MMC, { plugin: '@godcreator/gwb-collab', storedGroupCommands: [] })
     registry.registerCommand({ command: '/血糖', description: '查血糖', handle: async () => '' }, { plugin: undefined, storedGroupCommands: [] })
     const listed = await rounds.listGroups()
     expect(listed.groups).toEqual([
       { group: '默认', command: null, source: 'default', chats: [{ chat: `c2c:${ALICE}`, binding: null, bindingFromDefault: false }] },
-      { group: '论文', ...MMC, command: '/论文', agent: 'zcode', source: 'command' },
+      { group: '论文', ...MMC, command: '/论文', source: 'command' },
       { group: 'mmc', ...MMC, source: 'plugin', plugin: '@godcreator/gwb-collab' },
     ])
     expect(listed.directCommands).toEqual([{ command: '/血糖', description: '查血糖', source: 'plugin' }])
   })
 
-  it('插件注册的组能派任务，撤掉以后同一个命令回「没有指令」', async () => {
-    const { rounds, registry, claudecode, sent } = setup()
+  it('插件注册的组能派任务，撤掉以后同一个命令回「没有指令」；注册时带 agent 直接报错', async () => {
+    const { rounds, registry, agent, sent } = setup()
+    expect(() => registry.registerTaskGroup({ ...MMC, agent: 'zcode' } as unknown as typeof MMC, { plugin: undefined, storedGroupCommands: [] })).toThrow('不认识参数 agent')
     const unregister = registry.registerTaskGroup(MMC, { plugin: '@godcreator/gwb-collab', storedGroupCommands: [] })
     await rounds.handleIncoming(c2c('/mmc 跑一次仿真'))
-    expect(claudecode.starts).toHaveLength(1)
+    expect(agent.starts).toHaveLength(1)
     unregister()
     await rounds.handleIncoming(c2c('/mmc 再跑一次'))
     expect(lastContent(sent)).toContain('没有指令 /mmc')
-    expect(claudecode.starts).toHaveLength(1)
+    expect(agent.starts).toHaveLength(1)
   })
 
   it('插件在聊天表读回之前注册了和命令登记的组同名的命令：派到它的消息报重名，不派出', async () => {
@@ -353,30 +348,21 @@ describe('任务组', () => {
     expect(second.rounds.conflictingCommands()).toEqual(['/mmc'])
     await second.rounds.handleIncoming(c2c('/mmc 改参数'))
     expect(lastContent(second.sent)).toContain('指令 /mmc 同时是命令登记的任务组和插件 @godcreator/gwb-collab 注册的任务组')
-    expect(second.claudecode.starts).toHaveLength(0)
-  })
-
-  it('派任务时执行端没装：原因带组名回给私聊，不派出', async () => {
-    const registry = new PluginCommandRegistry()
-    const { rounds, deps, sent } = setup({ registry })
-    registry.registerTaskGroup(MMC, { plugin: undefined, storedGroupCommands: [] })
-    deps.executors.register({ ...deps.executors.get('claudecode') })()
-    await rounds.handleIncoming(c2c('/mmc 改参数'))
-    expect(lastContent(sent)).toContain('【mmc】派单失败：没装执行端 claudecode')
+    expect(second.agent.starts).toHaveLength(0)
   })
 })
 
 describe('直接命令', () => {
   it('handle 交回的文字当场按被动回复发回，拿到正文与发消息的人；不排队、不开会话', async () => {
-    const { rounds, registry, zcode, sent, table } = setup()
+    const { rounds, registry, agent, sent, table } = setup()
     const handle = vi.fn(async (input: { text: string; senderOpenid: string }) => `血糖 5.6（${input.text}）`)
     registry.registerCommand({ command: '/血糖', description: '查最近的血糖', handle }, { plugin: undefined, storedGroupCommands: [] })
     const message = c2c('/血糖 最近一小时')
     await rounds.handleIncoming(message)
     expect(handle).toHaveBeenCalledWith({ text: '最近一小时', senderOpenid: OWNER })
     expect(sent.at(-1)).toMatchObject({ content: '血糖 5.6（最近一小时）', msgId: message.msgId, quote: message.msgId })
-    expect(zcode.starts).toHaveLength(0)
-    expect(table.find(`c2c:${OWNER}`)?.groups).toEqual({})
+    expect(agent.starts).toHaveLength(0)
+    expect(table.find(OWNER_CHAT)?.groups).toEqual({})
   })
 
   it('handle 抛错时回「指令 /xxx 出错：原话」', async () => {
@@ -389,152 +375,148 @@ describe('直接命令', () => {
 
 describe('会话', () => {
   it('/新会话 只清默认组；/新会话 组名 只清那一组；组名不存在报错列出可用组名', async () => {
-    const { rounds, zcode, claudecode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     await rounds.addGroup(MMC)
     await rounds.handleIncoming(c2c('默认的第一件'))
     await rounds.handleIncoming(c2c('/mmc 样机的第一件'))
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '好了' })
-    await rounds.report({ round: roundIdOf(claudecode.starts[0]!.prompt), text: '好了' })
-    await flush()
+    agent.finish(0, '好了')
+    agent.finish(1, '好了')
+    await vi.waitFor(() => expect(sent.filter((each) => each.content.endsWith('第 1 轮】\n好了'))).toHaveLength(2))
     await rounds.handleIncoming(c2c('/新会话 mmc'))
-    expect(lastContent(sent)).toBe('【mmc】下一条起用新会话；在做的这一轮照常回报。')
+    expect(lastContent(sent)).toBe('【mmc】下一条起用新会话；在做的这一轮做完照常发回。')
     await rounds.handleIncoming(c2c('/新会话 sst'))
     expect(lastContent(sent)).toBe('没有任务组 sst。可用的组名：mmc；不写组名是默认组。')
     await rounds.handleIncoming(c2c('默认的第二件'))
     await rounds.handleIncoming(c2c('/mmc 样机的第二件'))
-    expect(zcode.starts[1]).toMatchObject({ session: 'zcode-session-1' })
-    expect(claudecode.starts[1]).toMatchObject({ session: null })
-    await rounds.report({ round: roundIdOf(zcode.starts[1]!.prompt), text: '好了' })
-    await flush()
+    expect(agent.starts[2]).toMatchObject({ session: 'agent-session-1' })
+    expect(agent.starts[3]).toMatchObject({ session: null })
+    agent.finish(2, '好了')
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('第 2 轮】\n好了'))
     await rounds.handleIncoming(c2c('/新会话'))
-    expect(lastContent(sent)).toBe('【默认】下一条起用新会话；在做的这一轮照常回报。')
+    expect(lastContent(sent)).toBe('【默认】下一条起用新会话；在做的这一轮做完照常发回。')
     await rounds.handleIncoming(c2c('默认的第三件'))
-    expect(zcode.starts[2]).toMatchObject({ session: null })
+    expect(agent.starts[4]).toMatchObject({ session: null })
   })
 
   it('空闲超过设置 idle-hours，下一条开新会话并在回执里写明；没超过就接着用', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-10-08T08:00:00Z'))
-    const { rounds, zcode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     await rounds.handleIncoming(c2c('第一件'))
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '好了' })
-    await flush()
+    agent.finish(0, '好了')
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('好了'))
     vi.setSystemTime(new Date(Date.now() + 5 * HOUR))
     await rounds.handleIncoming(c2c('第二件'))
-    expect(zcode.starts[1]).toMatchObject({ session: 'zcode-session-1' })
+    expect(agent.starts[1]).toMatchObject({ session: 'agent-session-1' })
     expect(lastContent(sent)).toContain('会话 on-1 · 第 2 轮')
-    await rounds.report({ round: roundIdOf(zcode.starts[1]!.prompt), text: '好了' })
-    await flush()
+    agent.finish(1, '好了')
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('第 2 轮】\n好了'))
     vi.setSystemTime(new Date(Date.now() + 7 * HOUR))
     await rounds.handleIncoming(c2c('第三件'))
-    expect(zcode.starts[2]).toMatchObject({ session: null })
-    expect(lastContent(sent)).toBe('【默认】已接收，交给 ZCode 在「个人空间」里做，做完回你。\n会话 on-3 · 第 1 轮\n已开新会话（空闲超过 6 小时）')
+    expect(agent.starts[2]).toMatchObject({ session: null })
+    expect(lastContent(sent)).toBe('【默认】已接收，在「个人空间」里做，做完回你。\n会话 on-3 · 第 1 轮 · 模型 glm\n已开新会话（空闲超过 6 小时）')
   })
 
   it('组自己的 idleHours 优先于设置', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-10-08T08:00:00Z'))
-    const { rounds, claudecode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     await rounds.addGroup({ ...MMC, idleHours: 1 })
     await rounds.handleIncoming(c2c('/mmc 第一件'))
-    await rounds.report({ round: roundIdOf(claudecode.starts[0]!.prompt), text: '好了' })
-    await flush()
+    agent.finish(0, '好了')
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('好了'))
     vi.setSystemTime(new Date(Date.now() + 2 * HOUR))
     await rounds.handleIncoming(c2c('/mmc 第二件'))
-    expect(claudecode.starts[1]).toMatchObject({ session: null })
+    expect(agent.starts[1]).toMatchObject({ session: null })
     expect(lastContent(sent)).toContain('已开新会话（空闲超过 1 小时）')
   })
 
   it('设置 idle-hours 不是正数：派任务时报错，不派出', async () => {
-    const { rounds, zcode, sent, settings } = setup()
+    const { rounds, agent, sent, settings } = setup()
     settings.idleHours = 0
     await rounds.handleIncoming(c2c('任务'))
     expect(lastContent(sent)).toBe('【默认】这条没有派出：设置 idle-hours 要是正数（小时），现在是 0：到设置的 qq-bot 分区改好再发')
-    expect(zcode.starts).toHaveLength(0)
+    expect(agent.starts).toHaveLength(0)
+  })
+
+  it('模型由 claude-agent 定，回执写它交回的模型名；没选模型写「本机 Claude」', async () => {
+    const { rounds, agent, sent } = setup()
+    agent.model = null
+    await rounds.handleIncoming(c2c('任务'))
+    expect(lastContent(sent)).toContain('· 模型 本机 Claude')
   })
 })
 
 describe('绑定', () => {
   it('绑定设的是默认组：instructions 写进「[任务组要求]」；默认组有任务时拒绝改绑，别的组在跑不影响', async () => {
-    const { rounds, claudecode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     await rounds.addGroup({ ...MMC, command: '/sst' })
     await rounds.handleIncoming(c2c('/帮助', ALICE))
     await rounds.handleIncoming(c2c('/sst 别的组的事', ALICE))
-    const bound = await rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: '混合型 MMC 样机', agent: 'claudecode', instructions: '改动先给人看' })
-    expect(bound.binding).toEqual({ workspace: WORKSPACE, agent: 'claudecode', title: '混合型 MMC 样机', instructions: '改动先给人看' })
+    const bound = await rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: '混合型 MMC 样机', instructions: '改动先给人看' })
+    expect(bound.binding).toEqual({ workspace: WORKSPACE, title: '混合型 MMC 样机', instructions: '改动先给人看' })
     await rounds.handleIncoming(c2c('改一下仿真参数', ALICE))
-    expect(claudecode.starts[1]!.prompt).toContain('[任务组要求]\n改动先给人看')
-    expect(claudecode.starts[1]!.prompt).not.toContain('collab.submit')
-    expect(lastContent(sent)).toContain('【默认】已接收，交给 Claude Code 在「混合型 MMC 样机」里做')
+    expect(agent.starts[1]!.prompt).toContain('[任务组要求]\n改动先给人看')
+    expect(lastContent(sent)).toContain('【默认】已接收，在「混合型 MMC 样机」里做')
     await expect(rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: '别的' })).rejects.toThrow('默认组还有在做或排队的任务')
   })
 
-  it('参数不对直接报错：collab 已经删掉、相对路径、没装的执行端、不认识的键、没见过的聊天', async () => {
+  it('参数不对直接报错：collab 与 agent 已经删掉、相对路径、不认识的键、没见过的聊天', async () => {
     const { rounds } = setup()
     await rounds.handleIncoming(c2c('/帮助', ALICE))
     await expect(rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: 'x', collab: true })).rejects.toThrow('不认识参数 collab')
+    await expect(rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: 'x', agent: 'zcode' })).rejects.toThrow('不认识参数 agent')
     await expect(rounds.bind({ chat: `c2c:${ALICE}`, workspace: 'relative', title: 'x' })).rejects.toThrow('绝对路径')
-    await expect(rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: 'x', agent: 'codex' })).rejects.toThrow('没装')
     await expect(rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: 'x', projectRepo: 'x' })).rejects.toThrow('不认识参数 projectRepo')
     await expect(rounds.bind({ chat: 'c2c:nobody', workspace: WORKSPACE, title: 'x' })).rejects.toThrow('没有聊天')
   })
 
   it('改绑之后默认组下一条开新会话', async () => {
-    const { rounds, zcode } = setup()
+    const { rounds, agent, sent } = setup()
     await rounds.handleIncoming(c2c('第一件'))
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '好了' })
-    await flush()
-    await rounds.bind({ chat: `c2c:${OWNER}`, workspace: WORKSPACE, title: '个人空间' })
+    agent.finish(0, '好了')
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('好了'))
+    await rounds.bind({ chat: OWNER_CHAT, workspace: WORKSPACE, title: '个人空间' })
     await rounds.handleIncoming(c2c('第二件'))
-    expect(zcode.starts[1]).toMatchObject({ session: null })
+    expect(agent.starts[1]).toMatchObject({ session: null })
   })
 })
 
 describe('/状态 与没送达的结果', () => {
   it('结果被动、主动都发不出去就带组名记进没送达，/状态 时补发：被动回复挂在 /状态 上，引用的仍是派出这一轮的那条', async () => {
-    const { rounds, zcode, sent, table, deps } = setup()
+    const { rounds, agent, sent, table, deps } = setup()
     const task = c2c('长任务')
     await rounds.handleIncoming(task)
     const refused = { ok: false as const, status: 400, message: '频控' }
     deps.sendC2c.mockResolvedValueOnce(refused).mockResolvedValueOnce(refused)
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '长任务结果' })
-    await flush()
-    expect(table.find(`c2c:${OWNER}`)?.undelivered).toEqual([{ group: '默认', text: '长任务结果', quote: task.msgId }])
+    agent.finish(0, '长任务结果')
+    await vi.waitFor(() => expect(table.find(OWNER_CHAT)?.undelivered).toEqual([{ group: '默认', text: '长任务结果', quote: task.msgId }]))
     const status = c2c('/状态')
     await rounds.handleIncoming(status)
     expect(sent.at(-1)).toMatchObject({ content: '【默认】补发结果：\n长任务结果', msgId: status.msgId, quote: task.msgId })
-    expect(table.find(`c2c:${OWNER}`)?.undelivered).toEqual([])
+    expect(table.find(OWNER_CHAT)?.undelivered).toEqual([])
   })
 
   it('过了 60 分钟的被动窗口，结果改用主动消息发出，仍引用派出这一轮的那条', async () => {
-    const { rounds, zcode, sent } = setup()
+    const { rounds, agent, sent } = setup()
     const now = Date.now()
     vi.spyOn(Date, 'now').mockReturnValue(now)
     const task = c2c('长任务')
     await rounds.handleIncoming(task)
     vi.spyOn(Date, 'now').mockReturnValue(now + 61 * 60 * 1000)
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '长任务结果' })
-    await flush()
-    expect(sent.at(-1)).toMatchObject({ content: '【默认 · 第 1 轮】\n长任务结果', msgId: undefined, msgSeq: undefined, quote: task.msgId })
+    agent.finish(0, '长任务结果')
+    await vi.waitFor(() => expect(sent.at(-1)).toMatchObject({ content: '【默认 · 第 1 轮】\n长任务结果', msgId: undefined, msgSeq: undefined, quote: task.msgId }))
   })
 
-  it('/状态 逐组报：在跑的组做一次懒检查、报第几轮与回答末尾，空闲的组报空闲', async () => {
-    const { rounds, zcode, sent } = setup()
+  it('/状态 逐组报：在跑的组报第几轮与 claude-agent 交回的回答末尾，空闲的组报空闲；不收尾、不重开', async () => {
+    const { rounds, agent, sent } = setup()
     await rounds.addGroup(MMC)
     await rounds.handleIncoming(c2c('任务'))
     await rounds.handleIncoming(c2c('排队的任务'))
-    zcode.over = false; zcode.reply = '正在读文件'
+    agent.progressText = '正在读文件'
     await rounds.handleIncoming(c2c('/状态'))
     expect(lastContent(sent)).toBe('【默认】还在做第 1 轮，排队 1 条。最新的回答末尾：\n正在读文件\n【mmc】空闲')
-  })
-
-  it('/状态 时在跑的那一轮已经结束却没回报：先报状态，再收尾发回最后的回答', async () => {
-    const { rounds, zcode, sent } = setup()
-    await rounds.handleIncoming(c2c('任务'))
-    zcode.over = true; zcode.reply = '最后的话'
-    await rounds.handleIncoming(c2c('/状态'))
-    expect(sent.at(-2)!.content).toBe('【默认】第 1 轮已经结束、没有收到回报，最后的回答随后发')
-    expect(lastContent(sent)).toContain('【默认 · 第 1 轮】\n执行端这一轮已经结束，没有收到回报。最后的回答：\n最后的话')
+    expect(agent.starts).toHaveLength(1)
   })
 
   it('qq-bot.status 的私聊按组列出会话、在跑的一轮、排队与上一条任务的时间', async () => {
@@ -542,13 +524,13 @@ describe('/状态 与没送达的结果', () => {
     await rounds.addGroup(MMC)
     await rounds.handleIncoming(c2c('/mmc 任务'))
     const [chat] = await rounds.summary()
-    expect(chat).toMatchObject({ id: `c2c:${OWNER}`, binding: { title: '个人空间' }, bindingFromDefault: true, undelivered: 0 })
+    expect(chat).toMatchObject({ id: OWNER_CHAT, binding: { title: '个人空间' }, bindingFromDefault: true, undelivered: 0 })
     expect(chat!.groups).toHaveLength(2)
-    expect(chat!.groups[0]).toEqual({ group: '默认', title: '个人空间', workspace: WORKSPACE, agent: 'zcode', source: 'default', session: null, round: null, queued: 0, lastTaskAt: null })
+    expect(chat!.groups[0]).toEqual({ group: '默认', title: '个人空间', workspace: WORKSPACE, source: 'default', session: null, round: null, queued: 0, lastTaskAt: null })
     expect(chat!.groups[1]).toMatchObject({
-      group: 'mmc', title: '混合型 MMC 样机', workspace: MMC_WORKSPACE, agent: 'claudecode', source: 'command',
-      session: { agent: 'claudecode', workspace: MMC_WORKSPACE, id: 'claudecode-session-1', rounds: 1 },
-      round: { turn: 1, agent: 'claudecode', session: 'claudecode-session-1' }, queued: 0,
+      group: 'mmc', title: '混合型 MMC 样机', workspace: MMC_WORKSPACE, source: 'command',
+      session: { workspace: MMC_WORKSPACE, id: 'agent-session-1', rounds: 1 },
+      round: { turn: 1, workspace: MMC_WORKSPACE, session: 'agent-session-1' }, queued: 0,
     })
     expect(chat!.groups[1]!.lastTaskAt).toMatch(/^\d{4}-/u)
   })
@@ -565,36 +547,70 @@ describe('通知与重载', () => {
   })
 
   it('聊天表里没送达的结果不是 { text, quote } 就停止处理', async () => {
-    const chat = { id: `c2c:${OWNER}`, target: OWNER, queue: [], undelivered: ['旧的纯文本结果'] }
+    const chat = { id: OWNER_CHAT, target: OWNER, queue: [], undelivered: ['旧的纯文本结果'] }
     const { rounds } = setup({ stored: { version: 2, chats: [chat], notices: [], seen: [], replies: {} } })
     await expect(rounds.notify('n-1', '通知')).rejects.toThrow('形状不对')
   })
 
-  it('重载后聊天表读回，在跑的那一轮照样收回报', async () => {
-    const first = setup()
+  it('重载后接着等在做的一轮：结束时由新的一份发回；卸载不等还没结束的轮次', async () => {
+    const agent = new FakeAgent()
+    const first = setup({ agent })
     await first.rounds.addGroup(MMC)
     await first.rounds.handleIncoming(c2c('/mmc 任务'))
-    const roundId = roundIdOf(first.claudecode.starts[0]!.prompt)
     await first.rounds.dispose()
-    const second = setup({ stored: first.store() })
-    await expect(second.rounds.report({ round: roundId, text: '重载后的结果' })).resolves.toEqual({ recorded: true, duplicate: false })
-    await flush()
-    expect(lastContent(second.sent)).toBe('【mmc · 第 1 轮】\n重载后的结果')
+    const second = setup({ stored: first.store(), agent })
+    await second.table.settle()
+    second.rounds.resumeWaiting()
+    agent.finish(0, '重载后的结果')
+    await vi.waitFor(() => expect(lastContent(second.sent)).toBe('【mmc · 第 1 轮】\n重载后的结果'))
+    expect(first.sent.some((each) => each.content.includes('重载后的结果'))).toBe(false)
+  })
+
+  it('重载前还没派出去的那一轮：接着等时作废并告诉人，再开排队的下一条', async () => {
+    const trigger = { msgId: 'm-x', receivedAt: Date.now() }
+    const state = {
+      session: null, lastTaskAt: null,
+      round: { id: 'r-aaaaaaaaaaaa', group: '', turn: 1, prompt: '派出一半的', sender: OWNER, workspace: WORKSPACE, session: null, agentRound: null, trigger },
+      queue: [{ prompt: '排队的', sender: OWNER, trigger }],
+    }
+    const chat = { id: OWNER_CHAT, target: OWNER, lastSeen: '', lastSender: OWNER, binding: null, groups: { '': state }, undelivered: [] }
+    const { rounds, table, agent, sent } = setup({ stored: { version: 4, chats: [chat], groups: [], notices: [], seen: [], replies: {} } })
+    await table.settle()
+    rounds.resumeWaiting()
+    await vi.waitFor(() => expect(agent.starts).toHaveLength(1))
+    expect(sent.some((each) => each.content === '【默认 · 第 1 轮】\nqq-bot 重载时这一轮还没派出去，已作废；要做就再发一次。')).toBe(true)
+    expect(agent.starts[0]!.prompt).toMatch(/^排队的\n/u)
+  })
+
+  it('没装 claude-agent 时不接着等，装上以后再调才等', async () => {
+    const agent = new FakeAgent()
+    const first = setup({ agent })
+    await first.rounds.handleIncoming(c2c('任务'))
+    await first.rounds.dispose()
+    const second = setup({ stored: first.store(), agent: null })
+    await second.table.settle()
+    second.rounds.resumeWaiting()
+    second.installed.agent = agent
+    agent.finish(0, '结果')
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(second.sent).toHaveLength(0)
+    second.rounds.resumeWaiting()
+    await vi.waitFor(() => expect(lastContent(second.sent)).toBe('【默认 · 第 1 轮】\n结果'))
   })
 })
 
 describe('消息记录', () => {
   it('入站记正文全文与分到哪；回执与结果记种类、组名、本轮编号、被动回复挂在哪条上、引用、第几段与结果', async () => {
-    const { rounds, zcode, records } = setup()
+    const { rounds, agent, records, roundIdOf } = setup()
     const task = c2c('把 README 的错别字改掉')
     await rounds.handleIncoming(task)
-    const roundId = roundIdOf(zcode.starts[0]!.prompt)
-    await rounds.report({ round: roundId, text: '改了 3 处' })
-    await flush()
+    const roundId = roundIdOf(OWNER_CHAT)
+    agent.finish(0, '改了 3 处')
+    await vi.waitFor(async () => expect((await records()).length).toBe(3))
     const [inbound, receipt, result] = await records()
-    expect(inbound).toMatchObject({ direction: 'in', chat: `c2c:${OWNER}`, msgId: task.msgId, text: '把 README 的错别字改掉', route: 'group', group: '默认' })
+    expect(inbound).toMatchObject({ direction: 'in', chat: OWNER_CHAT, msgId: task.msgId, text: '把 README 的错别字改掉', route: 'group', group: '默认' })
     expect(receipt).toMatchObject({
-      direction: 'out', chat: `c2c:${OWNER}`, kind: 'receipt', group: '默认', round: roundId, mode: 'passive', replyTo: task.msgId, msgSeq: 1,
+      direction: 'out', chat: OWNER_CHAT, kind: 'receipt', group: '默认', round: roundId, mode: 'passive', replyTo: task.msgId, msgSeq: 1,
       quote: task.msgId, segment: { index: 1, total: 1 }, msgId: 'sent', result: { ok: true },
     })
     expect(receipt!.direction === 'out' && receipt!.text).toContain('已接收')
@@ -632,14 +648,15 @@ describe('消息记录', () => {
   })
 
   it('出站失败记官方错误码与原话；被动发不出去改发主动，两次各记一条', async () => {
-    const { rounds, zcode, deps, records } = setup()
+    const { rounds, agent, deps, records, roundIdOf } = setup()
     await rounds.handleIncoming(c2c('长任务'))
-    const roundId = roundIdOf(zcode.starts[0]!.prompt)
+    const roundId = roundIdOf(OWNER_CHAT)
     const refused = { ok: false as const, status: 400, code: 22009, message: '频控' }
     deps.sendC2c.mockResolvedValueOnce(refused).mockResolvedValueOnce(refused)
-    await rounds.report({ round: roundId, text: '结果' })
-    await flush()
-    const results = (await records()).filter((record) => record.direction === 'out' && record.kind === 'result')
+    agent.finish(0, '结果')
+    const resultsOf = async () => (await records()).filter((record) => record.direction === 'out' && record.kind === 'result')
+    await vi.waitFor(async () => expect(await resultsOf()).toHaveLength(2))
+    const results = await resultsOf()
     expect(results).toMatchObject([
       { mode: 'passive', msgId: null, round: roundId, result: { ok: false, status: 400, code: 22009, message: '频控' } },
       { mode: 'active', msgId: null, round: roundId, result: { ok: false, status: 400, code: 22009, message: '频控' } },
@@ -647,15 +664,16 @@ describe('消息记录', () => {
     expect(results[1]).not.toHaveProperty('replyTo')
   })
 
-  it('回报上限以内的结果整条发出，不分段、不加序号', async () => {
-    const { rounds, zcode, records } = setup()
+  it('5000 字以内的回复整条发出，不分段、不加序号', async () => {
+    const { rounds, agent, records } = setup()
     await rounds.handleIncoming(c2c('长任务'))
-    const lines = ['一'.repeat(600), '二'.repeat(600), '三'.repeat(600)]
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: lines.join('\n') })
-    await flush()
-    const results = (await records()).filter((record) => record.direction === 'out' && record.kind === 'result')
-    expect(results.map((record) => record.direction === 'out' && record.segment)).toEqual([{ index: 1, total: 1 }])
-    const text = results[0]?.direction === 'out' ? results[0].text : ''
+    const lines = ['一'.repeat(1500), '二'.repeat(1500), '三'.repeat(1500)]
+    agent.finish(0, lines.join('\n'))
+    const resultsOf = async () => (await records()).filter((record) => record.direction === 'out' && record.kind === 'result')
+    await vi.waitFor(async () => expect(await resultsOf()).toHaveLength(1))
+    const [result] = await resultsOf()
+    expect(result!.direction === 'out' && result!.segment).toEqual({ index: 1, total: 1 })
+    const text = result?.direction === 'out' ? result.text : ''
     expect(text).toContain(lines.join('\n'))
     expect(text).not.toMatch(/^\(1\//)
   })
@@ -667,12 +685,12 @@ describe('消息记录', () => {
   })
 
   it('/状态 补发的结果记成 resend，带组名', async () => {
-    const { rounds, zcode, deps, records } = setup()
+    const { rounds, agent, deps, records, table } = setup()
     await rounds.handleIncoming(c2c('长任务'))
     const refused = { ok: false as const, status: 400, message: '频控' }
     deps.sendC2c.mockResolvedValueOnce(refused).mockResolvedValueOnce(refused)
-    await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: '长任务结果' })
-    await flush()
+    agent.finish(0, '长任务结果')
+    await vi.waitFor(() => expect(table.find(OWNER_CHAT)?.undelivered).toHaveLength(1))
     await rounds.handleIncoming(c2c('/状态'))
     expect((await records()).at(-1)).toMatchObject({ kind: 'resend', group: '默认', text: '【默认】补发结果：\n长任务结果', result: { ok: true } })
   })
@@ -683,76 +701,77 @@ describe('聊天表的版本', () => {
   const privateChat = { id: `c2c:${ALICE}`, scene: 'c2c', target: ALICE, lastSeen: '', lastSender: ALICE, binding, session: null, round: null, queue: [], lastClosed: null, undelivered: [] }
   const groupChat = { ...privateChat, id: 'group:g-1', scene: 'group', target: 'g-1' }
   const { scene: _scene, ...version2Chat } = privateChat
+  const trigger = { msgId: 'm-1', receivedAt: 1 }
 
-  it('第 1 版：去掉群聊、私聊去掉 scene，再换成第 3 版，私聊的绑定照留', () => {
-    const { book, droppedGroups, migratedChats } = loadBook({ version: 1, chats: [privateChat, groupChat], notices: [], seen: [], replies: {} })
+  it('第 1 版：去掉群聊、私聊去掉 scene，一路换成第 4 版，绑定去掉执行端名', () => {
+    const { book, droppedGroups, migratedFrom } = loadBook({ version: 1, chats: [privateChat, groupChat], notices: [], seen: [], replies: {} })
     expect(droppedGroups).toBe(1)
-    expect(migratedChats).toBe(1)
-    expect(book.version).toBe(3)
+    expect(migratedFrom).toBe(1)
+    expect(book.version).toBe(4)
     expect(book.groups).toEqual([])
     expect(book.chats).toHaveLength(1)
     expect(book.chats[0]).not.toHaveProperty('scene')
-    expect(book.chats[0]).toMatchObject({ id: `c2c:${ALICE}`, binding: { workspace: WORKSPACE, agent: 'zcode', title: '个人空间' } })
-    expect(book.chats[0]!.binding).not.toHaveProperty('collab')
+    expect(book.chats[0]!.binding).toEqual({ workspace: WORKSPACE, title: '个人空间' })
   })
 
-  it('第 2 版：会话、在跑的一轮、队列、上一轮的结果归进默认组；没送达的补上组名「默认」；collab 为 true 的绑定换成任务组要求', () => {
-    const trigger = { msgId: 'm-1', receivedAt: 1 }
-    const round = { id: 'r-1', prompt: '在跑的', sender: OWNER, agent: 'claudecode', workspace: WORKSPACE, session: 's-abcd', trigger }
+  it('第 2 版：会话作废、队列与没送达的结果归进默认组；collab 为 true 的绑定换成任务组要求', () => {
     const ownerChat = {
-      id: `c2c:${OWNER}`, target: OWNER, lastSeen: '2026-10-07T00:00:00.000Z', lastSender: OWNER,
+      id: OWNER_CHAT, target: OWNER, lastSeen: '2026-10-07T00:00:00.000Z', lastSender: OWNER,
       binding: { workspace: WORKSPACE, agent: 'claudecode', title: '混合型 MMC 样机', collab: true },
-      session: { agent: 'claudecode', id: 's-abcd' }, round, queue: [{ prompt: '排队的', sender: OWNER, trigger }],
+      session: { agent: 'claudecode', id: 's-abcd' }, round: null, queue: [{ prompt: '排队的', sender: OWNER, trigger }],
       lastClosed: { id: 'r-0', text: '上一轮' }, undelivered: [{ text: '没送到的', quote: 'm-0' }],
     }
-    const idleOwnerDefault = { ...version2Chat, id: 'c2c:bob', target: 'bob', binding: null, session: { agent: 'zcode', id: 's-lost' } }
-    const { book, migratedChats } = loadBook({ version: 2, chats: [ownerChat, version2Chat, idleOwnerDefault], notices: [], seen: [], replies: {} })
-    expect(migratedChats).toBe(3)
-    expect(book.version).toBe(3)
-    const [owner, alice, bob] = book.chats
+    const { book, migratedFrom, droppedSessions } = loadBook({ version: 2, chats: [ownerChat, version2Chat], notices: [], seen: [], replies: {} })
+    expect(migratedFrom).toBe(2)
+    expect(droppedSessions).toBe(1)
+    const [owner, alice] = book.chats
     expect(owner).toEqual({
-      id: `c2c:${OWNER}`, target: OWNER, lastSeen: '2026-10-07T00:00:00.000Z', lastSender: OWNER,
-      binding: { workspace: WORKSPACE, agent: 'claudecode', title: '混合型 MMC 样机', instructions: COLLAB_INSTRUCTIONS },
-      groups: { '': {
-        session: { agent: 'claudecode', id: 's-abcd', workspace: WORKSPACE, rounds: 1 },
-        round: { ...round, group: '', turn: 1 },
-        queue: [{ prompt: '排队的', sender: OWNER, trigger }],
-        lastClosed: { id: 'r-0', text: '上一轮' },
-        lastTaskAt: null,
-      } },
+      id: OWNER_CHAT, target: OWNER, lastSeen: '2026-10-07T00:00:00.000Z', lastSender: OWNER,
+      binding: { workspace: WORKSPACE, title: '混合型 MMC 样机', instructions: COLLAB_INSTRUCTIONS },
+      groups: { '': { session: null, round: null, queue: [{ prompt: '排队的', sender: OWNER, trigger }], lastTaskAt: null } },
       undelivered: [{ group: '默认', text: '没送到的', quote: 'm-0' }],
     })
     expect(COLLAB_INSTRUCTIONS).toBe('先读 gwb 说明书 collab（经 gwb MCP 调 run skill.read {"name":"collab"}），协作仓和项目里其余仓的改动照它提交。')
-    expect(alice!.binding).toEqual({ workspace: WORKSPACE, agent: 'zcode', title: '个人空间' })
-    expect(bob!.groups['']!.session).toBeNull()
+    expect(alice!.binding).toEqual({ workspace: WORKSPACE, title: '个人空间' })
   })
 
-  it('读回第 2 版以后，在跑的那一轮照样收回报，下次写盘就是第 3 版', async () => {
-    const trigger = { msgId: 'm-1', receivedAt: Date.now() }
-    const ownerChat = { ...version2Chat, id: `c2c:${OWNER}`, target: OWNER, binding: null, session: { agent: 'zcode', id: 's-1' }, round: { id: 'r-aaaaaaaaaaaa', prompt: 'x', sender: OWNER, agent: 'zcode', workspace: WORKSPACE, session: 's-1', trigger } }
-    const { rounds, table, sent, store } = setup({ stored: { version: 2, chats: [ownerChat], notices: [], seen: [], replies: {} } })
+  it('第 3 版：执行端名、旧会话、lastClosed、zcodeOpenedWorkspaces 都去掉，队列与上一条的时间照留', () => {
+    const state = { session: { agent: 'zcode', workspace: WORKSPACE, id: 's-1', rounds: 3 }, round: null, queue: [{ prompt: '排队的', sender: OWNER, trigger }], lastClosed: { id: 'r-0', text: '上一轮' }, lastTaskAt: '2026-10-08T08:00:00.000Z' }
+    const chat = { id: OWNER_CHAT, target: OWNER, lastSeen: '', lastSender: OWNER, binding: { workspace: WORKSPACE, agent: 'zcode', title: '个人空间' }, groups: { '': state }, undelivered: [] }
+    const stored = { command: '/论文', title: '学位论文', workspace: WORKSPACE, agent: 'claudecode', idleHours: 2 }
+    const { book, migratedFrom, droppedSessions } = loadBook({ version: 3, chats: [chat], groups: [stored], notices: [], seen: [], replies: {}, zcodeOpenedWorkspaces: [WORKSPACE] })
+    expect(migratedFrom).toBe(3)
+    expect(droppedSessions).toBe(1)
+    expect(book).toEqual({
+      version: 4,
+      chats: [{ ...chat, binding: { workspace: WORKSPACE, title: '个人空间' }, groups: { '': { session: null, round: null, queue: state.queue, lastTaskAt: '2026-10-08T08:00:00.000Z' } } }],
+      groups: [{ command: '/论文', title: '学位论文', workspace: WORKSPACE, idleHours: 2 }],
+      notices: [], seen: [], replies: {},
+    })
+  })
+
+  it('第 2、3 版里有在做的一轮：报错停下、写明先装回 0.7.x 等它做完；派任务与通知都报这个错', async () => {
+    const v2Round = { id: 'r-2', prompt: '在跑的', sender: OWNER, agent: 'zcode', workspace: WORKSPACE, session: 's-1', trigger }
+    expect(() => loadBook({ version: 2, chats: [{ ...version2Chat, round: v2Round }], notices: [], seen: [], replies: {} })).toThrow('还有在做的一轮（r-2）')
+    const v3State = { session: null, round: { id: 'r-3' }, queue: [], lastClosed: null, lastTaskAt: null }
+    const v3 = { version: 3, chats: [{ id: OWNER_CHAT, target: OWNER, lastSeen: '', lastSender: OWNER, binding: null, groups: { mmc: v3State }, undelivered: [] }], groups: [], notices: [], seen: [], replies: {} }
+    expect(() => loadBook(v3)).toThrow('「mmc」组还有在做的一轮（r-3）：0.8 起改由 claude-agent 执行，接不回旧执行端的这一轮。先把 qq-bot 装回 0.7.x')
+    const { rounds, table, agent } = setup({ stored: v3 })
     await table.settle()
-    expect(table.migratedChats).toBe(1)
-    await rounds.report({ round: 'r-aaaaaaaaaaaa', text: '迁移前派出的' })
-    await flush()
-    expect(lastContent(sent)).toBe('【默认 · 第 1 轮】\n迁移前派出的')
-    expect(store()).toMatchObject({ version: 3, groups: [] })
+    expect(table.loadError).toBeInstanceOf(Error)
+    await expect(rounds.notify('n-1', '通知')).rejects.toThrow('还有在做的一轮')
+    rounds.resumeWaiting()
+    expect(agent.starts).toHaveLength(0)
   })
 
-  it('第 3 版没有 zcodeOpenedWorkspaces 读成空列表，有就原样读回；从第 1、2 版迁过来的也是空列表；不是字符串列表停止处理', () => {
-    const version3 = { version: 3, chats: [], groups: [], notices: [], seen: [], replies: {} }
-    expect(loadBook(version3).book.zcodeOpenedWorkspaces).toEqual([])
-    expect(loadBook({ ...version3, zcodeOpenedWorkspaces: [WORKSPACE] }).book.zcodeOpenedWorkspaces).toEqual([WORKSPACE])
-    expect(loadBook({ version: 2, chats: [], notices: [], seen: [], replies: {} }).book.zcodeOpenedWorkspaces).toEqual([])
-    expect(() => loadBook({ ...version3, zcodeOpenedWorkspaces: [1] })).toThrow('zcodeOpenedWorkspaces 不是字符串列表')
-    expect(() => loadBook({ ...version3, zcodeOpenedWorkspaces: null })).toThrow('zcodeOpenedWorkspaces 不是字符串列表')
-  })
-
-  it('第 2 版里还带着 scene、第 1 版里 scene 认不出、版本号不认识、第 3 版缺 groups，都停止处理', () => {
+  it('第 4 版原样读回；第 2 版里还带着 scene、第 1 版里 scene 认不出、版本号不认识、缺 groups，都停止处理', () => {
+    const version4 = { version: 4, chats: [], groups: [], notices: [], seen: [], replies: {} }
+    expect(loadBook(version4)).toEqual({ book: version4, droppedGroups: 0, migratedFrom: null, droppedSessions: 0 })
     expect(() => loadBook({ version: 2, chats: [privateChat], notices: [], seen: [], replies: {} })).toThrow('还带着 scene')
     expect(() => loadBook({ version: 1, chats: [{ ...privateChat, scene: 'guild' }], notices: [], seen: [], replies: {} })).toThrow('scene 既不是 c2c 也不是 group')
-    expect(() => loadBook({ version: 4, chats: [], notices: [], seen: [], replies: {} })).toThrow('格式不对')
-    expect(() => loadBook({ version: 3, chats: [], notices: [], seen: [], replies: {} })).toThrow('缺 groups')
-    expect(() => loadBook({ version: 3, chats: [{ ...version2Chat, groups: {}, undelivered: [{ text: 'x', quote: 'm' }] }], groups: [], notices: [], seen: [], replies: {} })).toThrow('形状不对')
+    expect(() => loadBook({ ...version4, version: 5 })).toThrow('格式不对')
+    expect(() => loadBook({ version: 4, chats: [], notices: [], seen: [], replies: {} })).toThrow('第 4 版缺 groups')
+    expect(() => loadBook({ version: 3, chats: [], notices: [], seen: [], replies: {} })).toThrow('第 3 版缺 groups')
+    expect(() => loadBook({ ...version4, chats: [{ ...version2Chat, groups: {}, undelivered: [{ text: 'x', quote: 'm' }] }] })).toThrow('形状不对')
   })
 })

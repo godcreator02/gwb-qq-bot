@@ -1,0 +1,28 @@
+---
+born-at: 2026-10-15T22:51
+type: choice
+parent: [2026-10-05-gwb-qq-bot-root]
+label: 去掉回报命令，发回最后一条回复
+domain: 派任务
+---
+
+## 背景
+
+到 0.7.10 为止，任务说明末尾写着本轮编号和 home 名，agent 做完要自己经 gwb MCP 入口调 `qq-bot.report {round, text}`；忘了调，就要等人发 `/状态` 时 qq-bot 问一次执行端（懒检查）才收尾。
+私聊改发原生 markdown 以后，agent 的回复本身就能在手机上渲染。用户 10-15 说：「也不要让大模型调用gwb了，你就直接获得claudecode里的最后一次消息返回到qq，记得让大模型最后写成md格式就行了」。
+
+## 结论与边界
+
+`qq-bot.report` 命令删掉。派出后 qq-bot 调 claude-agent 的 `waitRound` 等这一轮结束，把它的最后一条回复原样发回私聊：做完发回复，没做完发「这一轮没有做完：原因」，回复为空、等的时候出错各回一句。任务说明末尾那一段改成「[最后一条回复]」：用 markdown 写给手机看、5000 字以内、不用另外调命令回报。
+懒检查一起删掉：结果不再靠 agent 交回来，也就没有「做完了却没回报」这种情况；`/状态` 只读 claude-agent 交回的进度。本轮编号不再写进任务说明，只留在消息记录里给 `qq-bot.messages` 查。
+
+为此 claude-agent 0.1.2 加了服务方法 `waitRound`：结果记在那一轮自己身上，被下一轮接着发打断时也拿得到这一轮的结果，不会拿成下一轮的。
+
+qq-bot 重载时不等还没结束的一轮，重载后凭聊天表里记下的会话号与轮数接着等；claude-agent 重载时它那边在跑的一轮记成失败，等到的就是失败的原因。
+
+边界：5000 字只是写在提示词里的要求，qq-bot 不截断、不拒发，超了由连接与收发按 5000 字分段发。
+
+## 依据
+
+- 用户 10-15 的原话见上
+- `plugins/qq-bot/tests/rounds.test.ts` 的「一轮：派出、等结束、发回最后一条回复」「通知与重载」；`gwb-agents` 仓 `plugins/claude-agent/tests/runtime.test.ts` 里 `waitRound` 的三条

@@ -1,9 +1,10 @@
 /**
  * 派任务：一条私聊按斜杠命令分到任务组或直接命令；每个私聊的每个组各有会话与队列，一组一次一轮：
- * 消息进队列、开一轮、收回报、懒检查、投递结果、接着开下一轮。
- * 改聊天表都在 ChatTable.serial 里做；调执行端、发 QQ 消息、执行直接命令都在它外面做，一个组慢不会卡住别的组。
+ * 消息进队列、交给 claude-agent 开一轮、等这一轮结束、把最后一条回复发回、接着开下一轮。
+ * 改聊天表都在 ChatTable.serial 里做；调 claude-agent、发 QQ 消息、执行直接命令都在它外面做，一个组慢不会卡住别的组。
  */
 import { randomBytes } from 'node:crypto'
+import type { ClaudeAgentRoundInput, ClaudeAgentStarted, GwbClaudeAgentApi } from '@godcreator/gwb-claude-agent'
 import type { PanelCandidate } from '../qq/command-panel.js'
 import { intakeFirstDelivery } from '../qq/incoming-gate.js'
 import type { InboundRoute, MessageLog, OutboundPurpose } from '../qq/message-log.js'
@@ -12,16 +13,14 @@ import type { ReplySender } from '../qq/reply-sender.js'
 import { DEFAULT_GROUP_KEY, DEFAULT_GROUP_LABEL, type Binding, type Chat, type ChatTable, type GroupState, type Round, type StoredTaskGroup, type Trigger, type UndeliveredResult } from '../storage/chat-table.js'
 import { onlyKeys, optionalText, requireExistingDirectory, requireText } from './command-args.js'
 import { parseTaskGroupDefinition, type PluginCommandRegistry } from './command-registry.js'
-import type { ExecutorTable } from './executors/executor.js'
 import { commandPanelCandidates } from './panel-candidates.js'
 import { chooseSession, resolveIdleHours, type SessionChoice } from './group-session.js'
 import { COMMAND_FRESH_SESSION, COMMAND_HELP, COMMAND_STATUS, groupNameOf, normalizeIncoming, routeMessage, tailExcerpt, type CommandKind, type RoutedMessage } from './routing.js'
 
 export interface ChatRoundsDeps {
-  /** gwb home 名，写进提示词，agent 按它选连回哪个 MCP 服务 */
-  home: string
   table: ChatTable
-  executors: ExecutorTable
+  /** 此刻装着的 claude-agent 服务；没装是 null，派任务时把原因回给私聊 */
+  agent(): GwbClaudeAgentApi | null
   /** 插件注册的任务组与直接命令 */
   registry: PluginCommandRegistry
   ownerOpenid(): string
@@ -44,14 +43,13 @@ interface ResolvedGroup {
   label: string
   title: string
   workspace: string
-  agent: string
   instructions?: string
   idleHours?: number
   source: GroupSource
   plugin?: string
 }
 
-/** 已经记成在做、等着交给执行端的一轮；reusedSession 为空就开新会话 */
+/** 已经记成在做、等着交给 claude-agent 的一轮；reusedSession 为空就开新会话 */
 interface NextRound {
   target: string
   trigger: Trigger
@@ -61,10 +59,12 @@ interface NextRound {
   choice: SessionChoice
 }
 
-const MAX_REPORT_CHARS = 5000
-const REPLY_TAIL_CHARS = 600
+/** 提示词里要求最后一条回复不超过这么多字；和 qq-bot.notify 的上限、分段长度一致 */
+const FINAL_REPLY_CHARS = 5000
 const PROGRESS_TAIL_CHARS = 300
 const NOT_BOUND = '这个私聊还没绑定工作区：请在 GWB 用 qq-bot.status 找到它，再用 qq-bot.bind 绑定。'
+const NO_AGENT = '没装 claude-agent（插件 @godcreator/gwb-claude-agent），装上之后再发'
+const NOT_DISPATCHED_BEFORE_RELOAD = 'qq-bot 重载时这一轮还没派出去，已作废；要做就再发一次。'
 
 function newRoundId(): string {
   return `r-${randomBytes(6).toString('hex')}`
@@ -76,19 +76,37 @@ const nowIso = (): string => new Date(Date.now()).toISOString()
 const errorText = (error: unknown): string => error instanceof Error ? error.message : String(error)
 const hasWork = (state: GroupState | undefined): boolean => state !== undefined && (state.round !== null || state.queue.length > 0)
 
+/** claude-agent 这一轮结束时的记录换成发回 QQ 的正文 */
+function resultTextOf(ended: { status: 'running' | 'completed' | 'failed'; text: string }): string {
+  if (ended.status !== 'completed') return `这一轮没有做完：${ended.text}`
+  return ended.text.trim() === '' ? '这一轮做完了，但最后一条回复是空的。' : ended.text
+}
+
 export class ChatRounds {
+  /** 投递与开下一轮这类后台工作；卸载时等它们做完 */
   private readonly workers = new Set<Promise<unknown>>()
+  /** 正在等 claude-agent 结束的轮次编号；等的时间不定，卸载时不等它们，重载后由 resumeWaiting 接着等 */
+  private readonly waiting = new Set<string>()
+  /** 正在调 create / send、还没拿到会话号的轮次编号；resumeWaiting 不把它们当成重载前没派出去的 */
+  private readonly dispatching = new Set<string>()
+  private disposed = false
 
   constructor(private readonly deps: ChatRoundsDeps) {}
 
   private get table(): ChatTable { return this.deps.table }
   private get replies(): ReplySender { return this.deps.replies }
 
+  private requireAgent(): GwbClaudeAgentApi {
+    const agent = this.deps.agent()
+    if (agent === null) throw new Error(NO_AGENT)
+    return agent
+  }
+
   /** 显式绑定优先；主人私聊没绑时用设置里的默认工作区 */
   bindingOf(chat: Chat): Binding | null {
     if (chat.binding !== null) return chat.binding
     const workspace = this.deps.defaultWorkspace()
-    if (chat.target === this.deps.ownerOpenid() && workspace !== '') return { workspace, agent: 'zcode', title: '个人空间' }
+    if (chat.target === this.deps.ownerOpenid() && workspace !== '') return { workspace, title: '个人空间' }
     return null
   }
 
@@ -176,44 +194,24 @@ export class ChatRounds {
       case 'task': {
         const label = labelOf(routed.group)
         if (problem !== null) { await this.replies.reply(target, trigger, `【${label}】${problem}`, { kind: 'not-dispatched', group: label }); return }
-        const busy = await this.advance(chatId, routed.group, true)
+        const busy = await this.advance(chatId, routed.group)
         if (busy !== null) await this.replies.reply(target, trigger, busy, { kind: 'receipt', group: label })
       }
     }
   }
 
   /**
-   * 让这个私聊的这一组往前走：没有在做的一轮就从队列取下一条开一轮；有、且 lazyCheck 时问一次执行端，做完了却没回报就收尾再往前走。
+   * 让这个私聊的这一组往前走：没有在做的一轮就从队列取下一条开一轮。
    * 回 null 表示已经开了新一轮（或队列空了）；回一句话表示还在忙，交给调用方告诉人
    */
-  private async advance(chatId: string, key: string, lazyCheck: boolean): Promise<string | null> {
+  private async advance(chatId: string, key: string): Promise<string | null> {
     const state = await this.table.serial(async () => {
       const group = this.table.require(chatId).groups[key]
-      return { round: group?.round == null ? null : structuredClone(group.round), queued: group?.queue.length ?? 0 }
+      return { busy: group?.round != null, queued: group?.queue.length ?? 0 }
     })
-    if (state.round === null) {
-      if (state.queued > 0) await this.startNext(chatId, key)
-      return null
-    }
-    const label = labelOf(key)
-    const waiting = `【${label}】上一条还在做，这条排在第 ${state.queued} 个，做完自动开始。`
-    if (!lazyCheck || state.round.session === null) return waiting
-    const checked = await this.check(state.round)
-    if (typeof checked === 'string') return `【${label}】${checked}；这条排在第 ${state.queued} 个。`
-    if (!checked.over) return waiting
-    // closeRound 收尾后自己接着开下一轮
-    await this.closeRound(chatId, key, state.round.id, `执行端这一轮已经结束，没有收到回报。最后的回答：\n${tailExcerpt(checked.reply, REPLY_TAIL_CHARS)}`)
+    if (state.busy) return `【${labelOf(key)}】上一条还在做，这条排在第 ${state.queued} 个，做完自动开始。`
+    if (state.queued > 0) await this.startNext(chatId, key)
     return null
-  }
-
-  /** 读不到执行端时回原因，交给调用方告诉人 */
-  private async check(round: Round): Promise<{ over: boolean; reply: string } | string> {
-    if (round.session === null) return '上一条还在派单'
-    try {
-      return await this.deps.executors.get(round.agent).check({ workspace: round.workspace, session: round.session })
-    } catch (error) {
-      return `读不到执行端状态：${errorText(error)}`
-    }
   }
 
   // ───── 一轮 ─────
@@ -234,51 +232,64 @@ export class ChatRounds {
       }
       const choice = chooseSession(state, group, Date.now(), idleHours)
       const reused = choice.kind === 'reuse' ? choice.session : null
-      const round: Round = { id: newRoundId(), group: key, turn: reused === null ? 1 : reused.rounds + 1, prompt: next.prompt, sender: next.sender, agent: group.agent, workspace: group.workspace, session: null, trigger: next.trigger }
+      const round: Round = { id: newRoundId(), group: key, turn: reused === null ? 1 : reused.rounds + 1, prompt: next.prompt, sender: next.sender, workspace: group.workspace, session: null, agentRound: null, trigger: next.trigger }
       // 定了开新会话就当场清掉旧的：派出失败后 lastTaskAt 已经刷新，不清的话下一条会接回旧会话
       if (reused === null) state.session = null
       state.round = round
       state.lastTaskAt = nowIso()
+      this.dispatching.add(round.id)
       await this.table.save()
       return { target: chat.target, trigger: next.trigger, round: structuredClone(round), reusedSession: reused?.id ?? null, group, choice }
     })
   }
 
   private async startNext(chatId: string, key: string): Promise<void> {
-    const started = await this.takeNextRound(chatId, key)
-    if (started === null) return
-    if ('problem' in started) {
-      await this.replies.reply(started.target, started.trigger, started.problem, { kind: 'not-dispatched', group: labelOf(key) })
-      await this.advance(chatId, key, false)
+    const next = await this.takeNextRound(chatId, key)
+    if (next === null) return
+    if ('problem' in next) {
+      await this.replies.reply(next.target, next.trigger, next.problem, { kind: 'not-dispatched', group: labelOf(key) })
+      await this.advance(chatId, key)
       return
     }
-    const { target, trigger, round, reusedSession, group, choice } = started
-    let sessionId: string
+    const { target, trigger, round, reusedSession, group, choice } = next
+    let started: ClaudeAgentStarted
     try {
-      sessionId = await this.deps.executors.get(round.agent).start({ workspace: round.workspace, session: reusedSession, prompt: this.fullPrompt(group, round) })
+      const agent = this.requireAgent()
+      const prompt = this.fullPrompt(group, round)
+      started = reusedSession === null
+        ? await agent.create({ workspace: round.workspace, prompt })
+        : await agent.send({ workspace: round.workspace, sessionId: reusedSession, prompt })
     } catch (error) {
-      // 不留「不确定」的中间状态：原话告诉人，可能已经发出去了的，原话里会写，人去执行端看
+      // 不留「不确定」的中间状态：原话告诉人、这一轮作废
+      this.dispatching.delete(round.id)
       await this.table.serial(async () => {
         const state = this.table.require(chatId).groups[key]
         if (state?.round?.id === round.id) { state.round = null; await this.table.save() }
       })
-      await this.replies.reply(target, trigger, `【${group.label}】派单失败：${errorText(error)}`, { kind: 'not-dispatched', group: group.label, round: round.id })
-      await this.advance(chatId, key, false)
+      const hint = reusedSession === null ? '' : `\n接着用的是会话 ${reusedSession.slice(-4)}；要换新会话就发 ${COMMAND_FRESH_SESSION}${key === DEFAULT_GROUP_KEY ? '' : ` ${key}`}`
+      await this.replies.reply(target, trigger, `【${group.label}】派单失败：${errorText(error)}${hint}`, { kind: 'not-dispatched', group: group.label, round: round.id })
+      await this.advance(chatId, key)
       return
     }
-    // 执行端没接着用交给它的会话，就是开了新会话，轮数从 1 数起
-    const turn = reusedSession !== null && sessionId === reusedSession ? round.turn : 1
+    // claude-agent 没接着用交给它的会话，就是开了新会话，轮数从 1 数起
+    const turn = reusedSession !== null && started.sessionId === reusedSession ? round.turn : 1
     await this.table.serial(async () => {
       const state = this.table.groupState(this.table.require(chatId), key)
-      state.session = { agent: round.agent, workspace: round.workspace, id: sessionId, rounds: turn }
-      if (state.round?.id === round.id) { state.round.session = sessionId; state.round.turn = turn }
+      state.session = { workspace: round.workspace, id: started.sessionId, rounds: turn }
+      if (state.round?.id === round.id) {
+        state.round.session = started.sessionId
+        state.round.agentRound = started.round
+        state.round.turn = turn
+      }
+      this.dispatching.delete(round.id)
       await this.table.save()
     })
-    await this.replies.reply(target, trigger, this.receipt(group, round.agent, sessionId, turn, choice), { kind: 'receipt', group: group.label, round: round.id })
+    await this.replies.reply(target, trigger, this.receipt(group, started, turn, choice), { kind: 'receipt', group: group.label, round: round.id })
+    this.waitAndClose(chatId, key, round.id, { workspace: round.workspace, sessionId: started.sessionId, round: started.round })
   }
 
-  private receipt(group: ResolvedGroup, agent: string, sessionId: string, turn: number, choice: SessionChoice): string {
-    const lines = [`【${group.label}】已接收，交给 ${this.executorLabel(agent)} 在「${group.title}」里做，做完回你。`, `会话 ${sessionId.slice(-4)} · 第 ${turn} 轮`]
+  private receipt(group: ResolvedGroup, started: ClaudeAgentStarted, turn: number, choice: SessionChoice): string {
+    const lines = [`【${group.label}】已接收，在「${group.title}」里做，做完回你。`, `会话 ${started.sessionId.slice(-4)} · 第 ${turn} 轮 · 模型 ${started.model ?? '本机 Claude'}`]
     if (choice.kind === 'idle') lines.push(`已开新会话（空闲超过 ${choice.idleHours} 小时）`)
     return lines.join('\n')
   }
@@ -293,11 +304,44 @@ export class ChatRounds {
     if (group.instructions !== undefined) lines.push('', '[任务组要求]', group.instructions)
     lines.push(
       '',
-      '[本轮回报]',
-      `本轮编号 ${round.id}。做完后经连到 gwb home「${this.deps.home}」的 MCP 服务（各服务的说明里写着它连的是哪个 home）调 run：` +
-        `command 为 qq-bot.report，args 为 {"round":"${round.id}","text":"给手机看的结果，300 字以内"}。一轮只报一次；调用超时就用同样的参数再调一次。`,
+      '[最后一条回复]',
+      `这一轮你的最后一条回复会原样发回 QQ，给人在手机上看：用 markdown 写，说清做了什么、结果怎样、要人补什么信息，${FINAL_REPLY_CHARS} 字以内。不用另外调命令回报。`,
     )
     return lines.join('\n')
+  }
+
+  /** 等 claude-agent 这一轮结束，把最后一条回复发回、收尾；同一轮已经在等就不重复等 */
+  private waitAndClose(chatId: string, key: string, roundId: string, input: ClaudeAgentRoundInput): void {
+    if (this.waiting.has(roundId)) return
+    this.waiting.add(roundId)
+    const finish = async (): Promise<void> => {
+      let text: string
+      try {
+        text = resultTextOf(await this.requireAgent().waitRound(input))
+      } catch (error) {
+        text = `等这一轮结束时出错：${errorText(error)}`
+      }
+      // 卸载后由新的一份接着等，这里不再动聊天表
+      if (this.disposed) return
+      this.track(this.closeRound(chatId, key, roundId, text))
+    }
+    void finish().finally(() => this.waiting.delete(roundId))
+  }
+
+  /**
+   * 连上机器人、或 claude-agent 重新装上以后：在做的每一轮接着等它结束；重载前还没派出去的那一轮作废并告诉人。
+   * claude-agent 自己重载时它那边在跑的一轮记 failed，等的结果就是失败的原因
+   */
+  resumeWaiting(): void {
+    // 聊天表读不回来时装配处已经记了原话，这里不再重复报
+    if (this.deps.agent() === null || this.table.loadError !== undefined) return
+    this.track(this.table.serial(async () => this.table.openRounds()).then(async (open) => {
+      for (const { chatId, key, round } of open) {
+        if (this.dispatching.has(round.id)) continue
+        if (round.session === null || round.agentRound === null) { await this.closeRound(chatId, key, round.id, NOT_DISPATCHED_BEFORE_RELOAD); continue }
+        this.waitAndClose(chatId, key, round.id, { workspace: round.workspace, sessionId: round.session, round: round.agentRound })
+      }
+    }))
   }
 
   /** 收尾一轮并投递结果，再往前走；这一轮已经收过尾就什么都不做 */
@@ -308,7 +352,6 @@ export class ChatRounds {
       if (state?.round?.id !== roundId) return null
       const { trigger, turn } = state.round
       state.round = null
-      state.lastClosed = { id: roundId, text }
       state.lastTaskAt = nowIso()
       await this.table.save()
       return { target: chat.target, trigger, turn }
@@ -316,27 +359,7 @@ export class ChatRounds {
     if (closed === null) return
     const label = labelOf(key)
     await this.deliver(chatId, closed.target, closed.trigger, `【${label} · 第 ${closed.turn} 轮】\n${text}`, { group: label, text, quote: closed.trigger.msgId }, { kind: 'result', group: label, round: roundId })
-    await this.advance(chatId, key, false)
-  }
-
-  // ───── 回报 ─────
-
-  /** qq-bot.report：agent 做完自己调。回执先交回，投递与下一轮在后台做，不让 agent 等着自己的回报发完 */
-  async report(raw: unknown): Promise<{ recorded: true; duplicate: boolean }> {
-    const args = onlyKeys(raw, 'qq-bot.report', ['round', 'text'])
-    const roundId = requireText(args, 'round', '任务说明里给的本轮编号')
-    const text = requireText(args, 'text', '给手机看的结果')
-    if (text.length > MAX_REPORT_CHARS) throw new Error(`text 最多 ${MAX_REPORT_CHARS} 字，这次 ${text.length} 字：缩短后用同一个本轮编号再交`)
-    const found = await this.table.serial(async () => {
-      const where = this.table.findRound(roundId)
-      if (where === undefined) throw new Error(`不认识本轮编号 ${roundId}：不是这个机器人派出的，或者已经过去太久`)
-      const state = where.chat.groups[where.group]!
-      if (state.round?.id === roundId) return { chatId: where.chat.id, group: where.group, duplicate: false }
-      if (state.lastClosed?.text === text) return { chatId: where.chat.id, group: where.group, duplicate: true }
-      throw new Error(`本轮 ${roundId} 已经结束，交来的结果和已记下的不同，没有覆盖`)
-    })
-    if (!found.duplicate) this.track(this.closeRound(found.chatId, found.group, roundId, text))
-    return { recorded: true, duplicate: found.duplicate }
+    await this.advance(chatId, key)
   }
 
   // ───── 聊天里的保留命令与直接命令 ─────
@@ -348,7 +371,7 @@ export class ChatRounds {
   /** /帮助 的内容按此刻注册的现算 */
   private helpText(chat: Chat): string {
     const binding = this.bindingOf(chat)
-    const defaultGroup = binding === null ? '这个私聊还没绑定工作区，请在 GWB 用 qq-bot.bind 绑定' : `「${binding.title}」，交给 ${this.executorLabel(binding.agent)}`
+    const defaultGroup = binding === null ? '这个私聊还没绑定工作区，请在 GWB 用 qq-bot.bind 绑定' : `「${binding.title}」`
     const groups = [
       ...this.table.book.groups.map((group) => `${group.command} — ${group.title}`),
       ...this.deps.registry.allGroups().map(({ definition }) => `${definition.command} — ${definition.title}`),
@@ -401,23 +424,24 @@ export class ChatRounds {
       return
     }
     const lines: string[] = []
-    const finished: { key: string; roundId: string; reply: string }[] = []
     for (const group of pending.groups) {
       const label = `【${labelOf(group.key)}】`
       const queued = group.queued > 0 ? `，排队 ${group.queued} 条` : ''
       if (group.round === null) { lines.push(`${label}${group.unbound ? '还没绑定工作区' : '空闲'}${queued}`); continue }
-      const checked = await this.check(group.round)
-      if (typeof checked === 'string') { lines.push(`${label}在做第 ${group.round.turn} 轮，${checked}${queued}`); continue }
-      if (checked.over) {
-        lines.push(`${label}第 ${group.round.turn} 轮已经结束、没有收到回报，最后的回答随后发`)
-        finished.push({ key: group.key, roundId: group.round.id, reply: checked.reply })
-        continue
-      }
-      lines.push(`${label}还在做第 ${group.round.turn} 轮${queued}。最新的回答末尾：\n${tailExcerpt(checked.reply, PROGRESS_TAIL_CHARS)}`)
+      if (group.round.session === null) { lines.push(`${label}第 ${group.round.turn} 轮正在派出${queued}`); continue }
+      lines.push(`${label}还在做第 ${group.round.turn} 轮${queued}${await this.progressOf(group.round.workspace, group.round.session)}`)
     }
     await this.replies.reply(target, trigger, lines.join('\n'), { kind: 'command-answer' })
-    for (const each of finished) {
-      await this.closeRound(chatId, each.key, each.roundId, `执行端这一轮已经结束，没有收到回报。最后的回答：\n${tailExcerpt(each.reply, REPLY_TAIL_CHARS)}`)
+  }
+
+  /** /状态 里一轮的进度：claude-agent 交回的最近一段回答末尾；读不到就写原因 */
+  private async progressOf(workspace: string, sessionId: string): Promise<string> {
+    try {
+      const latest = await this.requireAgent().status({ workspace, sessionId })
+      const lastText = latest.progress?.lastText
+      return lastText == null ? '' : `。最新的回答末尾：\n${tailExcerpt(lastText, PROGRESS_TAIL_CHARS)}`
+    } catch (error) {
+      return `（读不到进度：${errorText(error)}）`
     }
   }
 
@@ -431,19 +455,17 @@ export class ChatRounds {
       const state = this.table.require(chatId).groups[key]
       if (state !== undefined) { state.session = null; await this.table.save() }
     })
-    await this.replies.reply(target, trigger, `【${labelOf(key)}】下一条起用新会话；在做的这一轮照常回报。`, { kind: 'command-answer', group: labelOf(key) })
+    await this.replies.reply(target, trigger, `【${labelOf(key)}】下一条起用新会话；在做的这一轮做完照常发回。`, { kind: 'command-answer', group: labelOf(key) })
   }
 
   // ───── 绑定 ─────
 
   async bind(raw: unknown): Promise<Chat> {
-    const args = onlyKeys(raw, 'qq-bot.bind', ['chat', 'workspace', 'title', 'agent', 'instructions'])
+    const args = onlyKeys(raw, 'qq-bot.bind', ['chat', 'workspace', 'title', 'instructions'])
     const chatId = requireText(args, 'chat', 'qq-bot.status 里聊天的 id')
     const workspace = requireExistingDirectory(args, 'workspace')
     const title = requireText(args, 'title', '回执里叫它的名字（项目名或「个人空间」）')
-    const agent = args['agent'] === undefined ? 'zcode' : requireText(args, 'agent', '执行端名 zcode / claudecode')
-    this.requireInstalled(agent)
-    const binding: Binding = { workspace, agent, title }
+    const binding: Binding = { workspace, title }
     const instructions = optionalText(args, 'instructions', '附在任务说明里的要求')
     if (instructions !== undefined) binding.instructions = instructions
     return this.changeBinding(chatId, binding)
@@ -467,20 +489,10 @@ export class ChatRounds {
     })
   }
 
-  private requireInstalled(agent: string): void {
-    if (!this.deps.executors.has(agent)) throw new Error(`执行端 ${agent} 没装，现在装着的：${this.deps.executors.ids().join('、') || '没有'}`)
-  }
-
-  /** 给人看的执行端名：装着的写适配层的 title，没装的写 id 并注明没装 */
-  private executorLabel(agent: string): string {
-    return this.deps.executors.has(agent) ? this.deps.executors.get(agent).title : `${agent}（没装）`
-  }
-
   // ───── 命令登记的任务组 ─────
 
   async addGroup(raw: unknown): Promise<StoredTaskGroup> {
     const definition = parseTaskGroupDefinition(raw, 'qq-bot.group.add')
-    this.requireInstalled(definition.agent)
     return this.table.serial(async () => {
       this.deps.registry.requireFree(definition.command, this.storedGroupCommands())
       this.table.book.groups.push(definition)
@@ -566,10 +578,9 @@ export class ChatRounds {
       group: labelOf(key),
       title: known?.title ?? null,
       workspace: known?.workspace ?? null,
-      agent: known?.agent ?? null,
       source: known?.source ?? null,
       session: state?.session ?? null,
-      round: round === null ? null : { id: round.id, turn: round.turn, agent: round.agent, workspace: round.workspace, session: round.session },
+      round: round === null ? null : { id: round.id, turn: round.turn, workspace: round.workspace, session: round.session },
       queued: state?.queue.length ?? 0,
       lastTaskAt: state?.lastTaskAt ?? null,
     }
@@ -582,7 +593,9 @@ export class ChatRounds {
     this.workers.add(tracked)
   }
 
+  /** 等投递这类后台工作做完；还在等 claude-agent 的轮次不等，留给重载后的那一份 */
   async dispose(): Promise<void> {
+    this.disposed = true
     while (this.workers.size > 0) await Promise.allSettled([...this.workers])
     await this.table.settle()
   }

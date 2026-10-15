@@ -306,7 +306,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '近期消息 id 最多记 2000 条，被动回复次数最多记 500 条消息，超了丢最早的。次数先记进表、存盘，再发请求。',
     },
-    /* ref file="../plugins/qq-bot/src/index.ts" lines="84-91" hash="70a35eead6bb" blob="46b54b586aa9" */
+    /* ref file="../plugins/qq-bot/src/index.ts" lines="78-85" hash="70a35eead6bb" blob="20c8b227e0e7" */
     {
       n: 13,
       name: '排同步',
@@ -328,7 +328,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '经 QqRestClient 的面板方法调用，失败抛 QqApiError 带官方错误码。条目没变不调 PUT；面板操作进行中（40030009）隔 5 秒重试一次，别的错误原话记进 qq-bot.status 的 panel.error。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="150-165" hash="c7939d66a45d" blob="b57d400e44e3" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="167-183" hash="9e69ca0997ee" blob="1bae6e1bce18" */
     {
       n: 15,
       name: '记入站',
@@ -339,7 +339,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '白名单外的由白名单记，只留正文前 40 字；收下的由派任务记，分到哪（哪一组、哪条保留命令或直接命令、没派出及原因）由派任务算好传进来，本目录不认识任务组。空消息、网关重推的同一条也各记一条。',
     },
-    /* ref file="../plugins/qq-bot/src/rounds.ts" lines="45-51" hash="a46bd8157429" blob="80fe8dc6f49c" */
+    /* ref file="../plugins/qq-bot/src/rounds.ts" lines="44-50" hash="6bc7e091a12d" blob="b6110e59a544" */
     {
       n: 16,
       name: '包发消息的函数',
@@ -361,7 +361,7 @@ export const qqGraph = defineSeamGraph({
       via: 'disk',
       text: '写入排成一条队按顺序做，不让收发等它；写失败只记一行 warn（不带正文）。连上时与跨进新的月份时删掉当月与前 3 个月以外的文件。查询从最新的月份倒着读，找够 limit 条就停。',
     },
-    /* ref file="../plugins/qq-bot/src/index.ts" lines="207-213" hash="b8db3b8881a2" blob="46b54b586aa9" */
+    /* ref file="../plugins/qq-bot/src/index.ts" lines="198-204" hash="b8db3b8881a2" blob="20c8b227e0e7" */
     {
       n: 18,
       name: '查询命令',

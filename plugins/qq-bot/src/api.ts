@@ -9,10 +9,10 @@ export interface GwbQqBotApi {
    */
   notify(id: string, text: string): Promise<{ delivered: boolean; duplicate: boolean }>
   /**
-   * 注册一个任务组：私聊里发 `<command> 正文`，正文交给 agent 在 workspace 里做，每个私聊各记一个会话。
+   * 注册一个任务组：私聊里发 `<command> 正文`，正文交给 claude-agent 在 workspace 里做（模型是 claude-agent 的设置 default-model），每个私聊各记一个会话。
    * 交回撤掉注册的函数，包在 ctx.effect 里，插件卸载或重载时自动撤掉：`ctx.effect(() => ctx.gwbQqBot.registerTaskGroup({...}))`。
-   * 命令名不合规则（见 TaskGroupDefinition.command）、与已有命令重名、workspace 不是已存在目录的绝对路径，都抛异常。
-   * 不检查执行端装没装：派任务时没装，就把原因回给私聊
+   * 命令名不合规则（见 TaskGroupDefinition.command）、与已有命令重名、workspace 不是已存在目录的绝对路径、带了认不出的键，都抛异常。
+   * 不检查 claude-agent 装没装：派任务时没装，就把原因回给私聊
    */
   registerTaskGroup(definition: TaskGroupDefinition): () => void
   /**
@@ -37,8 +37,6 @@ export interface TaskGroupDefinition {
   title: string
   /** agent 干活的目录，已存在目录的绝对路径 */
   workspace: string
-  /** 执行端：zcode 或 claudecode */
-  agent: 'zcode' | 'claudecode'
   /** 原样附在任务说明的「[任务组要求]」一段里 */
   instructions?: string
   /** 空闲超过这么多小时，下一条任务开新会话；不给就用设置 idle-hours。正数 */

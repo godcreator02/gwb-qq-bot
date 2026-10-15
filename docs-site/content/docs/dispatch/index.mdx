@@ -1,11 +1,11 @@
 ---
 title: 派任务 dispatch/
-description: 私聊里的一条消息按斜杠命令分到任务组或直接命令；每个私聊的每个组各有会话与队列，一组一次一轮：派给执行端、收回报、懒检查、发回结果
+description: 私聊里的一条消息按斜杠命令分到任务组或直接命令；每个私聊的每个组各有会话与队列，一组一次一轮：交给 claude-agent、等这一轮结束、把最后一条回复发回
 full: true
 ---
 
-源码在 `plugins/qq-bot/src/dispatch/`。方向是人 → 工作台 → agent → 人：私聊里的一句话交给某个任务组的执行端，agent 做完回报，结果发回原私聊。
-`chat-rounds.ts` 是中心，别的文件是它用的纯函数（分发、会话选择、参数校验）、插件注册表和执行端适配层。它只经连接与收发导出的函数收发消息，不 import 通知。
+源码在 `plugins/qq-bot/src/dispatch/`。方向是人 → 工作台 → agent → 人：私聊里的一句话交给 claude-agent 在某个任务组的目录里做，这一轮结束后把 agent 的最后一条回复发回原私聊。
+`chat-rounds.ts` 是中心，别的文件是它用的纯函数（分发、会话选择、参数校验）和插件注册表。它只经连接与收发导出的函数收发消息，不 import 通知。
 连接与收发不认识任务组：收下的每条分到哪、发出的每条是哪一种（回执、结果、补发、指令的回答、没派出的说明）、哪个组第几轮，都由这里作为参数传过去，记进连接与收发的[消息记录](/docs/qq)。
 
 <SeamMap module="dispatch" />
@@ -14,26 +14,26 @@ full: true
 
 ## 任务组
 
-一个任务组对应一个工作区和一个执行端，在每个私聊里各有一份会话、在做的一轮和队列。同一组一次只做一轮，后来的消息排在这一组自己的队列；不同的组各自排队、可以同时做，两个组指向同一个目录也照样同时做，不锁工作区。
+一个任务组对应一个工作区，在每个私聊里各有一份会话、在做的一轮和队列。同一组一次只做一轮，后来的消息排在这一组自己的队列；不同的组各自排队、可以同时做，两个组指向同一个目录也照样同时做，不锁工作区。
 
 组有三种来源：
 
 | 来源 | 怎么来 | 谁能用 | 存在哪 |
 | --- | --- | --- | --- |
-| 默认组 | 每个私聊一个，由 `qq-bot.bind` 设；主人私聊没绑时用设置 `default-workspace`、交给 ZCode | 只有这个私聊 | 绑定写在私聊行里，主人的默认绑定按设置现算 |
+| 默认组 | 每个私聊一个，由 `qq-bot.bind` 设；主人私聊没绑时用设置 `default-workspace` | 只有这个私聊 | 绑定写在私聊行里，主人的默认绑定按设置现算 |
 | 命令登记的组 | agent 调 `qq-bot.group.add` / `remove` | 白名单里的每个私聊 | 聊天表 |
 | 插件注册的组 | 别的插件调 `gwbQqBot.registerTaskGroup` | 白名单里的每个私聊 | 服务对象上，插件卸载或重载时撤掉 |
 
 命令登记的组存在聊天表、不放进设置：设置项只支持字符串、数字、布尔与字符串列表，存不下一个组的几个字段，见[组登记存聊天表](/trajectory/2026-10-08-own-groups-in-chat-table)。
-一个组的定义（命令登记与插件注册同一个形状；默认组没有命令，其余字段来自绑定）：
+一个组的定义（命令登记与插件注册同一个形状；默认组没有命令，其余字段来自绑定）。组里不写执行端和模型：任务一律交给 claude-agent，用哪个模型是 claude-agent 自己的设置 `default-model`，见[执行统一交给 claude-agent](/trajectory/2026-10-15-claude-agent-only)：
 
-{/* ref file="../plugins/qq-bot/src/api.ts" lines="30-46" hash="1c084a0898e7" blob="57a540937d16" */}
+{/* ref file="../plugins/qq-bot/src/api.ts" lines="30-44" hash="807ae3110674" blob="95de2ebe0a38" */}
 
 派任务时按组名找定义：默认组按这个私聊的绑定算，别的组先找命令登记的、再找插件注册的；两处都有同一个命令就是重名，派不出去；派到一半组被撤掉了，这条回「已经撤掉」、不派出：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="87-93" hash="ad4d5caf6edb" blob="b57d400e44e3" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="128-135" hash="80f91ccbf8f6" blob="1bae6e1bce18" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="123-139" hash="d673f969fdbb" blob="b57d400e44e3" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="141-157" hash="d673f969fdbb" blob="1bae6e1bce18" */}
 
 ## 命令名
 
@@ -46,7 +46,7 @@ full: true
 
 规则只有这一份：两个注册方法校验命令名调它，服务方法 `commandNameProblem` 也原样转给它。下游插件要在注册之前先校验收到的命令名（比如人给项目起的 QQ 命令），就调这个服务方法，不自己抄一份规则。它是服务方法、包里不导出这个函数，见[命令名规则做成服务方法](/trajectory/2026-10-08-command-name-rule-as-service-method)：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="181-183" hash="d78a97ecf1fc" blob="46b54b586aa9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="172-174" hash="d78a97ecf1fc" blob="20c8b227e0e7" */}
 
 命令以工作台里注册的为准，`/帮助` 按此刻注册的现算。手机私聊里打「/」弹出的指令面板也跟着它自动同步：放哪些、什么顺序由这里算——任务组（命令登记的在前，称呼作说明）、直接命令（它的说明）、`/新会话`、`/状态`、`/帮助`，默认组没有命令不进面板；官方的上限与接口调用在[连接与收发](/docs/qq)。见[自动同步「/」面板](/trajectory/2026-10-08-qq-command-panel-auto-sync)：
 
@@ -54,129 +54,120 @@ full: true
 
 ## 会话
 
-下一轮接着用这一组的哪个会话：
+下一轮接着用这一组的哪个 claude-agent 会话：
 
-- **默认复用**：会话记着执行端和工作区，和组现在的定义对得上、空闲没超时，就接着用
+- **默认复用**：会话记着工作区，和组现在的工作区对得上、空闲没超时，就接着用
 - **空闲超时开新会话**：这一组上一条任务开始或收尾以后，过了组的 `idleHours`（不给就用设置 `idle-hours`，缺省 6）才来下一条，就开新会话，回执里写「已开新会话（空闲超过 N 小时）」
-- **换了执行端或工作区开新会话**：改绑、组的定义改了都算
-- **手动开新会话**：`/新会话` 清掉默认组的会话，`/新会话 <组名>` 清掉那一组的；在做的那一轮照常回报
+- **换了工作区开新会话**：改绑、组的定义改了都算
+- **手动开新会话**：`/新会话` 清掉默认组的会话，`/新会话 <组名>` 清掉那一组的；在做的那一轮做完照常发回
 
-{/* ref file="../plugins/qq-bot/src/dispatch/group-session.ts" lines="14-32" hash="3a567abfd36e" blob="df96b60d79d3" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/group-session.ts" lines="14-20" hash="43a3b8e8ba92" blob="1a863e70c7f2" */}
 
 设置 `idle-hours` 不是正数时派任务报错、这条不派出，不替它改值。定了开新会话就当场清掉旧的：派出失败以后上一条任务的时间已经刷新，不清的话下一条会接回旧会话：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="221-245" hash="c4b94c679ae8" blob="b57d400e44e3" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="219-244" hash="96b0cefa9249" blob="1bae6e1bce18" */}
 
-执行端没接着用交给它的会话、交回了另一个会话号，就算开了新会话，轮数从 1 数起。回执开头写组名，第二行是「会话 a1b2 · 第 3 轮」（会话号的末 4 位、这个会话的第几轮），手机上看得出是接着做还是新开的：
+claude-agent 没接着用交给它的会话、交回了另一个会话号，就算开了新会话，轮数从 1 数起。回执开头写组名，第二行是「会话 a1b2 · 第 3 轮 · 模型 glm」（会话号的末 4 位、这个会话的第几轮、claude-agent 交回的模型名，没选模型写「本机 Claude」），手机上看得出是接着做还是新开的、用的哪个模型：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="280-283" hash="9a1d9ac5281c" blob="b57d400e44e3" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="274-275" hash="6c70c1ab0747" blob="1bae6e1bce18" */}
 
-旧会话不能从 QQ 回去接着做：它们在 ZCode 或 Claude Code 里还看得到，要接着做就在电脑上接。
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="291-295" hash="6a3fde136fdc" blob="1bae6e1bce18" */}
+
+旧会话不能从 QQ 回去接着做：要接着做就在电脑上接。
 
 ## 一轮怎么走
 
 **入队**：收下消息、分发、进这一组的队列在同一步里做完（见[连接与收发](/docs/qq)的去重），然后让这一组往前走：没有在做的一轮就取下一条开一轮；有就回「上一条还在做，这条排在第 N 个」。
 
-**派出**：从这一组的队列取下一条，定下会话，记下本轮编号、发言人、执行端、工作区和触发消息，经执行端适配层的 `start` 派出，拿回会话号存进这一组的状态，回「已接收」。
-派出失败就把原话带组名回给私聊、这一轮作废、接着派这一组的下一条，不留「派出未确认」这种要人手工解除的状态——可能已经发出去了的，执行端的原话里会写，人去执行端看。
+**派出**：从这一组的队列取下一条，定下会话，记下本轮编号、发言人、工作区和触发消息，调 claude-agent 的 `create`（开新会话）或 `send`（接着用），拿回会话号和它那边的轮数存进这一轮，回「已接收」。
+没装 claude-agent、派出失败，都把原话带组名回给私聊、这一轮作废、接着派这一组的下一条，不留「派出未确认」这种要人手工解除的状态；接着用旧会话时失败，回复里提示发 `/新会话`：
 
-**提示词**：任务原文后面附三段：来源（QQ 私聊、发言人、任务组的称呼与工作区）、组的要求（组或绑定写了 `instructions` 才有，原样附上）、本轮回报说明。
-回报说明写的是 home 名，不写 MCP 服务名：每个 gwb MCP 服务的说明里都写着它连的是哪个 home，agent 照着选，两个 home 各自派出的任务不会报到另一个 home：
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="246-289" hash="4f8f01759a3f" blob="1bae6e1bce18" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="286-301" hash="e6b1a3e4b0bb" blob="b57d400e44e3" */}
+**提示词**：任务原文后面附三段：来源（QQ 私聊、发言人、任务组的称呼与工作区）、组的要求（组或绑定写了 `instructions` 才有，原样附上）、最后一条回复的写法（用 markdown 写给手机看、5000 字以内、不用另外调命令回报）：
 
-**回报**：本轮编号只用来对上是哪一轮，不当凭证，在所有私聊的所有组里找。同一轮同一段话重交回 `duplicate`，已经结束的轮次交来不同的话拒绝，超过 5000 字拒绝；回执先交回，发回 QQ 与开下一轮在后台做，agent 不用等自己的回报发完：
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="297-311" hash="ae8f9bbf0333" blob="1bae6e1bce18" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="324-340" hash="d13e5c2bbbbe" blob="b57d400e44e3" */}
+**等结束**：派出以后调 claude-agent 的 `waitRound` 等这一轮结束，拿回它的状态与最后一条回复。做完就把回复原样发回；没做完写「这一轮没有做完：原因」；回复是空的、等的时候出错也各回一句。同一轮只等一次；卸载以后等到的结果不再处理，留给重载后的那一份：
+
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="79-83" hash="f757fdff1fe1" blob="1bae6e1bce18" */}
+
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="313-329" hash="87489e43df4a" blob="1bae6e1bce18" */}
+
+**重载后接着等**：连上机器人、claude-agent 装上（包括它自己重载后）各调一次 `resumeWaiting`：聊天表里在做的每一轮按记下的会话号与轮数接着等；重载前还没拿到会话号的那一轮作废并告诉人，再开排队的下一条。claude-agent 自己重载时它那边在跑的一轮记成失败，等到的就是失败的原因：
+
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="331-345" hash="9e7c1b5f7342" blob="1bae6e1bce18" */}
+
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="98-106" hash="5a96b3d4c903" blob="20c8b227e0e7" */}
 
 **收尾**：结果开头写「【组名 · 第 N 轮】」，引用派出这一轮的那条消息；被动、主动都发不出去，连同要引用的消息 id 和组名记进这个私聊的没送达，等人发 `/状态` 补发。收尾后接着开这一组排队的下一条：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="303-320" hash="681ea3faa10d" blob="b57d400e44e3" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="347-363" hash="50b4344d5024" blob="1bae6e1bce18" */}
 
-**懒检查**：没有后台轮询。这一组这一轮还没回报，而人发了 `/状态` 或又往这一组发了一条消息时，才经适配层的 `check` 问一次执行端；做完了却没回报，就按「执行端这一轮已经结束，没有收到回报」收尾，附上最后的回答末尾 600 字，再开下一轮：
+**`/状态`**：有没送达的结果就只补发它们（被动回复用 `/状态` 这条的窗口，引用当初的任务）；没有就逐组报空闲，或在做第几轮、排队几条，在做的组附上 claude-agent 交回的最近一段回答末尾 300 字：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="185-207" hash="5ddcd7de6203" blob="b57d400e44e3" */}
-
-**`/状态`**：有没送达的结果就只补发它们（被动回复用 `/状态` 这条的窗口，引用当初的任务）；没有就逐组报空闲，或在做第几轮、排队几条，在做的组做一次懒检查，最新回答只给末尾 300 字。
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="437-446" hash="724a5ba0015f" blob="1bae6e1bce18" */}
 
 ## 直接命令
 
 插件注册命令名、一句说明和一个处理函数。处理函数拿到命令后面的正文和发消息的人的 openid，交回一段文字，按被动回复发回；不进队列、不开会话、不派给 agent。处理函数抛错时回「指令 /xxx 出错：原话」：
 
-{/* ref file="../plugins/qq-bot/src/api.ts" lines="48-62" hash="440c98fbc26b" blob="57a540937d16" */}
+{/* ref file="../plugins/qq-bot/src/api.ts" lines="46-60" hash="440c98fbc26b" blob="95de2ebe0a38" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="370-380" hash="384fabae2769" blob="b57d400e44e3" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="393-403" hash="384fabae2769" blob="1bae6e1bce18" */}
 
 ## 服务的两个注册方法
 
 `registerTaskGroup`、`registerCommand` 交回撤掉注册的函数，写法和 `gwbSkills.register` 一样：调用方包在 `ctx.effect` 里，插件卸载或重载时自动撤掉；撤掉旧注册不会撤掉之后同名的新注册。
-命令名不合规则、和已有命令重名、工作区不是已存在目录的绝对路径都当场抛异常；不检查执行端装没装，派任务时没装就把原因回给私聊。
+命令名不合规则、和已有命令重名、工作区不是已存在目录的绝对路径、带了认不出的键都当场抛异常；不检查 claude-agent 装没装，派任务时没装就把原因回给私聊。
 注册表放在服务上，QQ 还没连上时也能注册；注册、撤掉都通知监听者（`onChange`），装配据此排一次「/」指令面板的同步：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="69-101" hash="900616941b67" blob="d23387c0f04a" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="66-98" hash="900616941b67" blob="57372ee11366" */}
 
 注册方的插件包名从调用方的上下文里取，`qq-bot.group.list` 里标出来；取不到就不写。插件在聊天表读回之前注册了和命令登记的组同名的命令时，注册当下查不出重名：连上时日志记一行，派到这个命令的消息回重名、不派出：
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="185-189" hash="546b78ce018c" blob="46b54b586aa9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="176-180" hash="546b78ce018c" blob="20c8b227e0e7" */}
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="154-154" hash="38256210d620" blob="46b54b586aa9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="149-149" hash="85703327e9c9" blob="20c8b227e0e7" */}
 
 ## 命令
 
 | 命令 | 参数 | 做什么 |
 | --- | --- | --- |
-| `qq-bot.bind` | `{chat, workspace, title, agent?, instructions?}` | 设一个私聊的默认组：已存在的目录、装着的执行端（缺省 zcode），`instructions` 原样附进提示词 |
+| `qq-bot.bind` | `{chat, workspace, title, instructions?}` | 设一个私聊的默认组：已存在的目录，`instructions` 原样附进提示词 |
 | `qq-bot.unbind` | `{chat}` | 解除默认组的绑定；主人私聊解绑后仍按设置 `default-workspace` 派出 |
-| `qq-bot.group.add` | `{command, title, workspace, agent, instructions?, idleHours?}` | 登记一个任务组，存在聊天表里；执行端此刻必须装着。登记、删掉后都排一次「/」指令面板的同步 |
+| `qq-bot.group.add` | `{command, title, workspace, instructions?, idleHours?}` | 登记一个任务组，存在聊天表里。登记、删掉后都排一次「/」指令面板的同步 |
 | `qq-bot.group.remove` | `{command}` | 只删命令登记的组；插件注册的报错并写明来源 |
 | `qq-bot.group.list` | 无 | 全部任务组（默认组按各私聊的绑定列）与直接命令，标明来源 |
-| `qq-bot.report` | `{round, text}` | 执行任务的 agent 交这一轮的结果 |
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="228-264" hash="b6fc79e30caa" blob="e4c012ee678d" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="218-249" hash="703d5f19cb1f" blob="20c8b227e0e7" */}
 
 私聊在机器人收到它的第一条消息后才出现在 `qq-bot.status` 里，`bind` 用那里的 `id`（`c2c:<openid>`）。参数只收列出的键，多给、少给、空串都直接报错。
 绑定、改绑、解绑只看默认组：默认组还有在做或排队的任务时拒绝，别的组不受影响；改绑后默认组下一条开新会话：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="457-468" hash="f34ab6cbb5f7" blob="b57d400e44e3" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="479-490" hash="f34ab6cbb5f7" blob="1bae6e1bce18" */}
 
 删任务组在它任何私聊里还有在做或排队的任务时拒绝，删掉后各私聊里这一组的状态一起删：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="492-510" hash="c1c4f8a0fcc9" blob="b57d400e44e3" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="504-522" hash="c1c4f8a0fcc9" blob="1bae6e1bce18" */}
 
-## 执行端适配层
+## claude-agent 怎么接
 
-qq-bot 自己定两件事：`start` 开一轮、交回会话号；`check` 问一次做完没有、交回最后的回答。每个执行端一份实现，在对应的执行端服务出现时登记、消失时撤掉；接口私有，不与别的应用统一：
-
-{/* ref file="../plugins/qq-bot/src/dispatch/executors/executor.ts" lines="5-17" hash="9a1b60d04dec" blob="2914407123d2" */}
-
-ZCode 那份要的「这个工作区让 ZCode 打开过没有」由装配接到聊天表上，适配层不 import 聊天表：
-
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="104-110" hash="b3c4b36a6a59" blob="46b54b586aa9" */}
-
-Claude Code 那份翻译 `sessionId`、`status`、`text`：
-
-{/* ref file="../plugins/qq-bot/src/dispatch/executors/claudecode.ts" hash="55246b44ba95" blob="cffbea3f2763" */}
-
-ZCode 那份把 `taskId`、`roundIsOver`、`replies` 的最后一条翻译过来（只取回答末尾 600 字，ZCode 的回答里混着工具调用记录）。
-
-ZCode 侧栏的「项目」只列在 ZCode 里打开过的工作区，派到没打开过的工作区的会话在侧栏里找不到。所以 ZCode 那份开一轮之前先看聊天表里记没记过这个工作区：没记过就调 `gwbZcode.open` 让 ZCode 打开它（这一次会把 ZCode 窗口切过去），打开成功才记下，再建会话或接着发；记过的直接建会话或接着发，不再切窗口。`open` 失败按派出失败处理：原话回给私聊、这一轮作废、不记下，下次派到这里再打开一次。打开过的工作区记在哪见[聊天表](/docs/dispatch/chat-table)，为什么不每次都切见[每个工作区只打开一次](/trajectory/2026-10-08-zcode-open-workspace-once)：
-
-{/* ref file="../plugins/qq-bot/src/dispatch/executors/zcode.ts" hash="8351afbc93e5" blob="e778e5e1b4b3" */}
-
-执行端经 cordis 服务 inject，不按名字调命令。
+claude-agent 是可选注入：没装时 qq-bot 照常加载、能收消息、能回 `/帮助` 与直接命令，任务派不出去，回执写明装哪个插件。`qq-bot.status` 的 `claudeAgentInstalled` 看它此刻在不在。
+qq-bot 只用它服务上的四个方法：`create` / `send` 开一轮，`waitRound` 等这一轮结束，`status` 给 `/状态` 读进度。模型、token、轮数上限都是 claude-agent 的设置，换模型改那边的 `default-model`，不经 qq-bot；要从 QQ 换，就在 QQ 里发一条任务，让 agent 去改那项设置。
 
 ## 测试
 
-`tests/rounds.test.ts` 覆盖派出与回报、排队续会话、懒检查、派出失败、白名单、分发、任务组的登记与删除、两个组同时在做、`/新会话 组名`、空闲开新会话、直接命令、绑定、窗口外改主动消息、没送达补发、通知去重与重载、聊天表从第 1、2 版换成第 3 版；
-分发与命令名规则在 `tests/routing.test.ts`，会话选择在 `tests/group-session.test.ts`，注册表在 `tests/command-registry.test.ts`，面板里放哪些命令在 `tests/command-panel.test.ts`，ZCode 那份每个工作区只打开一次在 `tests/zcode-executor.test.ts`。
+`tests/rounds.test.ts` 用一个假的 claude-agent 覆盖派出与发回最后一条回复、失败与空回复、排队续会话、派出失败、没装 claude-agent、白名单、分发、任务组的登记与删除、两个组同时在做、`/新会话 组名`、空闲开新会话、直接命令、绑定、窗口外改主动消息、没送达补发、通知去重、重载后接着等与作废没派出的一轮、聊天表从第 1、2、3 版换成第 4 版；
+分发与命令名规则在 `tests/routing.test.ts`，会话选择在 `tests/group-session.test.ts`，注册表在 `tests/command-registry.test.ts`，面板里放哪些命令在 `tests/command-panel.test.ts`。
 
 ## 不做的事
 
-- **不轮询执行端**：只在人发 `/状态` 或这一组又来消息时问一次，见[按聊天重写](/trajectory/2026-10-07-rebuild-around-chats)
-- **不自动重发**：派出失败、执行端中断都把原话告诉人，由人决定要不要再派，见[按聊天重写](/trajectory/2026-10-07-rebuild-around-chats)
+- **不选执行端、不选模型**：一律交给 claude-agent，模型是它的设置，见[执行统一交给 claude-agent](/trajectory/2026-10-15-claude-agent-only)
+- **不让 agent 调命令回报**：等这一轮结束，直接取它的最后一条回复，见[去掉回报命令](/trajectory/2026-10-15-final-reply-instead-of-report)
+- **不自动重发**：派出失败、这一轮失败都把原话告诉人，由人决定要不要再派，见[按聊天重写](/trajectory/2026-10-07-rebuild-around-chats)
 - **不锁工作区**：两个组指向同一个目录也同时做，见[按命令分任务组](/trajectory/2026-10-08-slash-command-task-groups)
 - **不做前缀匹配、不设别名，以「/」开头的未知命令不派出**：拼错的命令当场报出来，见[按命令分任务组](/trajectory/2026-10-08-slash-command-task-groups)
 - **不从 QQ 回到旧会话**：在电脑上接，见[按命令分任务组](/trajectory/2026-10-08-slash-command-task-groups)
 - **不写和协作站有关的代码**：协作项目由协作站自己注册任务组，见[协作项目注册任务组](/trajectory/2026-10-08-collab-registers-project-groups)
-- **不解析 agent 回答的内容**：回报正文原样发回，最多 5000 字，超了让 agent 缩短
-- **不探测 ZCode 里还有没有这个项目**：打开过的工作区只增不减，人后来在 ZCode 里把项目移除了，之后派过去的会话又看不见，要在电脑上再打开一次，见[每个工作区只打开一次](/trajectory/2026-10-08-zcode-open-workspace-once)
+- **不解析 agent 回答的内容**：最后一条回复原样发回；提示词要求 5000 字以内，超了由连接与收发按 5000 字分段发

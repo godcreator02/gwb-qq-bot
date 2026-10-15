@@ -1,7 +1,7 @@
 {
   "name": "@godcreator/gwb-qq-bot",
-  "version": "0.7.10",
-  "description": "QQ 官方机器人的私聊入口：私聊里的任务按斜杠命令分到任务组，交给组的执行端（ZCode / Claude Code），agent 做完调 qq-bot.report 发回原私聊；服务 gwbQqBot 给别的插件主动私聊主人、注册任务组与直接命令。",
+  "version": "0.8.0",
+  "description": "QQ 官方机器人的私聊入口：私聊里的任务按斜杠命令分到任务组，交给 claude-agent 在组的目录里做，这一轮的最后一条回复原样发回原私聊；服务 gwbQqBot 给别的插件主动私聊主人、注册任务组与直接命令。",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -34,29 +34,24 @@
     "check": "pnpm run typecheck && pnpm run lint && pnpm run test"
   },
   "peerDependencies": {
-    "@godcreator/gwb-claudecode": "^0.4.0",
+    "@godcreator/gwb-claude-agent": "^0.1.2",
     "@godcreator/gwb-commands": "^0.6.0",
     "@godcreator/gwb-data": "^0.1.12",
     "@godcreator/gwb-kernel-desktop": "^0.10.1",
     "@godcreator/gwb-settings": "^0.4.0",
     "@godcreator/gwb-skills": "^0.4.13",
-    "@godcreator/gwb-zcode": "^0.4.0",
     "cordis": "^4.0.0-rc.10"
   },
   "peerDependenciesMeta": {
-    "@godcreator/gwb-claudecode": {
+    "@godcreator/gwb-claude-agent": {
       "optional": true
     },
     "@godcreator/gwb-skills": {
       "optional": true
-    },
-    "@godcreator/gwb-zcode": {
-      "optional": true
     }
   },
   "devDependencies": {
-    "@godcreator/gwb-claudecode": "^0.4.0",
-    "@godcreator/gwb-zcode": "^0.4.0",
+    "@godcreator/gwb-claude-agent": "^0.1.2",
     "@types/node": "^24.0.0",
     "cordis": "4.0.0-rc.10",
     "esbuild": "^0.28.2",

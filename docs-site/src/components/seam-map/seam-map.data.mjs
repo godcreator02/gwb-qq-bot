@@ -7,15 +7,6 @@ import { defineSeamGraph } from '@godcreator/docfirst-explainer/seam-graph';
 /** @type {import('@godcreator/docfirst-explainer/seam-graph').SeamModule[]} */
 const modules = [
   {
-    id: 'agent',
-    name: '执行任务的 agent',
-    pkg: '在执行端里',
-    role: null,
-    outside: true,
-    blurb: 'ZCode 或 Claude Code 里收到任务的 agent。任务说明末尾写着本轮编号和 home 名，做完自己经 gwb MCP 入口调 qq-bot.report 交回结果。',
-    caps: [{ id: 'agent-report', name: '交回本轮结果', ident: 'qq-bot.report' }],
-  },
-  {
     id: 'ds',
     name: '下游插件',
     pkg: '协作站、gitea-issues 等',
@@ -33,7 +24,7 @@ const modules = [
     pkg: 'src/index.ts · src/rounds.ts',
     role: 'slate',
     outside: false,
-    blurb: 'index.ts 是服务 gwbQqBot 的提供方：定义设置、注册 qq-bot.* 命令、建出网关与 REST、登记执行端，插件注册表也放在这里，没连上 QQ 也能注册。连上机器人以后由 rounds.ts 把三块接起来：入站私聊先过白名单再交给派任务，notify 交给通知。三块互不 import，只在这里汇合。',
+    blurb: 'index.ts 是服务 gwbQqBot 的提供方：定义设置、注册 qq-bot.* 命令、建出网关与 REST、可选注入 claude-agent，插件注册表也放在这里，没连上 QQ 也能注册。连上机器人以后由 rounds.ts 把三块接起来：入站私聊先过白名单再交给派任务，notify 交给通知。三块互不 import，只在这里汇合。',
     caps: [
       { id: 'service', name: '服务、命令与设置', ident: 'index.ts · GwbQqBot' },
       { id: 'rounds', name: '连上以后把三块接起来', ident: 'rounds.ts · Rounds' },
@@ -45,24 +36,23 @@ const modules = [
     pkg: 'src/dispatch/',
     role: 'violet',
     outside: false,
-    blurb: '私聊里的一条消息按斜杠命令分到任务组或直接命令；每个私聊的每个组各有会话与队列，一组一次一轮：入队、派给执行端、收回报、懒检查、发回结果、接着开下一轮。执行端适配层是本插件私有的。',
+    blurb: '私聊里的一条消息按斜杠命令分到任务组或直接命令；每个私聊的每个组各有会话与队列，一组一次一轮：入队、交给 claude-agent、等这一轮结束、把最后一条回复发回、接着开下一轮。',
     caps: [
       { id: 'registry', name: '插件注册的组与直接命令', ident: 'PluginCommandRegistry' },
       { id: 'routing', name: '一条消息分到哪', ident: 'routing.ts · routeMessage' },
       { id: 'chat-rounds', name: '任务组、会话、队列与一轮', ident: 'chat-rounds.ts · ChatRounds' },
-      { id: 'executors', name: '执行端适配层', ident: 'executors/ · Executor' },
     ],
   },
   {
     id: 'exec',
-    name: '执行端',
-    pkg: '两个插件',
+    name: 'claude-agent',
+    pkg: 'gwb-claude-agent',
     role: null,
     outside: true,
-    blurb: 'gwb-zcode 与 gwb-claudecode 各提供一个 cordis 服务。qq-bot 可选 inject：装着哪个，哪份适配实现才登记，卸掉自动撤掉。',
+    blurb: '经 Claude Agent SDK 在本机跑 agent 的插件，提供服务 gwbClaudeAgent。qq-bot 可选 inject：没装时任务派不出去。用哪个模型是它的设置 default-model，不归 qq-bot 管。',
     caps: [
-      { id: 'zc', name: 'ZCode', ident: 'gwbZcode' },
-      { id: 'cc', name: 'Claude Code', ident: 'gwbClaudecode' },
+      { id: 'ca-start', name: '开一轮', ident: 'create · send' },
+      { id: 'ca-wait', name: '等结束、读进度', ident: 'waitRound · status' },
     ],
   },
   {
@@ -136,7 +126,7 @@ const seams = [
     via: 'code',
     text: '插件保持一条出站长连接：心跳、断线按 1 秒起翻倍退避重连，能 Resume 的接着收。单聊事件和群事件在同一位里，群事件到了只记事件类型；同一条消息重推按消息 id 与序号去重。',
   },
-  /* ref file="../plugins/qq-bot/src/rounds.ts" lines="54-58" hash="80acb3401eab" blob="80fe8dc6f49c" */
+  /* ref file="../plugins/qq-bot/src/rounds.ts" lines="53-57" hash="80acb3401eab" blob="b6110e59a544" */
   {
     n: 2,
     name: '入站与白名单',
@@ -147,16 +137,16 @@ const seams = [
     via: 'code',
     text: '网关把解析好的私聊消息交给装配；装配先用连接与收发里的白名单过一道，名单外的静默拒绝、只记日志、最近被拒的 openid 和消息记录，通过的才交给派任务。连接与收发自己不 import 派任务。',
   },
-  /* ref file="../plugins/qq-bot/src/rounds.ts" lines="41-52" hash="a3f5f7caf161" blob="80fe8dc6f49c" */
+  /* ref file="../plugins/qq-bot/src/rounds.ts" lines="40-51" hash="acef7e81e903" blob="b6110e59a544" */
   {
     n: 3,
     name: '交给派任务与通知',
     a: ['rounds'],
     b: ['chat-rounds', 'notifier'],
-    iface: 'ChatRounds.handleAdmitted · report · bind · addGroup … ；OwnerNotifier.notify',
+    iface: 'ChatRounds.handleAdmitted · resumeWaiting · bind · addGroup … ；OwnerNotifier.notify',
     convention: false,
     via: 'code',
-    text: '装配连上机器人时建出派任务与通知两块，把聊天表、执行端表、插件注册表、消息记录和读设置的函数传进去；发消息的函数先经消息记录包一层再交给它们。命令与服务方法都经它转过去。两块互不 import。',
+    text: '装配连上机器人时建出派任务与通知两块，把聊天表、取 claude-agent 的函数、插件注册表、消息记录和读设置的函数传进去；发消息的函数先经消息记录包一层再交给它们。命令与服务方法都经它转过去。两块互不 import。',
   },
   /* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="24-36" hash="117d111a6ff6" blob="da543a94796c" */
   /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="47-51" hash="7aff9cc630ae" blob="806a680979b2" */
@@ -180,30 +170,21 @@ const seams = [
     via: 'code',
     text: '回执、结果、通知都从这里出去，一律按原生 markdown 发，手机上渲染。窗口与次数是平台的硬限制，插件只做选择；业务错误同时认 err_code 与 code。',
   },
-  /* ref file="../plugins/qq-bot/src/dispatch/executors/executor.ts" lines="8-17" hash="1322be235ac9" blob="2914407123d2" */
+  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="255-261" hash="1a67aa5163e0" blob="1bae6e1bce18" */
+  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="313-329" hash="87489e43df4a" blob="1bae6e1bce18" */
   {
     n: 6,
-    name: '派给执行端',
-    a: ['executors'],
-    b: ['zc', 'cc'],
-    iface: 'inject gwbZcode：open / create / send / status；inject gwbClaudecode：create / send / status',
+    name: '交给 claude-agent',
+    a: ['chat-rounds'],
+    b: ['ca-start', 'ca-wait'],
+    iface: 'inject gwbClaudeAgent：create / send 开一轮，waitRound 等它结束，status 给 /状态 读进度',
     convention: false,
     via: 'code',
-    text: '适配层把 qq-bot 自己要的两件事（start 开一轮、check 问做完没有）翻译成各执行端服务原样的方法。ZCode 那份第一次派到一个工作区时先 open，让会话出现在 ZCode 侧栏里。某个执行端插件改了服务方法，只动这里对应的那份实现。',
+    text: '派任务拿到会话号与轮数后调 waitRound 等这一轮结束，把它的最后一条回复原样发回私聊；agent 不用调任何命令回报。模型、token、轮数上限都是 claude-agent 的设置。重载后凭聊天表里记下的会话号与轮数接着等。',
   },
+  /* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="96c128331633" blob="95de2ebe0a38" */
   {
     n: 7,
-    name: '回报',
-    a: ['agent-report'],
-    b: ['service'],
-    iface: 'qq-bot.report { round, text }（经 gwb MCP 入口调命令）',
-    convention: false,
-    via: 'code',
-    text: 'agent 做完自己调。命令由装配注册、转给派任务：本轮编号只用来对上是哪一轮，不当凭证；回执先交回，发回 QQ 在后台做。',
-  },
-  /* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="d2352d37a281" blob="c44b0ca39f56" */
-  {
-    n: 8,
     name: '下游插件',
     a: ['ds-register', 'ds-notify'],
     b: ['service'],
@@ -212,9 +193,9 @@ const seams = [
     via: 'code',
     text: '服务 gwbQqBot 的四个方法就是给别的插件的全部接口。两个注册方法交回撤掉注册的函数，调用方包在 ctx.effect 里，插件卸载或重载时自动撤掉；参数不合规则当场抛异常。commandNameProblem 让调用方在注册之前按同一条规则校验命令名。',
   },
-  /* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="69-85" hash="a91aa77baae8" blob="d23387c0f04a" */
+  /* ref file="../plugins/qq-bot/src/dispatch/command-registry.ts" lines="66-82" hash="a91aa77baae8" blob="57372ee11366" */
   {
-    n: 9,
+    n: 8,
     name: '注册表在服务上',
     a: ['service'],
     b: ['registry'],
@@ -225,7 +206,7 @@ const seams = [
   },
   /* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="41-44" hash="90e6fe94b52c" blob="1b247976864d" */
   {
-    n: 10,
+    n: 9,
     name: '通知发主动消息',
     a: ['notifier'],
     b: ['rest'],
@@ -234,31 +215,31 @@ const seams = [
     via: 'code',
     text: '通知只 import 连接与收发的类型；真正发消息的函数由装配传进来：QqRestClient.sendC2c 经消息记录包过一层，发完记一条。通知不经回复窗口，一律是主动消息。',
   },
-  /* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="263-289" hash="22ba087acb83" blob="27e96639d11f" */
+  /* ref file="../plugins/qq-bot/src/storage/chat-table.ts" lines="299-335" hash="6d8dd152977d" blob="85ca3a3dcf0c" */
   {
-    n: 11,
+    n: 10,
     name: '共用聊天表',
     a: ['chat-rounds', 'notifier', 'gate', 'reply'],
     b: ['chat-table'],
     iface: 'ChatTable.serial(run) · save() · book',
     convention: false,
     via: 'code',
-    text: '派任务读写私聊行与命令登记的组，通知读写去重记录，连接与收发记近期消息 id 和被动回复用掉的次数。所有改表的操作经同一条串行队列；调执行端、发 QQ 消息在队列外面做，一个组慢不会卡住别的组。',
+    text: '派任务读写私聊行与命令登记的组，通知读写去重记录，连接与收发记近期消息 id 和被动回复用掉的次数。所有改表的操作经同一条串行队列；调 claude-agent、发 QQ 消息在队列外面做，一个组慢不会卡住别的组。',
   },
-  /* ref file="../plugins/qq-bot/src/index.ts" lines="131-131" hash="3f4db5b01f24" blob="46b54b586aa9" */
+  /* ref file="../plugins/qq-bot/src/index.ts" lines="127-127" hash="3f4db5b01f24" blob="20c8b227e0e7" */
   {
-    n: 12,
+    n: 11,
     name: '存盘',
     a: ['chat-table'],
     b: ['gwb-data'],
     iface: "gwbData.readDoc / writeDoc('chats-<AppID>')",
     convention: false,
     via: 'disk',
-    text: '整份表按 AppID 存成一份文档，记录里不写 home 与 AppID。读回时形状不对直接报错，读到第 1、2 版先迁成第 3 版。',
+    text: '整份表按 AppID 存成一份文档，记录里不写 home 与 AppID。读回时形状不对直接报错，读到旧版一版一版迁成第 4 版；旧版里有在做的一轮就报错停下。',
   },
-  /* ref file="../plugins/qq-bot/src/index.ts" lines="138-140" hash="226b180a9194" blob="46b54b586aa9" */
+  /* ref file="../plugins/qq-bot/src/index.ts" lines="134-136" hash="226b180a9194" blob="20c8b227e0e7" */
   {
-    n: 13,
+    n: 12,
     name: '消息记录',
     a: ['msglog'],
     b: ['gwb-msgfiles'],

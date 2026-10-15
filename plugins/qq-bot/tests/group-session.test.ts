@@ -4,23 +4,22 @@ import { emptyGroupState, type GroupState } from '../src/storage/chat-table.js'
 
 const HOUR = 60 * 60 * 1000
 const NOW = Date.parse('2026-10-08T12:00:00Z')
-const SESSION = { agent: 'zcode', workspace: 'D:\\work', id: 's-1', rounds: 2 }
-const GROUP = { agent: 'zcode', workspace: 'D:\\work' }
+const SESSION = { workspace: 'D:\\work', id: 's-1', rounds: 2 }
+const GROUP = { workspace: 'D:\\work' }
 
 function stateWith(lastTaskAgo: number | null, session = SESSION): GroupState {
   return { ...emptyGroupState(), session, lastTaskAt: lastTaskAgo === null ? null : new Date(NOW - lastTaskAgo).toISOString() }
 }
 
 describe('chooseSession', () => {
-  it('有会话、执行端与工作区没变、空闲没超过：接着用', () => {
+  it('有会话、工作区没变、空闲没超过：接着用', () => {
     expect(chooseSession(stateWith(5 * HOUR), GROUP, NOW, 6)).toEqual({ kind: 'reuse', session: SESSION })
     expect(chooseSession(stateWith(null), GROUP, NOW, 6)).toEqual({ kind: 'reuse', session: SESSION })
   })
 
-  it('没有会话、换了执行端、换了工作区：开新会话', () => {
+  it('没有会话、换了工作区：开新会话', () => {
     expect(chooseSession(emptyGroupState(), GROUP, NOW, 6)).toEqual({ kind: 'fresh' })
-    expect(chooseSession(stateWith(HOUR), { ...GROUP, agent: 'claudecode' }, NOW, 6)).toEqual({ kind: 'fresh' })
-    expect(chooseSession(stateWith(HOUR), { ...GROUP, workspace: 'D:\\other' }, NOW, 6)).toEqual({ kind: 'fresh' })
+    expect(chooseSession(stateWith(HOUR), { workspace: 'D:\\other' }, NOW, 6)).toEqual({ kind: 'fresh' })
   })
 
   it('空闲超过 idleHours：开新会话，带上时长给回执', () => {

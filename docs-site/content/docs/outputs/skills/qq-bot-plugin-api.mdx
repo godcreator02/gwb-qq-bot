@@ -8,7 +8,7 @@ description: 写或改一个要用 qq-bot 的插件时读：经服务 gwbQqBot �
 
 别的插件经服务 `gwbQqBot` 用 qq-bot，不按名字调 `qq-bot.*` 命令。服务的全部方法与参数：
 
-{/* ref file="../plugins/qq-bot/src/api.ts" hash="60d8927fafcf" blob="c44b0ca39f56" */}
+{/* ref file="../plugins/qq-bot/src/api.ts" hash="a4be2da34999" blob="95de2ebe0a38" */}
 
 ## 接上服务、注册
 
@@ -17,7 +17,7 @@ description: 写或改一个要用 qq-bot 的插件时读：经服务 gwbQqBot �
 
    ```ts
    ctx.inject(['gwbQqBot'], (scoped) => {
-     scoped.effect(() => scoped.gwbQqBot.registerTaskGroup({ command: '/mmc', title: '混合型 MMC 样机', workspace: 'D:\\…\\hybrid-mmc', agent: 'zcode' }))
+     scoped.effect(() => scoped.gwbQqBot.registerTaskGroup({ command: '/mmc', title: '混合型 MMC 样机', workspace: 'D:\\…\\hybrid-mmc' }))
    })
    ```
 
@@ -30,8 +30,8 @@ description: 写或改一个要用 qq-bot 的插件时读：经服务 gwbQqBot �
 
 ## 任务组还是直接命令
 
-- **要 agent 在目录里动手、要接着上次的会话**：`registerTaskGroup`。派出以后跟 `qq-bot.group.add` 登记的组一样排队、开会话；
-  结果由 agent 调 `qq-bot.report` 直接发回私聊，注册方拿不到
+- **要 agent 在目录里动手、要接着上次的会话**：`registerTaskGroup`。派出以后跟 `qq-bot.group.add` 登记的组一样排队、开会话，交给 claude-agent 做；
+  这一轮的最后一条回复直接发回私聊，注册方拿不到。定义里不写执行端、模型，带了认不出的键（比如 `agent`）当场抛异常
 - **答案当场算得出**：`registerCommand`。`handle` 交回的文字按被动回复发回，不排队、不派给 agent；抛错时原话回给私聊
 - 注册的命令自动进出手机私聊的「/」指令面板，不用另外调；面板放不下的命令照常能用，原因在 `qq-bot.status` 的 `panel.omitted`
 

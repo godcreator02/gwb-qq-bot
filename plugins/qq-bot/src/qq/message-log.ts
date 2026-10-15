@@ -12,7 +12,7 @@ import type { SendOutcome } from './qq-rest.js'
 export type OutboundKind =
   /** 收到任务时的即时回应：已接收、排在第几个 */
   | 'receipt'
-  /** 一轮的结果，包括执行端结束了却没回报时发回的最后回答 */
+  /** 一轮的结果：agent 的最后一条回复，或这一轮没做完的原因 */
   | 'result'
   /** /状态 补发的没送达的结果 */
   | 'resend'

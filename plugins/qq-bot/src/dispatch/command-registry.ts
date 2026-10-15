@@ -4,7 +4,6 @@
  */
 import type { DirectCommandDefinition, TaskGroupDefinition } from '../api.js'
 import { onlyKeys, optionalText, requireExistingDirectory, requireText } from './command-args.js'
-import { EXECUTOR_IDS } from './executors/executor.js'
 import { commandNameProblem } from './routing.js'
 
 export interface PluginTaskGroup {
@@ -24,7 +23,7 @@ export interface RegistrationContext {
   storedGroupCommands: string[]
 }
 
-const TASK_GROUP_KEYS = ['command', 'title', 'workspace', 'agent', 'instructions', 'idleHours']
+const TASK_GROUP_KEYS = ['command', 'title', 'workspace', 'instructions', 'idleHours']
 
 function requireCommandName(raw: Record<string, unknown>): string {
   const command = requireText(raw, 'command', '斜杠命令，如 /mmc')
@@ -33,15 +32,13 @@ function requireCommandName(raw: Record<string, unknown>): string {
   return command
 }
 
-/** 校验一个任务组的定义；不查执行端装没装、不查重名 */
+/** 校验一个任务组的定义；不查 claude-agent 装没装、不查重名 */
 export function parseTaskGroupDefinition(raw: unknown, where: string): TaskGroupDefinition {
   const args = onlyKeys(raw, where, TASK_GROUP_KEYS)
   const command = requireCommandName(args)
   const title = requireText(args, 'title', '回执里叫这个组的名字')
   const workspace = requireExistingDirectory(args, 'workspace')
-  const agent = requireText(args, 'agent', `执行端名 ${EXECUTOR_IDS.join(' / ')}`)
-  if (!(EXECUTOR_IDS as readonly string[]).includes(agent)) throw new Error(`agent 只能是 ${EXECUTOR_IDS.join('、')}，收到 ${agent}`)
-  const definition: TaskGroupDefinition = { command, title, workspace, agent: agent as TaskGroupDefinition['agent'] }
+  const definition: TaskGroupDefinition = { command, title, workspace }
   const instructions = optionalText(args, 'instructions', '附在任务说明里的要求')
   if (instructions !== undefined) definition.instructions = instructions
   const idleHours = args['idleHours']
