@@ -99,9 +99,10 @@ export class QqRestClient {
   }
 
   private async postSend(path: string, body: SendMessageBody): Promise<SendOutcome> {
+    // 单聊纯文本（msg_type 0）原样显示 markdown 符号，原生 markdown（msg_type 2）才渲染：probes/2610152150_c2c-markdown
     const response = await this.request('POST', path, {
-      msg_type: 0,
-      content: body.content,
+      msg_type: 2,
+      markdown: { content: body.content },
       msg_id: body.msgId,
       msg_seq: body.msgSeq,
       // 引用的消息取不到时照常发正文、只是不带引用：结果本身比引用要紧

@@ -1,0 +1,4 @@
+node compare.mjs（2026-10-15 21:41 本地时间，主动消息，同一段 markdown 各发一次）
+{"label":"A-纯文本 msg_type 0","http":200,"body":"{\"id\":\"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvFHCQBWok7SjRlmdHaVVZwQOe0jJ-hdft.QjFbsS7nYiL0TP.gR8GxqOrVN93gmbZA!!\",\"timestamp\":\"2026-10-15T21:41:21+08:00\",...}"}
+{"label":"B-原生 markdown msg_type 2","http":200,"body":"{\"id\":\"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvPTYyqPnlzedy4KW3B-VYWVg4nrHchUwOmp1K5AuvnKAGYZ2OW5uiKHo-BfkNwu24stG81ovPjw88HwjHppK6Gc!\",\"timestamp\":\"2026-10-15T21:41:22+08:00\",...}"}
+用户在 QQ 上看后的原话：「B 那条渲染出了 markdown，A 是原样的符号。」（没有逐项核对每种语法）

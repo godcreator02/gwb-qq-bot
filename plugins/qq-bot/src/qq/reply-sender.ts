@@ -4,7 +4,8 @@ import type { OutboundPurpose, SendC2c, SendPurpose } from './message-log.js'
 import type { QqLog } from './qq-protocol.js'
 import { chooseReplyRoute } from './reply-window.js'
 
-const SEGMENT_CHARS = 700
+/** 实测 5000 字的 markdown 一条完整显示；在代码块中间切开会坏掉渲染，所以段要尽量长 */
+const SEGMENT_CHARS = 5000
 
 /**
  * 把长回复切成能逐条发送的段：按行累积，放不下就出一段；单行超长才按字符硬切。

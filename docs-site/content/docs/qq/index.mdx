@@ -48,9 +48,9 @@ full: true
 
 {/* ref file="../plugins/qq-bot/src/qq/reply-window.ts" hash="9a3354b64365" blob="c063025593d7" */}
 
-`ReplySender.reply` 把一段话按行切成 700 字以内的几段（多段加「(i/n)」），每段重新选一次路：选了被动就先在聊天表里记一次、存盘再发，`msg_seq` 不会重复；被动发不出去改发一次主动消息；主动也发不出去回 false，由调用方记进没送达：
+`ReplySender.reply` 把一段话按行切成 5000 字以内的几段（实测 5000 字的 markdown 一条完整显示，回报与通知的上限都远小于它，平常不会分段；在代码块中间切开会让渲染出错）（多段加「(i/n)」），每段重新选一次路：选了被动就先在聊天表里记一次、存盘再发，`msg_seq` 不会重复；被动发不出去改发一次主动消息；主动也发不出去回 false，由调用方记进没送达：
 
-{/* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="46-64" hash="aa214ba2d732" blob="8455e3316792" */}
+{/* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="47-65" hash="aa214ba2d732" blob="806a680979b2" */}
 
 ### 引用原消息
 
@@ -61,9 +61,9 @@ full: true
 
 ### REST 与 access token
 
-{/* ref file="../plugins/qq-bot/src/qq/qq-rest.ts" lines="101-117" hash="3e2879db6b74" blob="3a4012a87ac1" */}
+{/* ref file="../plugins/qq-bot/src/qq/qq-rest.ts" lines="101-118" hash="887ba7f69d04" blob="db40ee860471" */}
 
-鉴权与业务接口用 `api.bot.qq.com`；设置 `sandbox` 为 true 时只兼容旧的 `sandbox.api.sgroup.qq.com`。私聊一律发纯文本（`msg_type: 0`），被动回复显式转成 `msg_id` / `msg_seq`；HTTP 200 里业务错误码非零也算失败，错误码同时认 `err_code` 与 `code`。
+鉴权与业务接口用 `api.bot.qq.com`；设置 `sandbox` 为 true 时只兼容旧的 `sandbox.api.sgroup.qq.com`。私聊一律发原生 markdown（`msg_type: 2`，正文放在 `markdown.content`）：纯文本（`msg_type: 0`）在手机上原样显示 `##`、反引号这些符号，原生 markdown 才渲染；路径里的反斜杠、下划线、星号实测不会显示错，见[私聊改发原生 markdown](/trajectory/2026-10-15-c2c-native-markdown)。被动回复显式转成 `msg_id` / `msg_seq`；HTTP 200 里业务错误码非零也算失败，错误码同时认 `err_code` 与 `code`。
 
 access token 提前 2 分钟刷新，几个请求同时要时共用一次换取；`qq-bot.reconnect` 时换一个代次，晚回来的旧请求不覆盖新缓存。官方回的 `expires_in` 是数字字符串，数字与字符串两种都收，这是照官方文档核对过的，不是放宽校验：
 
@@ -121,7 +121,7 @@ qq-bot 自己卸载、断开都不删面板：每次重载都删了重建，会�
 
 {/* ref file="../plugins/qq-bot/src/rounds.ts" lines="45-51" hash="a46bd8157429" blob="80fe8dc6f49c" */}
 
-**记什么**：每条有时间、方向、私聊 id（`c2c:<openid>`，和 `qq-bot.status` 的相同）与消息 id。入站记正文全文与分到哪；白名单外的只记正文前 40 字、标明被拒，不给探测者的话留全文。出站记正文全文、种类、组名与本轮编号（有的才有）、被动（挂在哪条消息上、`msg_seq`）还是主动、引用的消息、第几段、结果（成功带发出去的消息 id，失败带官方错误码与原话）：
+**记什么**：每条有时间、方向、私聊 id（`c2c:<openid>`，和 `qq-bot.status` 的相同）与消息 id。入站记正文全文与分到哪；白名单外的只记正文前 40 字、标明被拒，不给探测者的话留全文。出站记正文全文、种类、组名与本轮编号（有的才有）、被动（回复的是哪条消息、`msg_seq`）还是主动、引用的消息、第几段、结果（成功带发出去的消息 id，失败带官方错误码与原话）：
 
 {/* ref file="../plugins/qq-bot/src/qq/message-log.ts" lines="64-79" hash="1cbd47593834" blob="1b247976864d" */}
 

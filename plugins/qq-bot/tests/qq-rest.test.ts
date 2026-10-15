@@ -22,7 +22,7 @@ describe('QQ 官方 REST 请求', () => {
     expect(await rest.getAccessToken()).toBe('new-token')
     expect(fetcher).toHaveBeenCalledTimes(2)
   })
-  it('私聊发纯文本，携带被动回复字段', async () => {
+  it('私聊发原生 markdown，携带被动回复字段', async () => {
     const requests: { url: string; init: RequestInit }[] = []
     vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit) => {
       requests.push({ url, init })
@@ -36,7 +36,7 @@ describe('QQ 官方 REST 请求', () => {
     expect(JSON.parse(String(requests[0]?.init.body))).toEqual({ appId: 'test-app', clientSecret: 'test-secret' })
     expect(requests[1]?.url).toBe('https://api.bot.qq.com/v2/users/test-user/messages')
     expect(requests[1]?.init.headers).toMatchObject({ Authorization: 'QQBot test-token' })
-    expect(JSON.parse(String(requests[1]?.init.body))).toEqual({ msg_type: 0, content: 'hello', msg_id: 'incoming', msg_seq: 3 })
+    expect(JSON.parse(String(requests[1]?.init.body))).toEqual({ msg_type: 2, markdown: { content: 'hello' }, msg_id: 'incoming', msg_seq: 3 })
   })
 
   it.each(['err_code', 'code'])('保留官方 %s 错误码', async (field) => {

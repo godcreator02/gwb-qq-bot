@@ -65,7 +65,7 @@ export const qqGraph = defineSeamGraph({
       pkg: 'qq-rest.ts',
       role: 'cyan',
       outside: false,
-      blurb: 'access token 提前 2 分钟刷新，并发请求共用一次换取；reconnect 时换一个代次，晚回来的旧请求不覆盖新缓存。发消息一律纯文本，被动回复显式转成 msg_id、msg_seq。',
+      blurb: 'access token 提前 2 分钟刷新，并发请求共用一次换取；reconnect 时换一个代次，晚回来的旧请求不覆盖新缓存。发消息一律按原生 markdown（msg_type 2），被动回复显式转成 msg_id、msg_seq。',
       caps: [
         { id: 'rest-send', name: '发私聊', ident: 'sendC2c' },
         { id: 'rest-token', name: 'access token', ident: 'getAccessToken · resetAuth' },
@@ -78,7 +78,7 @@ export const qqGraph = defineSeamGraph({
       pkg: 'reply-sender.ts',
       role: 'violet',
       outside: false,
-      blurb: '给一个私聊发一段话：长的按行切成 700 字以内的几段（多段加序号），每段先在聊天表里记一次被动回复再发，被动发不出去改发主动消息，每段都引用同一条消息。调用方给的用途加上第几段，原样交给发消息的函数。',
+      blurb: '给一个私聊发一段话：长的按行切成 5000 字以内的几段（多段加序号），每段先在聊天表里记一次被动回复再发，被动发不出去改发主动消息，每段都引用同一条消息。调用方给的用途加上第几段，原样交给发消息的函数。',
       caps: [
         { id: 'snd-reply', name: '发一段回复', ident: 'ReplySender.reply' },
         { id: 'snd-split', name: '分段', ident: 'splitForSend' },
@@ -240,7 +240,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '派任务把分发与入队写在 onFirstDelivery 里，和建私聊行、记消息 id 在同一步里改表、一起存盘；网关重推的同一条消息回 null，不再派出。',
     },
-    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="46-50" hash="7aff9cc630ae" blob="8455e3316792" */
+    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="47-51" hash="7aff9cc630ae" blob="806a680979b2" */
     {
       n: 7,
       name: '回复',
@@ -262,7 +262,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '每一段都重新选一次：已用次数从聊天表现读，选了被动就当场记一次再发，msg_seq 不会重复。',
     },
-    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="66-74" hash="1d68b86648c4" blob="8455e3316792" */
+    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="67-75" hash="1d68b86648c4" blob="806a680979b2" */
     {
       n: 9,
       name: '发出去',
@@ -284,7 +284,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '主人通知不经回复窗口，也不引用消息，一律是主动消息；用途写明是通知与通知 id，消息记录里查得到。',
     },
-    /* ref file="../plugins/qq-bot/src/qq/qq-rest.ts" lines="101-117" hash="3e2879db6b74" blob="3a4012a87ac1" */
+    /* ref file="../plugins/qq-bot/src/qq/qq-rest.ts" lines="101-118" hash="887ba7f69d04" blob="db40ee860471" */
     {
       n: 11,
       name: 'REST 请求',
@@ -295,7 +295,7 @@ export const qqGraph = defineSeamGraph({
       via: 'code',
       text: '鉴权与业务接口用 api.bot.qq.com，设置 sandbox 为 true 时只兼容旧的 sandbox.api.sgroup.qq.com。HTTP 200 里业务错误码非零也算失败。回执里带 access_token，不进日志。',
     },
-    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="55-59" hash="51451182b316" blob="8455e3316792" */
+    /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="56-60" hash="51451182b316" blob="806a680979b2" */
     {
       n: 12,
       name: '记表',

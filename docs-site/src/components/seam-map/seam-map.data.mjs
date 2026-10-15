@@ -159,7 +159,7 @@ const seams = [
     text: '装配连上机器人时建出派任务与通知两块，把聊天表、执行端表、插件注册表、消息记录和读设置的函数传进去；发消息的函数先经消息记录包一层再交给它们。命令与服务方法都经它转过去。两块互不 import。',
   },
   /* ref file="../plugins/qq-bot/src/qq/incoming-gate.ts" lines="24-36" hash="117d111a6ff6" blob="da543a94796c" */
-  /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="46-50" hash="7aff9cc630ae" blob="8455e3316792" */
+  /* ref file="../plugins/qq-bot/src/qq/reply-sender.ts" lines="47-51" hash="7aff9cc630ae" blob="806a680979b2" */
   {
     n: 4,
     name: '派任务用收发',
@@ -175,10 +175,10 @@ const seams = [
     name: '发消息',
     a: ['rest'],
     b: ['qqc-api'],
-    iface: 'POST /v2/users/{openid}/messages：msg_type 0；被动回复带 msg_id、msg_seq；message_reference 引用原消息',
+    iface: 'POST /v2/users/{openid}/messages：msg_type 2，正文放 markdown.content；被动回复带 msg_id、msg_seq；message_reference 引用原消息',
     convention: false,
     via: 'code',
-    text: '回执、结果、通知都从这里出去，一律纯文本。窗口与次数是平台的硬限制，插件只做选择；业务错误同时认 err_code 与 code。',
+    text: '回执、结果、通知都从这里出去，一律按原生 markdown 发，手机上渲染。窗口与次数是平台的硬限制，插件只做选择；业务错误同时认 err_code 与 code。',
   },
   /* ref file="../plugins/qq-bot/src/dispatch/executors/executor.ts" lines="8-17" hash="1322be235ac9" blob="2914407123d2" */
   {

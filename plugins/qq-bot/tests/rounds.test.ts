@@ -647,15 +647,17 @@ describe('消息记录', () => {
     expect(results[1]).not.toHaveProperty('replyTo')
   })
 
-  it('分段发送的每段各记一条，标第几段', async () => {
+  it('回报上限以内的结果整条发出，不分段、不加序号', async () => {
     const { rounds, zcode, records } = setup()
     await rounds.handleIncoming(c2c('长任务'))
     const lines = ['一'.repeat(600), '二'.repeat(600), '三'.repeat(600)]
     await rounds.report({ round: roundIdOf(zcode.starts[0]!.prompt), text: lines.join('\n') })
     await flush()
     const results = (await records()).filter((record) => record.direction === 'out' && record.kind === 'result')
-    expect(results.map((record) => record.direction === 'out' && record.segment)).toEqual([{ index: 1, total: 3 }, { index: 2, total: 3 }, { index: 3, total: 3 }])
-    expect(results[2]).toMatchObject({ text: `(3/3) ${lines[2]}` })
+    expect(results.map((record) => record.direction === 'out' && record.segment)).toEqual([{ index: 1, total: 1 }])
+    const text = results[0]?.direction === 'out' ? results[0].text : ''
+    expect(text).toContain(lines.join('\n'))
+    expect(text).not.toMatch(/^\(1\//)
   })
 
   it('主人通知记种类 notice 与通知 id，主动消息', async () => {
