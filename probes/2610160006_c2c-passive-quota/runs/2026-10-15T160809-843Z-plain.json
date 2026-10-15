@@ -1,0 +1,46 @@
+{
+  "node": "v24.14.1",
+  "mode": "plain",
+  "records": [
+    {
+      "at": "2026-10-15T16:08:00.397Z",
+      "label": "P1",
+      "msgType": 2,
+      "msgSeq": 11,
+      "http": 200,
+      "body": "{\"id\":\"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvOOJeu0CS3foWkvg7K1uYJNFG0.3ethRZodanbWd9p4KUFOZLqlwBlTTauZ8B-iYhctG81ovPjw88HwjHppK6Gc!\",\"timestamp\":\"2026-10-16T00:08:00+08:00\",\"ext_info\":{\"ref_idx\":\"REFIDX_nB4Vq65f1E42FBSj+i5M+hFKxMexigsnLGq60OGAx7gbbG7eh8/nLe/7z+IhKJLu2f1uhNQq8f1rjZF1KIDVcjdym5m/dX8DBN257YrOkbvEFD0ztVqQnGdK4ATKIBUh\"}}"
+    },
+    {
+      "at": "2026-10-15T16:08:02.764Z",
+      "label": "P2",
+      "msgType": 2,
+      "msgSeq": 12,
+      "http": 200,
+      "body": "{\"id\":\"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvCv9LJtE5TmCe8CWsB1fAen6J275cmoIDFOPnD97or-LUFOZLqlwBlTTauZ8B-iYhctG81ovPjw88HwjHppK6Gc!\",\"timestamp\":\"2026-10-16T00:08:03+08:00\",\"ext_info\":{\"ref_idx\":\"REFIDX_2Ia8dcSbaYXii0yT4ut3whFKxMexigsnLGq60OGAx7gbbG7eh8/nLe/7z+IhKJLu2f1uhNQq8f1rjZF1KIDVcjdym5m/dX8DBN257YrOkbvEFD0ztVqQnGdK4ATKIBUh\"}}"
+    },
+    {
+      "at": "2026-10-15T16:08:04.623Z",
+      "label": "P3",
+      "msgType": 2,
+      "msgSeq": 13,
+      "http": 200,
+      "body": "{\"id\":\"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvDTVTzXSNfcdIM4ZOuPq8jOoDaLGKM44aY-3dbAkETVuUFOZLqlwBlTTauZ8B-iYhctG81ovPjw88HwjHppK6Gc!\",\"timestamp\":\"2026-10-16T00:08:04+08:00\",\"ext_info\":{\"ref_idx\":\"REFIDX_zU/XBmpFzNQ1YQSuFKIWLRFKxMexigsnLGq60OGAx7gbbG7eh8/nLe/7z+IhKJLu2f1uhNQq8f1rjZF1KIDVcjdym5m/dX8DBN257YrOkbvEFD0ztVqQnGdK4ATKIBUh\"}}"
+    },
+    {
+      "at": "2026-10-15T16:08:06.456Z",
+      "label": "P4",
+      "msgType": 2,
+      "msgSeq": 14,
+      "http": 200,
+      "body": "{\"id\":\"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvPm-0UjoFzzMPrcRB0k.CSDFhRsZ8J5HQMmMOwaM4w.NUFOZLqlwBlTTauZ8B-iYhctG81ovPjw88HwjHppK6Gc!\",\"timestamp\":\"2026-10-16T00:08:06+08:00\",\"ext_info\":{\"ref_idx\":\"REFIDX_6heX7MmBiWmCzSg145KnYBFKxMexigsnLGq60OGAx7gbbG7eh8/nLe/7z+IhKJLu2f1uhNQq8f1rjZF1KIDVcjdym5m/dX8DBN257YrOkbvEFD0ztVqQnGdK4ATKIBUh\"}}"
+    },
+    {
+      "at": "2026-10-15T16:08:08.340Z",
+      "label": "P5",
+      "msgType": 2,
+      "msgSeq": 15,
+      "http": 200,
+      "body": "{\"id\":\"ROBOT1.0_jnKq1cb6Wbqz4r7IeM0gvDw5hYQb-rvOaKY7-IYgso79Yxp6DoY0frDsJ48GM8H3UFOZLqlwBlTTauZ8B-iYhctG81ovPjw88HwjHppK6Gc!\",\"timestamp\":\"2026-10-16T00:08:08+08:00\",\"ext_info\":{\"ref_idx\":\"REFIDX_rIPBKWlOwBWuv2NXs6v50hFKxMexigsnLGq60OGAx7gbbG7eh8/nLe/7z+IhKJLu2f1uhNQq8f1rjZF1KIDVcjdym5m/dX8DBN257YrOkbvEFD0ztVqQnGdK4ATKIBUh\"}}"
+    }
+  ]
+}

@@ -65,48 +65,53 @@ full: true
 
 设置 `idle-hours` 不是正数时派任务报错、这条不派出，不替它改值。定了开新会话就当场清掉旧的：派出失败以后上一条任务的时间已经刷新，不清的话下一条会接回旧会话：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="219-244" hash="96b0cefa9249" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="220-245" hash="96b0cefa9249" blob="6a2e3cf91455" */}
 
-claude-agent 没接着用交给它的会话、交回了另一个会话号，就算开了新会话，轮数从 1 数起。回执开头写组名，第二行是「会话 a1b2 · 第 3 轮 · 模型 glm」（会话号的末 4 位、这个会话的第几轮、claude-agent 交回的模型名，没选模型写「本机 Claude」），手机上看得出是接着做还是新开的、用的哪个模型：
+claude-agent 没接着用交给它的会话、交回了另一个会话号，就算开了新会话，轮数从 1 数起。轮数与模型写在结果开头（见下面的「收尾」），不写在回执里：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="274-275" hash="6c70c1ab0747" blob="1bae6e1bce18" */}
-
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="291-295" hash="6a3fde136fdc" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="275-276" hash="6c70c1ab0747" blob="6a2e3cf91455" */}
 
 旧会话不能从 QQ 回去接着做：要接着做就在电脑上接。
 
 ## 一轮怎么走
 
-**入队**：收下消息、分发、进这一组的队列在同一步里做完（见[连接与收发](/docs/qq)的去重），然后让这一组往前走：没有在做的一轮就取下一条开一轮；有就回「上一条还在做，这条排在第 N 个」。
+**入队**：收下消息、分发、进这一组的队列在同一步里做完（见[连接与收发](/docs/qq)的去重），然后让这一组往前走：没有在做的一轮就取下一条开一轮；有就回「已接收，排在第 N 个」。
+回执第二行报这个私聊此刻在做几件、是哪几组、各组一共排队几条，如「现在在做 2 件（默认、mmc），排队 1 条」：一个 QQ 私聊里常有好几个组同时在做，看得出这一条前面还压着多少，见[回执改报任务数](/trajectory/2026-10-16-receipt-shows-workload)：
 
-**派出**：从这一组的队列取下一条，定下会话，记下本轮编号、发言人、工作区和触发消息，调 claude-agent 的 `create`（开新会话）或 `send`（接着用），拿回会话号和它那边的轮数存进这一轮，回「已接收」。
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="203-216" hash="062ce35ac93d" blob="6a2e3cf91455" */}
+
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="611-616" hash="6eeff621f7f9" blob="6a2e3cf91455" */}
+
+**派出**：从这一组的队列取下一条，定下会话，记下本轮编号、发言人、工作区和触发消息，调 claude-agent 的 `create`（开新会话）或 `send`（接着用），拿回会话号和它那边的轮数存进这一轮，回「已接收，开始做」，第二行同上；空闲超时开了新会话的再加一行「已开新会话（空闲超过 N 小时）」。
 没装 claude-agent、派出失败，都把原话带组名回给私聊、这一轮作废、接着派这一组的下一条，不留「派出未确认」这种要人手工解除的状态；接着用旧会话时失败，回复里提示发 `/新会话`：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="246-289" hash="4f8f01759a3f" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="247-292" hash="b1049f101459" blob="6a2e3cf91455" */}
+
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="294-298" hash="de0f218e9cd4" blob="6a2e3cf91455" */}
 
 **提示词**：任务原文后面附三段：来源（QQ 私聊、发言人、任务组的称呼与工作区）、组的要求（组或绑定写了 `instructions` 才有，原样附上）、最后一条回复的写法（用 markdown 写给手机看、5000 字以内、不用另外调命令回报）：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="297-311" hash="ae8f9bbf0333" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="300-314" hash="ae8f9bbf0333" blob="6a2e3cf91455" */}
 
 **等结束**：派出以后调 claude-agent 的 `waitRound` 等这一轮结束，拿回它的状态与最后一条回复。做完就把回复原样发回；没做完写「这一轮没有做完：原因」；回复是空的、等的时候出错也各回一句。同一轮只等一次；卸载以后等到的结果不再处理，留给重载后的那一份：
 
 {/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="79-83" hash="f757fdff1fe1" blob="1bae6e1bce18" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="313-329" hash="87489e43df4a" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="316-335" hash="fd18f882764a" blob="6a2e3cf91455" */}
 
 **重载后接着等**：连上机器人、claude-agent 装上（包括它自己重载后）各调一次 `resumeWaiting`：聊天表里在做的每一轮按记下的会话号与轮数接着等；重载前还没拿到会话号的那一轮作废并告诉人，再开排队的下一条。claude-agent 自己重载时它那边在跑的一轮记成失败，等到的就是失败的原因：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="331-345" hash="9e7c1b5f7342" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="337-351" hash="9e7c1b5f7342" blob="6a2e3cf91455" */}
 
 {/* ref file="../plugins/qq-bot/src/index.ts" lines="98-106" hash="5a96b3d4c903" blob="20c8b227e0e7" */}
 
-**收尾**：结果开头写「【组名 · 第 N 轮】」，引用派出这一轮的那条消息；被动、主动都发不出去，连同要引用的消息 id 和组名记进这个私聊的没送达，等人发 `/状态` 补发。收尾后接着开这一组排队的下一条：
+**收尾**：结果开头写「【组名 · 第 N 轮 · 模型】」，模型是 `waitRound` 交回的模型配置名，没选模型写「本机 Claude」；等的时候出错、重载前没派出去的那一轮不知道模型，就不写。结果引用派出这一轮的那条消息；被动、主动都发不出去，连同要引用的消息 id 和组名记进这个私聊的没送达，等人发 `/状态` 补发。收尾后接着开这一组排队的下一条：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="347-363" hash="50b4344d5024" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="353-370" hash="6229b30c8135" blob="6a2e3cf91455" */}
 
 **`/状态`**：有没送达的结果就只补发它们（被动回复用 `/状态` 这条的窗口，引用当初的任务）；没有就逐组报空闲，或在做第几轮、排队几条，在做的组附上 claude-agent 交回的最近一段回答末尾 300 字：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="437-446" hash="724a5ba0015f" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="444-453" hash="724a5ba0015f" blob="6a2e3cf91455" */}
 
 ## 直接命令
 
@@ -114,7 +119,7 @@ claude-agent 没接着用交给它的会话、交回了另一个会话号，就�
 
 {/* ref file="../plugins/qq-bot/src/api.ts" lines="46-60" hash="440c98fbc26b" blob="95de2ebe0a38" */}
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="393-403" hash="384fabae2769" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="400-410" hash="384fabae2769" blob="6a2e3cf91455" */}
 
 ## 服务的两个注册方法
 
@@ -145,11 +150,11 @@ claude-agent 没接着用交给它的会话、交回了另一个会话号，就�
 私聊在机器人收到它的第一条消息后才出现在 `qq-bot.status` 里，`bind` 用那里的 `id`（`c2c:<openid>`）。参数只收列出的键，多给、少给、空串都直接报错。
 绑定、改绑、解绑只看默认组：默认组还有在做或排队的任务时拒绝，别的组不受影响；改绑后默认组下一条开新会话：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="479-490" hash="f34ab6cbb5f7" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="486-497" hash="f34ab6cbb5f7" blob="6a2e3cf91455" */}
 
 删任务组在它任何私聊里还有在做或排队的任务时拒绝，删掉后各私聊里这一组的状态一起删：
 
-{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="504-522" hash="c1c4f8a0fcc9" blob="1bae6e1bce18" */}
+{/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="511-529" hash="c1c4f8a0fcc9" blob="6a2e3cf91455" */}
 
 ## claude-agent 怎么接
 

@@ -109,7 +109,7 @@ const MMC = { command: '/mmc', title: '混合型 MMC 样机', workspace: MMC_WOR
 const lastContent = (sent: { content: string }[]): string => sent.at(-1)!.content
 
 describe('一轮：派出、等结束、发回最后一条回复', () => {
-  it('主人私聊直接发的文字进默认组：提示词要求最后一条回复写 markdown、不调命令回报；回执带会话、轮数与模型；结果开头写组名与轮数', async () => {
+  it('主人私聊直接发的文字进默认组：提示词要求最后一条回复写 markdown、不调命令回报；回执写这个私聊在做几件、排队几条；结果开头写组名、轮数与模型', async () => {
     const { rounds, agent, sent, table } = setup()
     const message = c2c('把 README 的错别字改掉')
     await rounds.handleIncoming(message)
@@ -122,9 +122,9 @@ describe('一轮：派出、等结束、发回最后一条回复', () => {
     expect(prompt).toContain('5000 字以内')
     expect(prompt).not.toContain('qq-bot.report')
     expect(prompt).not.toContain('[任务组要求]')
-    expect(sent.at(-1)).toMatchObject({ content: '【默认】已接收，在「个人空间」里做，做完回你。\n会话 on-1 · 第 1 轮 · 模型 glm', msgId: message.msgId, msgSeq: 1, quote: message.msgId })
+    expect(sent.at(-1)).toMatchObject({ content: '【默认】已接收，开始做。\n现在在做 1 件（默认），排队 0 条', msgId: message.msgId, msgSeq: 1, quote: message.msgId })
     agent.finish(0, '## 改好了\n- 改了 3 处错别字')
-    await vi.waitFor(() => expect(sent.at(-1)).toMatchObject({ content: '【默认 · 第 1 轮】\n## 改好了\n- 改了 3 处错别字', msgId: message.msgId, msgSeq: 2, quote: message.msgId }))
+    await vi.waitFor(() => expect(sent.at(-1)).toMatchObject({ content: '【默认 · 第 1 轮 · glm】\n## 改好了\n- 改了 3 处错别字', msgId: message.msgId, msgSeq: 2, quote: message.msgId }))
     expect(table.find(OWNER_CHAT)?.groups['']?.round).toBeNull()
   })
 
@@ -132,10 +132,10 @@ describe('一轮：派出、等结束、发回最后一条回复', () => {
     const { rounds, agent, sent, table } = setup()
     await rounds.handleIncoming(c2c('第一件'))
     agent.finish(0, '到了轮数上限', 'failed')
-    await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认 · 第 1 轮】\n这一轮没有做完：到了轮数上限'))
+    await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认 · 第 1 轮 · glm】\n这一轮没有做完：到了轮数上限'))
     await rounds.handleIncoming(c2c('第二件'))
     agent.finish(1, '   ')
-    await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认 · 第 2 轮】\n这一轮做完了，但最后一条回复是空的。'))
+    await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认 · 第 2 轮 · glm】\n这一轮做完了，但最后一条回复是空的。'))
     agent.failWait = new Error('这条会话最新的是第 4 轮')
     await rounds.handleIncoming(c2c('第三件'))
     await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认 · 第 3 轮】\n等这一轮结束时出错：这条会话最新的是第 4 轮'))
@@ -147,13 +147,13 @@ describe('一轮：派出、等结束、发回最后一条回复', () => {
     await rounds.handleIncoming(c2c('第一件'))
     await rounds.handleIncoming(c2c('第二件'))
     expect(agent.starts).toHaveLength(1)
-    expect(lastContent(sent)).toBe('【默认】上一条还在做，这条排在第 1 个，做完自动开始。')
+    expect(lastContent(sent)).toBe('【默认】已接收，排在第 1 个。\n现在在做 1 件（默认），排队 1 条')
     agent.finish(0, '第一件做完')
     await vi.waitFor(() => expect(agent.starts).toHaveLength(2))
     expect(agent.starts[1]).toMatchObject({ session: 'agent-session-1' })
     expect(agent.starts[1]!.prompt).toMatch(/^第二件\n/u)
-    await vi.waitFor(() => expect(lastContent(sent)).toContain('会话 on-1 · 第 2 轮'))
-    expect(sent.some((each) => each.content === '【默认 · 第 1 轮】\n第一件做完')).toBe(true)
+    await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认】已接收，开始做。\n现在在做 1 件（默认），排队 0 条'))
+    expect(sent.some((each) => each.content === '【默认 · 第 1 轮 · glm】\n第一件做完')).toBe(true)
   })
 
   it('派单失败：原话带组名回给私聊，这一轮作废，下一条照常派；接着用旧会话失败时提示 /新会话', async () => {
@@ -166,7 +166,7 @@ describe('一轮：派出、等结束、发回最后一条回复', () => {
     await rounds.handleIncoming(c2c('再来'))
     expect(agent.starts).toHaveLength(1)
     agent.finish(0, '好了')
-    await vi.waitFor(() => expect(lastContent(sent)).toContain('第 1 轮】\n好了'))
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('第 1 轮 · glm】\n好了'))
     agent.failStart = new Error('不是本 home、这个工作区的 claude-agent 会话')
     await rounds.handleIncoming(c2c('第三件'))
     expect(lastContent(sent)).toBe('【默认】派单失败：不是本 home、这个工作区的 claude-agent 会话\n接着用的是会话 on-1；要换新会话就发 /新会话')
@@ -260,9 +260,9 @@ describe('任务组', () => {
     const prompt = agent.starts[0]!.prompt
     expect(prompt).toContain(`任务组「混合型 MMC 样机」。在工作区 ${MMC_WORKSPACE} 里做`)
     expect(prompt).toContain('[任务组要求]\n先读 skill collab\n')
-    expect(lastContent(sent)).toBe('【mmc】已接收，在「混合型 MMC 样机」里做，做完回你。\n会话 on-1 · 第 1 轮 · 模型 glm')
+    expect(lastContent(sent)).toBe('【mmc】已接收，开始做。\n现在在做 1 件（mmc），排队 0 条')
     agent.finish(0, '参数改好了')
-    await vi.waitFor(() => expect(sent.at(-1)).toMatchObject({ content: '【mmc · 第 1 轮】\n参数改好了', quote: task.msgId }))
+    await vi.waitFor(() => expect(sent.at(-1)).toMatchObject({ content: '【mmc · 第 1 轮 · glm】\n参数改好了', quote: task.msgId }))
   })
 
   it('两个组可以同时在跑，各自排队、各自结束', async () => {
@@ -272,13 +272,13 @@ describe('任务组', () => {
     await rounds.handleIncoming(c2c('/mmc 样机的事'))
     expect(agent.starts).toHaveLength(2)
     await rounds.handleIncoming(c2c('/mmc 样机的第二件事'))
-    expect(lastContent(sent)).toBe('【mmc】上一条还在做，这条排在第 1 个，做完自动开始。')
+    expect(lastContent(sent)).toBe('【mmc】已接收，排在第 1 个。\n现在在做 2 件（默认、mmc），排队 1 条')
     agent.finish(1, '样机做完')
     await vi.waitFor(() => expect(agent.starts).toHaveLength(3))
     expect(agent.starts[2]).toMatchObject({ session: 'agent-session-2', workspace: MMC_WORKSPACE })
-    expect(sent.some((each) => each.content === '【mmc · 第 1 轮】\n样机做完')).toBe(true)
+    expect(sent.some((each) => each.content === '【mmc · 第 1 轮 · glm】\n样机做完')).toBe(true)
     agent.finish(0, '日常做完')
-    await vi.waitFor(() => expect(sent.some((each) => each.content === '【默认 · 第 1 轮】\n日常做完')).toBe(true))
+    await vi.waitFor(() => expect(sent.some((each) => each.content === '【默认 · 第 1 轮 · glm】\n日常做完')).toBe(true))
   })
 
   it('group.add 的命令名不合规则、重名、目录不对、不认识的键（含已经删掉的 agent）都报错', async () => {
@@ -381,7 +381,7 @@ describe('会话', () => {
     await rounds.handleIncoming(c2c('/mmc 样机的第一件'))
     agent.finish(0, '好了')
     agent.finish(1, '好了')
-    await vi.waitFor(() => expect(sent.filter((each) => each.content.endsWith('第 1 轮】\n好了'))).toHaveLength(2))
+    await vi.waitFor(() => expect(sent.filter((each) => each.content.endsWith('第 1 轮 · glm】\n好了'))).toHaveLength(2))
     await rounds.handleIncoming(c2c('/新会话 mmc'))
     expect(lastContent(sent)).toBe('【mmc】下一条起用新会话；在做的这一轮做完照常发回。')
     await rounds.handleIncoming(c2c('/新会话 sst'))
@@ -391,7 +391,7 @@ describe('会话', () => {
     expect(agent.starts[2]).toMatchObject({ session: 'agent-session-1' })
     expect(agent.starts[3]).toMatchObject({ session: null })
     agent.finish(2, '好了')
-    await vi.waitFor(() => expect(lastContent(sent)).toContain('第 2 轮】\n好了'))
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('第 2 轮 · glm】\n好了'))
     await rounds.handleIncoming(c2c('/新会话'))
     expect(lastContent(sent)).toBe('【默认】下一条起用新会话；在做的这一轮做完照常发回。')
     await rounds.handleIncoming(c2c('默认的第三件'))
@@ -408,13 +408,13 @@ describe('会话', () => {
     vi.setSystemTime(new Date(Date.now() + 5 * HOUR))
     await rounds.handleIncoming(c2c('第二件'))
     expect(agent.starts[1]).toMatchObject({ session: 'agent-session-1' })
-    expect(lastContent(sent)).toContain('会话 on-1 · 第 2 轮')
+    expect(lastContent(sent)).toBe('【默认】已接收，开始做。\n现在在做 1 件（默认），排队 0 条')
     agent.finish(1, '好了')
-    await vi.waitFor(() => expect(lastContent(sent)).toContain('第 2 轮】\n好了'))
+    await vi.waitFor(() => expect(lastContent(sent)).toContain('第 2 轮 · glm】\n好了'))
     vi.setSystemTime(new Date(Date.now() + 7 * HOUR))
     await rounds.handleIncoming(c2c('第三件'))
     expect(agent.starts[2]).toMatchObject({ session: null })
-    expect(lastContent(sent)).toBe('【默认】已接收，在「个人空间」里做，做完回你。\n会话 on-3 · 第 1 轮 · 模型 glm\n已开新会话（空闲超过 6 小时）')
+    expect(lastContent(sent)).toBe('【默认】已接收，开始做。\n现在在做 1 件（默认），排队 0 条\n已开新会话（空闲超过 6 小时）')
   })
 
   it('组自己的 idleHours 优先于设置', async () => {
@@ -439,11 +439,12 @@ describe('会话', () => {
     expect(agent.starts).toHaveLength(0)
   })
 
-  it('模型由 claude-agent 定，回执写它交回的模型名；没选模型写「本机 Claude」', async () => {
+  it('模型由 claude-agent 定，结果开头写它交回的模型名；没选模型写「本机 Claude」', async () => {
     const { rounds, agent, sent } = setup()
     agent.model = null
     await rounds.handleIncoming(c2c('任务'))
-    expect(lastContent(sent)).toContain('· 模型 本机 Claude')
+    agent.finish(0, '好了')
+    await vi.waitFor(() => expect(lastContent(sent)).toBe('【默认 · 第 1 轮 · 本机 Claude】\n好了'))
   })
 })
 
@@ -457,7 +458,7 @@ describe('绑定', () => {
     expect(bound.binding).toEqual({ workspace: WORKSPACE, title: '混合型 MMC 样机', instructions: '改动先给人看' })
     await rounds.handleIncoming(c2c('改一下仿真参数', ALICE))
     expect(agent.starts[1]!.prompt).toContain('[任务组要求]\n改动先给人看')
-    expect(lastContent(sent)).toContain('【默认】已接收，在「混合型 MMC 样机」里做')
+    expect(lastContent(sent)).toBe('【默认】已接收，开始做。\n现在在做 2 件（sst、默认），排队 0 条')
     await expect(rounds.bind({ chat: `c2c:${ALICE}`, workspace: WORKSPACE, title: '别的' })).rejects.toThrow('默认组还有在做或排队的任务')
   })
 
@@ -505,7 +506,7 @@ describe('/状态 与没送达的结果', () => {
     await rounds.handleIncoming(task)
     vi.spyOn(Date, 'now').mockReturnValue(now + 61 * 60 * 1000)
     agent.finish(0, '长任务结果')
-    await vi.waitFor(() => expect(sent.at(-1)).toMatchObject({ content: '【默认 · 第 1 轮】\n长任务结果', msgId: undefined, msgSeq: undefined, quote: task.msgId }))
+    await vi.waitFor(() => expect(sent.at(-1)).toMatchObject({ content: '【默认 · 第 1 轮 · glm】\n长任务结果', msgId: undefined, msgSeq: undefined, quote: task.msgId }))
   })
 
   it('/状态 逐组报：在跑的组报第几轮与 claude-agent 交回的回答末尾，空闲的组报空闲；不收尾、不重开', async () => {
@@ -562,7 +563,7 @@ describe('通知与重载', () => {
     await second.table.settle()
     second.rounds.resumeWaiting()
     agent.finish(0, '重载后的结果')
-    await vi.waitFor(() => expect(lastContent(second.sent)).toBe('【mmc · 第 1 轮】\n重载后的结果'))
+    await vi.waitFor(() => expect(lastContent(second.sent)).toBe('【mmc · 第 1 轮 · glm】\n重载后的结果'))
     expect(first.sent.some((each) => each.content.includes('重载后的结果'))).toBe(false)
   })
 
@@ -595,7 +596,7 @@ describe('通知与重载', () => {
     await new Promise((resolve) => setTimeout(resolve, 20))
     expect(second.sent).toHaveLength(0)
     second.rounds.resumeWaiting()
-    await vi.waitFor(() => expect(lastContent(second.sent)).toBe('【默认 · 第 1 轮】\n结果'))
+    await vi.waitFor(() => expect(lastContent(second.sent)).toBe('【默认 · 第 1 轮 · glm】\n结果'))
   })
 })
 
@@ -614,7 +615,7 @@ describe('消息记录', () => {
       quote: task.msgId, segment: { index: 1, total: 1 }, msgId: 'sent', result: { ok: true },
     })
     expect(receipt!.direction === 'out' && receipt!.text).toContain('已接收')
-    expect(result).toMatchObject({ kind: 'result', group: '默认', round: roundId, text: '【默认 · 第 1 轮】\n改了 3 处', msgSeq: 2 })
+    expect(result).toMatchObject({ kind: 'result', group: '默认', round: roundId, text: '【默认 · 第 1 轮 · glm】\n改了 3 处', msgSeq: 2 })
     expect(Date.parse(inbound!.at)).not.toBeNaN()
   })
 

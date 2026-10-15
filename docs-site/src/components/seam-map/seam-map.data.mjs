@@ -170,8 +170,8 @@ const seams = [
     via: 'code',
     text: '回执、结果、通知都从这里出去，一律按原生 markdown 发，手机上渲染。窗口与次数是平台的硬限制，插件只做选择；业务错误同时认 err_code 与 code。',
   },
-  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="255-261" hash="1a67aa5163e0" blob="1bae6e1bce18" */
-  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="313-329" hash="87489e43df4a" blob="1bae6e1bce18" */
+  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="256-262" hash="1a67aa5163e0" blob="6a2e3cf91455" */
+  /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="316-335" hash="fd18f882764a" blob="6a2e3cf91455" */
   {
     n: 6,
     name: '交给 claude-agent',

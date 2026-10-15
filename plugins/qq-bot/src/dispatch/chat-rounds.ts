@@ -206,10 +206,11 @@ export class ChatRounds {
    */
   private async advance(chatId: string, key: string): Promise<string | null> {
     const state = await this.table.serial(async () => {
-      const group = this.table.require(chatId).groups[key]
-      return { busy: group?.round != null, queued: group?.queue.length ?? 0 }
+      const chat = this.table.require(chatId)
+      const group = chat.groups[key]
+      return { busy: group?.round != null, queued: group?.queue.length ?? 0, workload: workloadLine(chat) }
     })
-    if (state.busy) return `【${labelOf(key)}】上一条还在做，这条排在第 ${state.queued} 个，做完自动开始。`
+    if (state.busy) return `【${labelOf(key)}】已接收，排在第 ${state.queued} 个。\n${state.workload}`
     if (state.queued > 0) await this.startNext(chatId, key)
     return null
   }
@@ -273,8 +274,9 @@ export class ChatRounds {
     }
     // claude-agent 没接着用交给它的会话，就是开了新会话，轮数从 1 数起
     const turn = reusedSession !== null && started.sessionId === reusedSession ? round.turn : 1
-    await this.table.serial(async () => {
-      const state = this.table.groupState(this.table.require(chatId), key)
+    const workload = await this.table.serial(async () => {
+      const chat = this.table.require(chatId)
+      const state = this.table.groupState(chat, key)
       state.session = { workspace: round.workspace, id: started.sessionId, rounds: turn }
       if (state.round?.id === round.id) {
         state.round.session = started.sessionId
@@ -283,13 +285,14 @@ export class ChatRounds {
       }
       this.dispatching.delete(round.id)
       await this.table.save()
+      return workloadLine(chat)
     })
-    await this.replies.reply(target, trigger, this.receipt(group, started, turn, choice), { kind: 'receipt', group: group.label, round: round.id })
+    await this.replies.reply(target, trigger, this.receipt(group, choice, workload), { kind: 'receipt', group: group.label, round: round.id })
     this.waitAndClose(chatId, key, round.id, { workspace: round.workspace, sessionId: started.sessionId, round: started.round })
   }
 
-  private receipt(group: ResolvedGroup, started: ClaudeAgentStarted, turn: number, choice: SessionChoice): string {
-    const lines = [`【${group.label}】已接收，在「${group.title}」里做，做完回你。`, `会话 ${started.sessionId.slice(-4)} · 第 ${turn} 轮 · 模型 ${started.model ?? '本机 Claude'}`]
+  private receipt(group: ResolvedGroup, choice: SessionChoice, workload: string): string {
+    const lines = [`【${group.label}】已接收，开始做。`, workload]
     if (choice.kind === 'idle') lines.push(`已开新会话（空闲超过 ${choice.idleHours} 小时）`)
     return lines.join('\n')
   }
@@ -316,14 +319,17 @@ export class ChatRounds {
     this.waiting.add(roundId)
     const finish = async (): Promise<void> => {
       let text: string
+      let model: string | null | undefined
       try {
-        text = resultTextOf(await this.requireAgent().waitRound(input))
+        const ended = await this.requireAgent().waitRound(input)
+        text = resultTextOf(ended)
+        model = ended.model
       } catch (error) {
         text = `等这一轮结束时出错：${errorText(error)}`
       }
       // 卸载后由新的一份接着等，这里不再动聊天表
       if (this.disposed) return
-      this.track(this.closeRound(chatId, key, roundId, text))
+      this.track(this.closeRound(chatId, key, roundId, text, model))
     }
     void finish().finally(() => this.waiting.delete(roundId))
   }
@@ -344,8 +350,8 @@ export class ChatRounds {
     }))
   }
 
-  /** 收尾一轮并投递结果，再往前走；这一轮已经收过尾就什么都不做 */
-  private async closeRound(chatId: string, key: string, roundId: string, text: string): Promise<void> {
+  /** 收尾一轮并投递结果，再往前走；这一轮已经收过尾就什么都不做。model 是 claude-agent 交回的模型配置名（null 是本机 Claude），没等到这一轮结束时不知道，不写 */
+  private async closeRound(chatId: string, key: string, roundId: string, text: string, model?: string | null): Promise<void> {
     const closed = await this.table.serial(async () => {
       const chat = this.table.require(chatId)
       const state = chat.groups[key]
@@ -358,7 +364,8 @@ export class ChatRounds {
     })
     if (closed === null) return
     const label = labelOf(key)
-    await this.deliver(chatId, closed.target, closed.trigger, `【${label} · 第 ${closed.turn} 轮】\n${text}`, { group: label, text, quote: closed.trigger.msgId }, { kind: 'result', group: label, round: roundId })
+    const modelPart = model === undefined ? '' : ` · ${model ?? '本机 Claude'}`
+    await this.deliver(chatId, closed.target, closed.trigger, `【${label} · 第 ${closed.turn} 轮${modelPart}】\n${text}`, { group: label, text, quote: closed.trigger.msgId }, { kind: 'result', group: label, round: roundId })
     await this.advance(chatId, key)
   }
 
@@ -599,6 +606,13 @@ export class ChatRounds {
     while (this.workers.size > 0) await Promise.allSettled([...this.workers])
     await this.table.settle()
   }
+}
+
+/** 回执第二行：这个私聊里此刻在做几件、是哪几组，各组一共排队几条 */
+function workloadLine(chat: Chat): string {
+  const busyGroups = Object.entries(chat.groups).filter(([, state]) => state.round !== null).map(([key]) => labelOf(key))
+  const queued = Object.values(chat.groups).reduce((count, state) => count + state.queue.length, 0)
+  return `现在在做 ${busyGroups.length} 件${busyGroups.length === 0 ? '' : `（${busyGroups.join('、')}）`}，排队 ${queued} 条`
 }
 
 /** 一条收下的私聊在消息记录里写成分到哪；problem 是任务派不进组的原因 */

@@ -1,6 +1,6 @@
 {
   "name": "@godcreator/gwb-qq-bot",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "QQ 官方机器人的私聊入口：私聊里的任务按斜杠命令分到任务组，交给 claude-agent 在组的目录里做，这一轮的最后一条回复原样发回原私聊；服务 gwbQqBot 给别的插件主动私聊主人、注册任务组与直接命令。",
   "license": "MIT",
   "type": "module",

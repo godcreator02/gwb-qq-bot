@@ -78,9 +78,9 @@ export const checks = [
  * @type {{ id: string, label: string, message: string, path: [string, string][], result: string, reply: string, text: string }[]}
  */
 /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="185-201" hash="d668dffdf506" blob="1bae6e1bce18" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="291-295" hash="6a3fde136fdc" blob="1bae6e1bce18" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="294-298" hash="de0f218e9cd4" blob="6a2e3cf91455" */
 /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="137-139" hash="bc908f85b40a" blob="1bae6e1bce18" */
-/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="458-458" hash="81c78c829052" blob="1bae6e1bce18" */
+/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="465-465" hash="81c78c829052" blob="6a2e3cf91455" */
 /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="50-54" hash="ccfeea48248d" blob="4ba17a7cf705" */
 /* ref file="../plugins/qq-bot/src/dispatch/routing.ts" lines="61-61" hash="5e8ed20c9310" blob="4ba17a7cf705" */
 export const cases = [
@@ -90,8 +90,8 @@ export const cases = [
     message: '帮我看下今天的日志',
     path: [['slash', '不是']],
     result: 'default-task',
-    reply: '【默认】已接收，在「个人空间」里做，做完回你。\n会话 a1b2 · 第 3 轮 · 模型 glm',
-    text: '不以「/」开头，第一道就分完：进默认组的队列。默认组没有在做的一轮就马上派出，回执开头写组名，第二行是会话号末 4 位、这个会话的第几轮和用的模型。',
+    reply: '【默认】已接收，开始做。\n现在在做 1 件（默认），排队 0 条',
+    text: '不以「/」开头，第一道就分完：进默认组的队列。默认组没有在做的一轮就马上派出，回执开头写组名，第二行报这个私聊此刻在做几件、一共排队几条。',
   },
   {
     id: 'group',
@@ -99,7 +99,7 @@ export const cases = [
     message: '/mmc 把 DSP 的采样频率改成 20k',
     path: [['slash', '是'], ['reserved', '不是'], ['fresh', '不是'], ['registered', '任务组 /mmc'], ['body', '有']],
     result: 'group-task',
-    reply: '【mmc】已接收，在「混合型 MMC 样机」里做，做完回你。\n会话 9f3c · 第 1 轮 · 模型 glm',
+    reply: '【mmc】已接收，开始做。\n现在在做 2 件（默认、mmc），排队 0 条',
     text: '第一段 /mmc 是一个任务组的命令，后面的「把 DSP 的采样频率改成 20k」是任务正文，进 mmc 组自己的队列。mmc 组和默认组各排各的，可以同时在做。',
   },
   {

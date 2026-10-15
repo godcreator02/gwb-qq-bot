@@ -183,8 +183,8 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '开一轮时在串行队列里定下会话：定了开新会话就当场清掉旧的。空闲超时开的新会话，回执里写明空闲了多久。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="255-261" hash="1a67aa5163e0" blob="1bae6e1bce18" */
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="313-345" hash="c019023bf9d8" blob="1bae6e1bce18" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="256-262" hash="1a67aa5163e0" blob="6a2e3cf91455" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="316-351" hash="587942b11f91" blob="6a2e3cf91455" */
     {
       n: 7,
       name: 'claude-agent',
@@ -195,7 +195,7 @@ export const dispatchGraph = defineSeamGraph({
       via: 'code',
       text: '派出时开新会话调 create、接着用调 send，交回的会话号与轮数记进这一轮；然后调 waitRound 等它结束，最后一条回复原样发回。没装 claude-agent 时派出这一轮作废、原话回给私聊。重载后凭聊天表里记下的会话号与轮数接着等；还没拿到会话号的那一轮作废。',
     },
-    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="549-556" hash="2c18839d08c2" blob="1bae6e1bce18" */
+    /* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="556-563" hash="2c18839d08c2" blob="6a2e3cf91455" */
     {
       n: 8,
       name: '收发',
