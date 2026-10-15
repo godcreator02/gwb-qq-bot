@@ -5,7 +5,7 @@
 export interface GwbQqBotApi {
   /**
    * 发一条主动私聊。同一个 id 只发一次：再调回 duplicate，内容不同直接报错；发不出去（频控、主人关了主动消息）回 delivered: false，不重发。
-   * text 1–600 字。主人是设置 owner-openid，必须也在 allowed-openids 里；没配好时直接报错
+   * text 1–5000 字，按 markdown 渲染。主人是设置 owner-openid，必须也在 allowed-openids 里；没配好时直接报错
    */
   notify(id: string, text: string): Promise<{ delivered: boolean; duplicate: boolean }>
   /**

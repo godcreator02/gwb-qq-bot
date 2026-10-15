@@ -259,12 +259,12 @@ export default class GwbQqBot extends Service implements GwbQqBotApi {
     )
     commands.register(
       { name: 'qq-bot.report', description: '执行任务的 agent 做完后提交这一轮的结果，qq-bot 发回原私聊', effect: 'external',
-        usage: '{ round: string, text: string }。round 是任务说明里给的本轮编号；text 是给手机看的结果，1–2000 字，超了报错、缩短后用同一个编号再交。回 { recorded: true, duplicate }：recorded 表示已经记下，发回 QQ 在后台做（发不出去就记下，等人发 /状态 补发）。调用超时就用同样的参数再调一次；同一轮交不同的内容会被拒绝' },
+        usage: '{ round: string, text: string }。round 是任务说明里给的本轮编号；text 是给手机看的结果，按 markdown 渲染，1–5000 字，超了报错、缩短后用同一个编号再交。回 { recorded: true, duplicate }：recorded 表示已经记下，发回 QQ 在后台做（发不出去就记下，等人发 /状态 补发）。调用超时就用同样的参数再调一次；同一轮交不同的内容会被拒绝' },
       async (raw) => ({ ok: true, data: await this.requireRounds().report(raw) }),
     )
     commands.register(
       { name: 'qq-bot.notify', description: '主动私聊这台机器的主人一条通知，同一个 id 不重复发', effect: 'external',
-        usage: '{ id: string, text: string }。text 1–600 字；主人是设置 owner-openid，须在白名单里；发不出去不重发。回 { delivered, duplicate }' },
+        usage: '{ id: string, text: string }。text 1–5000 字，按 markdown 渲染；主人是设置 owner-openid，须在白名单里；发不出去不重发。回 { delivered, duplicate }' },
       async (raw) => {
         if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) throw new Error('qq-bot.notify 要 { id, text }')
         const args = raw as Record<string, unknown>

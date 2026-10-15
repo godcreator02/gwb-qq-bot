@@ -3,7 +3,7 @@ import type { QqLog } from '../qq/qq-protocol.js'
 import type { SendC2c } from '../qq/message-log.js'
 import type { ChatTable } from '../storage/chat-table.js'
 
-const NOTICE_MAX_CHARS = 600
+const NOTICE_MAX_CHARS = 5000
 
 export interface OwnerNotifierDeps {
   table: ChatTable

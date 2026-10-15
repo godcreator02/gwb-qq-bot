@@ -112,7 +112,7 @@ describe('一轮：派出、回报、发回', () => {
     await expect(rounds.report({ round: roundId, text: '做完了' })).resolves.toEqual({ recorded: true, duplicate: true })
     await expect(rounds.report({ round: roundId, text: '另一个结果' })).rejects.toThrow('已经结束')
     await expect(rounds.report({ round: 'r-000000000000', text: '结果' })).rejects.toThrow('不认识本轮编号')
-    await expect(rounds.report({ round: roundId, text: 'x'.repeat(2001) })).rejects.toThrow('最多 2000 字')
+    await expect(rounds.report({ round: roundId, text: 'x'.repeat(5001) })).rejects.toThrow('最多 5000 字')
     await expect(rounds.report({ round: roundId, text: '结果', state: 'completed' })).rejects.toThrow('不认识参数 state')
   })
 

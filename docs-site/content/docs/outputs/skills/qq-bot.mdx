@@ -15,7 +15,7 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 任务说明末尾有一段「[本轮回报]」，写着本轮编号和 home 名；有「[任务组要求]」一段的照它做。做完后：
 
 1. 找连到那个 home 的 gwb MCP 服务（每个服务的说明里写着「你连上的是 home「…」」），调 `run {"command":"qq-bot.report","args":{"round":"<本轮编号>","text":"<给手机看的结果>"}}`
-2. `text` 写给人在手机上看：做了什么、结果怎样、要人补什么信息，300 字以内；正文按 markdown 渲染，可以用列表、粗体、行内代码（上限 2000，超了会被拒，缩短后用同一个编号再交）
+2. `text` 写给人在手机上看：做了什么、结果怎样、要人补什么信息，300 字以内；正文按 markdown 渲染，可以用列表、粗体、行内代码（上限 5000，超了会被拒，缩短后用同一个编号再交）
 3. 一轮只报一次；调用超时就用同样的参数再调一次，别换内容
 
 **完成判据**：回执 `{ recorded: true }`。`duplicate: true` 表示这一轮已经记下过同样的结果。
@@ -110,4 +110,4 @@ agent 做完调 `qq-bot.report`，结果发回原私聊。只处理私聊：每�
 
 ## 主人通知
 
-`qq-bot.notify {"id":"…","text":"…"}` 主动私聊 `owner-openid`，正文最多 600 字，同一个 id 只发一次，发不出去不重发；回执 `delivered` 为 true 才是发出去了。插件里经服务 `gwbQqBot` 调 `notify`，见说明书 `qq-bot-plugin-api`。
+`qq-bot.notify {"id":"…","text":"…"}` 主动私聊 `owner-openid`，正文最多 5000 字、按 markdown 渲染，同一个 id 只发一次，发不出去不重发；回执 `delivered` 为 true 才是发出去了。插件里经服务 `gwbQqBot` 调 `notify`，见说明书 `qq-bot-plugin-api`。

@@ -36,7 +36,7 @@ full: true
 
 **8 下游插件**：别的插件 inject `gwbQqBot`。四个方法就是给它们的全部接口——`notify` 主动私聊主人，`registerTaskGroup` / `registerCommand` 注册任务组与直接命令，`commandNameProblem` 在注册之前按同一条规则校验命令名：
 
-{/* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="0216ac5808a4" blob="57a540937d16" */}
+{/* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="d2352d37a281" blob="c44b0ca39f56" */}
 
 **9 注册表在服务上**：插件注册的组与直接命令存在服务对象上，没配 AppID 时照样能注册，换机器人重连也不丢。注册表一变，装配就排一次同步，注册的命令自动出现在手机私聊的「/」指令面板里，见[连接与收发](/docs/qq)的「指令面板」。
 
@@ -107,7 +107,7 @@ full: true
 - **不自动重发**：派出失败、执行端中断都把原话告诉人，结果被动发不出去只改发一次主动消息，见[按聊天重写](/trajectory/2026-10-07-rebuild-around-chats)
 - **不锁工作区、不回到旧会话**：两个组指向同一个目录也同时做；旧会话要接着做就在电脑上接，见[按命令分任务组](/trajectory/2026-10-08-slash-command-task-groups)
 - **不做随手记**：在等日志插件提供追加的服务，见[路线](/future/roadmap)
-- **不做界面、不解析 agent 回答的内容**：状态经 `qq-bot.status` 查；回报正文原样发回，最多 2000 字
+- **不做界面、不解析 agent 回答的内容**：状态经 `qq-bot.status` 查；回报正文原样发回，最多 5000 字
 
 ## 这个站怎么分
 

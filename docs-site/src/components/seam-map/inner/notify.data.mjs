@@ -71,7 +71,7 @@ export const notifyGraph = defineSeamGraph({
   ],
   entries: [],
   seams: [
-    /* ref file="../plugins/qq-bot/src/api.ts" lines="6-10" hash="cca1aba051ff" blob="aa8532784480" */
+    /* ref file="../plugins/qq-bot/src/api.ts" lines="6-10" hash="4304cdac273d" blob="c44b0ca39f56" */
     {
       n: 1,
       name: '调用',
@@ -80,7 +80,7 @@ export const notifyGraph = defineSeamGraph({
       iface: 'notify(id, text) → { delivered, duplicate }；qq-bot.notify { id, text }',
       convention: false,
       via: 'code',
-      text: '服务方法与命令是同一个契约：正文 1–600 字，id 由调用方定，同一件事用同一个 id。命令只收 id、text 两个键。',
+      text: '服务方法与命令是同一个契约：正文 1–5000 字，id 由调用方定，同一件事用同一个 id。命令只收 id、text 两个键。',
     },
     /* ref file="../plugins/qq-bot/src/rounds.ts" lines="100-102" hash="24080ace3971" blob="80fe8dc6f49c" */
     {

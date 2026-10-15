@@ -61,7 +61,7 @@ interface NextRound {
   choice: SessionChoice
 }
 
-const MAX_REPORT_CHARS = 2000
+const MAX_REPORT_CHARS = 5000
 const REPLY_TAIL_CHARS = 600
 const PROGRESS_TAIL_CHARS = 300
 const NOT_BOUND = '这个私聊还没绑定工作区：请在 GWB 用 qq-bot.status 找到它，再用 qq-bot.bind 绑定。'

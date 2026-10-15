@@ -201,7 +201,7 @@ const seams = [
     via: 'code',
     text: 'agent 做完自己调。命令由装配注册、转给派任务：本轮编号只用来对上是哪一轮，不当凭证；回执先交回，发回 QQ 在后台做。',
   },
-  /* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="0216ac5808a4" blob="57a540937d16" */
+  /* ref file="../plugins/qq-bot/src/api.ts" lines="5-28" hash="d2352d37a281" blob="c44b0ca39f56" */
   {
     n: 8,
     name: '下游插件',

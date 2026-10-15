@@ -85,7 +85,7 @@ full: true
 
 {/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="286-301" hash="e6b1a3e4b0bb" blob="b57d400e44e3" */}
 
-**回报**：本轮编号只用来对上是哪一轮，不当凭证，在所有私聊的所有组里找。同一轮同一段话重交回 `duplicate`，已经结束的轮次交来不同的话拒绝，超过 2000 字拒绝；回执先交回，发回 QQ 与开下一轮在后台做，agent 不用等自己的回报发完：
+**回报**：本轮编号只用来对上是哪一轮，不当凭证，在所有私聊的所有组里找。同一轮同一段话重交回 `duplicate`，已经结束的轮次交来不同的话拒绝，超过 5000 字拒绝；回执先交回，发回 QQ 与开下一轮在后台做，agent 不用等自己的回报发完：
 
 {/* ref file="../plugins/qq-bot/src/dispatch/chat-rounds.ts" lines="324-340" hash="d13e5c2bbbbe" blob="b57d400e44e3" */}
 
@@ -132,7 +132,7 @@ full: true
 | `qq-bot.group.list` | 无 | 全部任务组（默认组按各私聊的绑定列）与直接命令，标明来源 |
 | `qq-bot.report` | `{round, text}` | 执行任务的 agent 交这一轮的结果 |
 
-{/* ref file="../plugins/qq-bot/src/index.ts" lines="228-264" hash="c447f90b6a27" blob="46b54b586aa9" */}
+{/* ref file="../plugins/qq-bot/src/index.ts" lines="228-264" hash="b6fc79e30caa" blob="e4c012ee678d" */}
 
 私聊在机器人收到它的第一条消息后才出现在 `qq-bot.status` 里，`bind` 用那里的 `id`（`c2c:<openid>`）。参数只收列出的键，多给、少给、空串都直接报错。
 绑定、改绑、解绑只看默认组：默认组还有在做或排队的任务时拒绝，别的组不受影响；改绑后默认组下一条开新会话：
@@ -178,5 +178,5 @@ ZCode 侧栏的「项目」只列在 ZCode 里打开过的工作区，派到没�
 - **不做前缀匹配、不设别名，以「/」开头的未知命令不派出**：拼错的命令当场报出来，见[按命令分任务组](/trajectory/2026-10-08-slash-command-task-groups)
 - **不从 QQ 回到旧会话**：在电脑上接，见[按命令分任务组](/trajectory/2026-10-08-slash-command-task-groups)
 - **不写和协作站有关的代码**：协作项目由协作站自己注册任务组，见[协作项目注册任务组](/trajectory/2026-10-08-collab-registers-project-groups)
-- **不解析 agent 回答的内容**：回报正文原样发回，最多 2000 字，超了让 agent 缩短
+- **不解析 agent 回答的内容**：回报正文原样发回，最多 5000 字，超了让 agent 缩短
 - **不探测 ZCode 里还有没有这个项目**：打开过的工作区只增不减，人后来在 ZCode 里把项目移除了，之后派过去的会话又看不见，要在电脑上再打开一次，见[每个工作区只打开一次](/trajectory/2026-10-08-zcode-open-workspace-once)
