@@ -13,7 +13,7 @@ description: 仓根 README.md 的正本
 
 仓是 pnpm workspace：**仓根是一个不发布的 private 包，自己没有代码**（`pnpm build` / `pnpm check`
 都递归到各成员包），插件放在 `plugins/qq-bot/`。包公开发在 npmjs（`publishConfig.registry` 写的源）：`devkit.release` 把包文件挂到 GitHub release 上，
-由仓根的 `.github/workflows/publish.yml` 经 trusted publishing 发出去。仓本身是 GitHub 上的私有仓 `godcreator02/gwb-qq-bot`：`probes/` 的实验记录里有真实机器人的 AppID 与 openid。
+由仓根的 `.github/workflows/publish.yml` 经 trusted publishing 发出去。仓是 GitHub 上的公开仓 `godcreator02/gwb-qq-bot`。`probes/` 的实验记录里，机器人的 AppID、群与用户的 openid 都换成了 `<APP_ID_A>`、`<OPENID_OWNER_A>` 这类占位符：重跑实验前，把 `input/` 里的占位符换成你自己机器人的值。
 
 ## 结构
 

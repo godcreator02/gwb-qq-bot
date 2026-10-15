@@ -12,7 +12,7 @@
 
 ## 结论
 
-原先权限拒绝的回报恢复成功，但原群触发窗口过期，保持 undelivered。新一轮 QQ 自然语言任务经同一原生 Claude 会话续聊，调用 qq-bot.report 后状态 completed、delivery=delivered；runs/2026-10-06T044333-725Z-run-claudecode.json 保存完整脱敏回执。最终 QQ 截图显示接单和结果都无白色 @前缀。该轮验证实际续聊；新建与续聊共同参数路径另有单元测试。
+原先权限拒绝的回报恢复成功，但原群触发窗口过期，保持 undelivered。新一轮 QQ 自然语言任务经同一原生 Claude 会话续聊，调用 qq-bot.report 后状态 completed、delivery=delivered；runs/2026-10-06T044333-725Z-run-claudecode.json 保存完整脱敏回执。最终 QQ 截图显示接单和结果都无白色 @前缀（截图侧栏里有其他会话，仓公开前已从全部 git 历史删除，这里只留结论）。该轮验证实际续聊；新建与续聊共同参数路径另有单元测试。
 
 ## 运行那次的环境
 

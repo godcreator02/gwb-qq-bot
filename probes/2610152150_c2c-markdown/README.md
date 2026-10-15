@@ -24,4 +24,4 @@ Node 24，无外部依赖。每次运行在 `runs/` 写一份 JSON（请求体�
 
 ## 运行那次的环境
 
-2026-10-15，Windows 11、Node v24；被测插件 @godcreator/gwb-qq-bot 0.7.8（仓提交 3312137）运行在 default home。
+2026-10-15，Windows 11、Node v24；被测插件 @godcreator/gwb-qq-bot 0.7.8（仓提交 19ba625）运行在 default home。

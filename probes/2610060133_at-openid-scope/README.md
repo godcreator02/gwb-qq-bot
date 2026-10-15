@@ -8,7 +8,7 @@
 
 Node.js 24，零第三方依赖。首行命令仅核对本目录保存的原始回执，不发消息。`node probe.mjs --live` 使用本目录 api.mjs 和 input/targets.json 向测试群各发一条四项对照消息；凭据从本机 home 运行时读取，AppID 必须匹配，可用 QQ_PROBE_HOMES_ROOT 指定 home 根目录。保存新增 runs 回执后，需要直接观察本轮 QQ 消息并另外保存截图，不能用 HTTP 200 判定 @ 生效。本实验不改接收范围。
 
-01-original-api.json 与 01-qq-window.png 为 01:33 实验的原始证据；当时脚本原文在 input/historical-script.txt，仅作溯源，不是独立入口。当前独立入口恢复同样的请求，新增自动鉴权记录；本次归档只执行了 --replay，没有把整理后的 --live 冒充已运行。截图为原始窗口截图，含侧栏其他会话，仅供本地核对，不要对外发布。
+01-original-api.json 与 01-qq-window.png 为 01:33 实验的原始证据；当时脚本原文在 input/historical-script.txt，仅作溯源，不是独立入口。当前独立入口恢复同样的请求，新增自动鉴权记录；本次归档只执行了 --replay，没有把整理后的 --live 冒充已运行。截图 01-qq-window.png 是原始窗口截图，侧栏里有其他会话，仓公开前已从全部 git 历史删除，这里只留结论。
 
 ## 结论
 

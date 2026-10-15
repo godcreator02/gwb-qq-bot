@@ -1,0 +1,23 @@
+---
+born-at: 2026-10-15T22:40
+type: choice
+parent: [2026-10-05-gwb-qq-bot-root]
+label: 源码仓改公开
+domain: 发布
+---
+
+## 背景
+
+0.7.8 起包公开发在 npmjs，GitHub 仓 `godcreator02/gwb-qq-bot` 却保持私有，理由是 `probes/` 的实验记录里有真实机器人的 AppID 与 openid。用户问：「qqbot应该改公共上npm啊，咋还是private的」，决定把仓也改成公开。
+
+## 结论与边界
+
+公开之前用 git filter-repo 改写了全部历史：删掉 4 张 QQ 窗口截图（侧栏里有别人的昵称、群名和聊天预览），把 2 个机器人 AppID、2 个群 openid、6 个用户 openid 换成 `<APP_ID_A>`、`<GROUP_OPENID_A>`、`<OPENID_OWNER_A>` 这类占位符，然后强推分支与发版标签，再把仓设成公开。用户问过「appid和openid干嘛留着」以后，定下一起换掉。
+
+代价：所有提交号都变了，轨迹卡与 probes 里写的旧提交号不再对得上；probes 重跑前要把 `input/` 里的占位符换成自己机器人的值；截图只剩 README 里的文字结论。官方文档示例里的 AppID、openid（`input/official-pages.json` 等）和测试里编的假值不是这台机器的数据，没有换。
+
+边界：GitHub 上旧提交在仓私有期间可能被缓存，按提交号仍可能访问到；只扫了这台机器上各 home 的凭据原文和常见密钥格式，没有找到任何密钥。
+
+## 依据
+
+改写前完整镜像备份在会话临时目录，改写后核对：10 个值在全部历史（含提交说明）里都是 0 处，历史里没有 `.png`。扫描用的是本机各 home 的 credentials.json 原文比对与 GitHub、npm token、access_token、私钥等格式，无证据目录（扫描脚本含读取凭据的逻辑，没有进仓）。
