@@ -1,0 +1,29 @@
+---
+born-at: 2026-10-11T12:00
+type: evidence
+parent: [2026-10-05-gwb-qq-bot-root]
+label: 三家 agent 的渠道能力
+domain: 派任务
+---
+
+## 背景
+
+到 10-11 为止，QQ 私聊派出的任务要 agent 做完后自己调 `qq-bot.report` 回报。想换成另一种做法：QQ 和电脑上的同一个 agent 会话共用上下文，
+agent 正常回答就自动回到 QQ。动手前先查 Claude Code、Codex、ZCode 三家各自开放了什么。
+
+## 结论与边界
+
+三家都没有现成的、能自定义成 QQ 的渠道。「恢复同一份历史」「接进同一个正在运行的会话」「普通回答自动转发」是三种不同的能力，要分开看：
+
+- Claude Code 的 Channels 协议能把消息推进运行中的会话，但回到渠道仍要模型调用 `reply` 工具，不是自动转发；本地未批准的渠道要带开发参数重启并人工确认，`-p` 和 Agent SDK 会忽略这个参数。程序要自动拿到普通回答，用 Agent SDK 自己托管运行时更合适
+- Codex 的 App Server 最贴近要求：桥接程序发 `turn/start`、读回答事件就能转到 QQ，模型不用认识 QQ；但接管桌面应用里任意一个现有聊天还没有证据，App Server 本身也标着实验性
+- ZCode 有内置的 Bot Channel 和 Remote Control，没找到给第三方注册自定义渠道的接口
+
+边界：只查了官方文档、官方源码和本机只读命令，没有做真实的 QQ 收发测试。
+
+后续：10-15 改成了「交给 claude-agent，等这一轮结束，把最后一条回复发回私聊」，见卡[去掉回报命令，发回最后一条回复](2026-10-15-final-reply-instead-of-report.md)。
+它用的正是 Agent SDK 托管运行时这条路，不接人在电脑上开着的会话。
+
+## 依据
+
+`probes/2610111200_agent-channel-research/report.md` 与 `notes/` 下三份笔记，每段末尾列着出处链接。
