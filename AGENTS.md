@@ -26,14 +26,14 @@ gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`）：QQ 官方机器人�
 
 ## QQ 官方文档
 
-- 文档首页：https://bot.q.qq.com/wiki/ ；管理端（配机器人、白名单）：https://q.qq.com
-- 指令面板（`src/qq/command-panel.ts` 自动同步）：总览 https://bot.q.qq.com/wiki/develop/api-v2/server-inter/menu-panel/ ；各接口在 https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/ 下的 `v2_panels.get.html`、`v2_panels.post.html`、`v2_panels_panel_id.get.html`、`v2_panels_panel_id.put.html`、`v2_panels_panel_id.delete.html`、`v2_panels_panel_id_target.put.html`
-- 获取 access token：https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html
-- WebSocket 网关：https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html
-- 消息收发规则（被动回复窗口、主动消息限额）：https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/overview.html
-- 单聊消息事件：https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html
-- 发送单聊消息：https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html
-- 接口变更记录：https://bot.q.qq.com/wiki/develop/api-v2/changelog.html
+- 文档首页：`https://bot.q.qq.com/wiki/` ；管理端（配机器人、白名单）：`https://q.qq.com`
+- 指令面板（`src/qq/command-panel.ts` 自动同步）：总览 `https://bot.q.qq.com/wiki/develop/api-v2/server-inter/menu-panel/` ；各接口在 `https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/` 下的 `v2_panels.get.html`、`v2_panels.post.html`、`v2_panels_panel_id.get.html`、`v2_panels_panel_id.put.html`、`v2_panels_panel_id.delete.html`、`v2_panels_panel_id_target.put.html`
+- 获取 access token：`https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html`
+- WebSocket 网关：`https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html`
+- 消息收发规则（被动回复窗口、主动消息限额）：`https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/overview.html`
+- 单聊消息事件：`https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html`
+- 发送单聊消息：`https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html`
+- 接口变更记录：`https://bot.q.qq.com/wiki/develop/api-v2/changelog.html`
 
 ## 怎么构建与验证
 
@@ -42,6 +42,6 @@ gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`）：QQ 官方机器人�
 - 隔离 home 验证：`devkit.dev {"home":"<home 名>","dir":"<仓根>","packages":["plugins/qq-bot"]}`，同一个 home 里装上 gwb-claude-agent 并配好一份模型
 - 端到端实测要有测试机器人、claude-agent 配好模型，步骤读 skill「qq-bot」；派出的测试任务只做无害的事
 - 发版 `devkit.release`，升版本号前读 skill「gwb-release」
-- 文档站在 `docs-site/`：改 mdx 正本后 `pnpm doc:render`；看页面用 `pnpm dev`，`pnpm build` 只在交付前做一次检查
+- 文档站在 `docs-site/`：改 mdx 正本后 `pnpm doc:render`；开发服务由工作台托管（`docsite.site.add`，地址看 `docsite.site.list`），`pnpm build` 只在交付前做一次检查
 
 写插件读 skill「gwb-devkit」，写文档读「docs-writing」，钉码核对与确认读「docs-site」，记轨迹读「trajectory」。

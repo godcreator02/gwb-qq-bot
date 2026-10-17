@@ -1,0 +1,39 @@
+---
+born-at: 2026-10-17T11:28
+type: choice
+parent: [2026-10-05-gwb-qq-bot-root]
+label: 文档站迁到 god-docsite
+domain: 文档站
+---
+
+## 背景
+
+docs-site 原来是 Next 16 + `@godcreator/docfirst-workflow` 0.5.6 + `@godcreator/docfirst-explainer` 0.1.1：路由、搜索、llms 文本、星轨盘都是站里手写的 Next 文件（`src/app/`），
+组件靠全局组件表（`src/components/registry.ts` + `mdx.tsx`，`scripts/verify-roster.mjs` 核对名册两边一致），看页面要自己 `pnpm dev`（端口 4337）。
+平台换成 `@godcreator/god-docsite`（fumadocs + React Router + Vite）加功能包 code-pin、trajectory、explainer，命令行换成 `@godcreator/docfirst` 0.1.0，
+开发服务由工作台的 `docsite.site.*` 托管。照 god-docsite 维护页「Next docfirst 站迁到平台」迁过来，先例是 gwb-vscode、gwb-windows-backup、gwb-gitea 等七个站。
+
+## 结论与边界
+
+- 骨架用 `docfirst.create` 在 `D:\gwb-docfirst-migrate\gwb-qq-bot\docs-site` 生成，`app/`、根配置（vite / react-router / source.config / tsconfig / .gitignore / pnpm-workspace / 锁文件）、
+  身份文件 `docsite.json`、`people.json`、`glossary.json`、`comments/` 整份换进 docs-site；`package.json` 的依赖与脚本照骨架，名字、版本、描述保留
+- 轨迹卡从 `content/trajectory/` 挪到站点根 `trajectory/`，旧的 `meta.json` 删掉；`content/meta.json` 写站名，docs、future 两区加 `title` 与 `"root": true`
+- 四个组件按用处分放：接缝图 `SeamMap` 由入口页与三个模块页共用，放 `content/docs/_shared/seam-map/`；`MessageRouting` 只给一条消息分到哪那页用，
+  放页面同名文件夹 `dispatch/routing/`；`RegistrationLife` 用在生成正本 `outputs/skills/qq-bot-plugin-api.mdx` 里，放它的同名文件夹；
+  `mdx.tsx` 里自定义的 `Note` 全站没有页面用过，随 Next 文件一起删掉。页面开头 import 组件，数据文件旁补 `.d.mts`
+- 讲解组件包换成 `@godcreator/explainer`（组件、cap、SeamLayout 从 `./site` 取，defineSeamGraph 从 `.` 取）。两个组件的样式本来就在组件旁
+  （只用包给的 `--dx-*` 变量），改成组件自己 import；接缝图没有自定义样式，旧站 `global.css` 里没有站内自定义的颜色段要挪
+- **生成正本里的组件不能带 import**（doc-export 对 import / export 拒绝生成，正本里 `<RegistrationLife />` 只靠名册换机读文字），
+  而新站网页渲染站里组件又必须可解析：把 `RegistrationLife` 挂进 `app/lib/mdx-components.tsx` 的全局组件表，网页与生成两边都成立。
+  七个先例站的生成正本都没用过组件，这是第一次；SKILL.md 逐字没变，说明机读规则的接线没受影响
+- `docfirst.config.mjs` 改成 `fumadocsRoster: true`、`trajectory: 'trajectory'`、名册加 `Term`，RegistrationLife 的规则跟着组件换路径，SKILL.md 的映射照旧
+- 生成物：AGENTS 正本里 QQ 官方文档的裸网址全部放进反引号（doc-export 0.1.0 会把裸网址写成链接、紧跟全角标点时连标点一起写进链接文字），
+  「看页面用 pnpm dev」改成工作台托管；qq-bot 的 SKILL.md 只有方括号转义（`\[QQ 任务来源]`）与一处空行的差异，读出来一样；
+  README、CLAUDE、qq-bot-plugin-api 的 SKILL.md 逐字没变
+- `pnpm doc` 全绿，`pnpm typecheck`、`pnpm build` 通过，`docsite.site.start` 后首页、各区第一页、卡页、`/llms.txt` 都是 200
+
+## 代价与遗留
+
+- 旧站 `global.css` 里 `@theme` 设的更纱黑体没有带过来，迁过来用平台默认字体（维护页写明的平台已知差异）
+- 页面 frontmatter 里的 `full: true` 不再生效（平台页面组件不交给 fumadocs 的 DocsPage），各页正文旁有目录栏；平台的事，迁移时不改页面
+- 术语表是手写的 `content/docs/glossary.mdx` 页面，不用术语标注，`glossary.json` 是空数组

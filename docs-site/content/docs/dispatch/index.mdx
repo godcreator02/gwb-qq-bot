@@ -4,6 +4,8 @@ description: 私聊里的一条消息按斜杠命令分到任务组或直接命�
 full: true
 ---
 
+import { SeamMap } from '../_shared/seam-map/seam-map'
+
 源码在 `plugins/qq-bot/src/dispatch/`。方向是人 → 工作台 → agent → 人：私聊里的一句话交给 claude-agent 在某个任务组的目录里做，这一轮结束后把 agent 的最后一条回复发回原私聊。
 `chat-rounds.ts` 是中心，别的文件是它用的纯函数（分发、会话选择、参数校验）和插件注册表。它只经连接与收发导出的函数收发消息，不 import 通知。
 连接与收发不认识任务组：收下的每条分到哪、发出的每条是哪一种（回执、结果、补发、指令的回答、没派出的说明）、哪个组第几轮，都由这里作为参数传过去，记进连接与收发的[消息记录](/docs/qq)。

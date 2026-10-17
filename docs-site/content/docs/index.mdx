@@ -4,6 +4,8 @@ description: QQ 官方机器人当私聊通道：在手机 QQ 上给本机 agent
 full: true
 ---
 
+import { SeamMap } from './_shared/seam-map/seam-map'
+
 这个仓做一个 gwb 插件 `@godcreator/gwb-qq-bot`（`plugins/qq-bot/`），提供一个服务 `gwbQqBot`。它做两件方向相反的事：
 
 - **派任务**：人 → 工作台 → agent → 人。私聊里的一句话按斜杠命令分到一个任务组，交给 claude-agent 在组的目录里做，这一轮结束后把 agent 的最后一条回复发回原私聊
@@ -112,7 +114,7 @@ full: true
 | 区 | 在哪 | 写什么 |
 | --- | --- | --- |
 | 现状 | `content/docs/` | 本页；三块各一个目录（[连接与收发](/docs/qq)、[通知](/docs/notify)、[派任务](/docs/dispatch)，聊天表在派任务目录下）；[术语表](/docs/glossary)；仓根 README / AGENTS / CLAUDE 与随包 SKILL.md 的正本在 `content/docs/outputs/` |
-| 轨迹 | `content/trajectory/` | 每次取舍的理由，一个结论一张卡，只增不改；[星轨盘](/trajectory) |
+| 轨迹 | 站点根 `trajectory/` | 每次取舍的理由，一个结论一张卡，只增不改；[星轨盘](/trajectory) |
 | 未来 | `content/future/` | [路线](/future/roadmap)：还没做的事、各在等什么 |
 
 仓的其余部分：`plugins/qq-bot/` 是唯一的插件包；`probes/` 是自包含的实验材料，每个实验一个目录，照目录里 README 第一行就能重新运行一次。

@@ -1,3 +1,4 @@
-# esbuild（fumadocs-mdx 的依赖）要跑安装脚本才装得下平台二进制，pnpm 默认不跑、直接报错
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@godcreator/*'

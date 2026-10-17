@@ -4,6 +4,8 @@ description: 和 QQ 开放平台打交道的全部：网关长连接、access to
 full: true
 ---
 
+import { SeamMap } from '../_shared/seam-map/seam-map'
+
 源码在 `plugins/qq-bot/src/qq/`。这一块只管「和 QQ 怎么收发」：收到的私聊交给装配，发什么由调用方决定，怎么发由这里决定。
 它不 import 通知与派任务；那两块经装配传进来的函数、以及这里导出的类用它。
 

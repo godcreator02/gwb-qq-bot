@@ -4,6 +4,8 @@ description: 主动私聊主人：服务方法 gwbQqBot.notify 与命令 qq-bot.
 full: true
 ---
 
+import { SeamMap } from '../_shared/seam-map/seam-map'
+
 源码在 `plugins/qq-bot/src/notify/`，只有一个文件。方向是工作台 → 主人：别的插件（协作站的巡检、gitea-issues）调 `notify` 主动私聊这台机器的主人，只发不收。
 它不 import 派任务，只 import 连接与收发的类型；发消息的函数由装配传进来。
 

@@ -1,0 +1,28 @@
+/*
+ * RegistrationLife 这一页自己的画面：三块并排的卡片、注册表的条目、私聊气泡。
+ * 外壳、控制条、卡片、胶囊的样式与颜色变量（--dx-*）由 @godcreator/explainer 提供。
+ */
+
+/* 窄屏上下排；容器够宽时三块并排 */
+.rl-grid { display: grid; gap: 12px; }
+@container (min-width: 760px) {
+  .rl-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+}
+
+.rl-body { display: grid; gap: 8px; justify-items: start; padding: 10px 12px 12px; min-width: 0; }
+.rl-dim { color: var(--dx-dim); font-size: 13px; }
+.rl-call {
+  max-width: 100%; overflow-wrap: anywhere; font-size: 12.5px; padding: 4px 8px; border-radius: 8px;
+  background: color-mix(in srgb, var(--dx-violet) 10%, var(--dx-surface)); border: 1px solid var(--dx-line);
+  animation: dx-pop .35s ease-out both;
+}
+.rl-entry { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; animation: dx-pop .35s ease-out both; }
+
+.rl-thread { display: grid; gap: 10px; padding: 10px 12px 12px; }
+.rl-bubble { max-width: 92%; overflow-wrap: anywhere; font-size: 13.5px; line-height: 1.55; animation: dx-pop .35s ease-out both; }
+.rl-in {
+  justify-self: end; padding: 7px 11px; border-radius: 12px; border-bottom-right-radius: 4px;
+  background: color-mix(in srgb, var(--dx-accent) 10%, var(--dx-surface));
+  border: 1px solid color-mix(in srgb, var(--dx-accent) 30%, transparent);
+}
+.rl-out { justify-self: start; }
